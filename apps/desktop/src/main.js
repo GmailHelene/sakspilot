@@ -629,5 +629,56 @@ ipcMain.handle('agent:stop-work-session', () => { stopWorkSession(); return true
 ipcMain.handle('agent:toggle-pause', () => { togglePause(); return true; });
 ipcMain.handle('agent:sync-now', async () => { await syncSessions(); return true; });
 
+// Åpne lokal mappe i Windows Explorer
+ipcMain.handle('shell:open-folder', async (_e, folderPath) => {
+  if (!folderPath) return { ok: false, error: 'Ingen sti oppgitt' };
+  try {
+    const result = await shell.openPath(folderPath);
+    if (result) return { ok: false, error: result };
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
+// Åpne URL i et eget Sakspilot-vindu (med vår chrome) istedenfor browser
+const externalWindows = new Map();
+ipcMain.handle('shell:open-in-window', async (_e, url, label) => {
+  // Hvis allerede åpent med samme URL, bring til front
+  if (externalWindows.has(url)) {
+    const w = externalWindows.get(url);
+    if (!w.isDestroyed()) {
+      w.show();
+      w.focus();
+      return { ok: true };
+    }
+    externalWindows.delete(url);
+  }
+
+  const win = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    title: `Sakspilot — ${label || url}`,
+    autoHideMenuBar: false,
+    icon: path.join(__dirname, '..', 'assets', 'icon.png'),
+    backgroundColor: '#FAFAF7',
+    webPreferences: { contextIsolation: true, nodeIntegration: false },
+  });
+
+  win.loadURL(url).catch((err) => {
+    win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(`
+      <body style="font-family:system-ui;padding:40px;background:#FAFAF7;">
+        <h1 style="color:#9D0208">Kunne ikke åpne ${label || 'siden'}</h1>
+        <p>${err.message}</p>
+        <button onclick="window.location='${url}'">Prøv igjen</button>
+      </body>
+    `));
+  });
+
+  externalWindows.set(url, win);
+  win.on('closed', () => externalWindows.delete(url));
+  return { ok: true };
+});
+
 // Oppdater tray-menyen hvert 15. sekund for å holde elapsed-tid fersk
 setInterval(() => updateTrayMenu(), 15000);

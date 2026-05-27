@@ -5,6 +5,9 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('sakspilot', {
+  // Markør så web-UI vet at den kjører i Sakspilot Desktop og ikke browser
+  isDesktop: true,
+
   getSettings: () => ipcRenderer.invoke('settings:get-all'),
   setSetting: (key, value) => ipcRenderer.invoke('settings:set', key, value),
   login: (apiUrl, email, password) =>
@@ -18,4 +21,10 @@ contextBridge.exposeInMainWorld('sakspilot', {
   stopWorkSession: () => ipcRenderer.invoke('agent:stop-work-session'),
   togglePause: () => ipcRenderer.invoke('agent:toggle-pause'),
   syncNow: () => ipcRenderer.invoke('agent:sync-now'),
+
+  // Filsystem (kun Electron — åpner mapper i Windows Explorer)
+  openFolder: (path) => ipcRenderer.invoke('shell:open-folder', path),
+
+  // Åpne URL i embedded Sakspilot-vindu istedenfor browser
+  openInWindow: (url, label) => ipcRenderer.invoke('shell:open-in-window', url, label),
 });

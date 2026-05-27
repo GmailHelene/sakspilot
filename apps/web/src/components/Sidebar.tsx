@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Home, LayoutGrid, Users, Calendar, GanttChartSquare, Plus, X,
-  ExternalLink, Trash2,
+  ExternalLink, Trash2, StickyNote, FolderOpen, Folder,
   type LucideIcon,
 } from 'lucide-react';
 import { tokens } from '@/lib/tokens';
@@ -28,6 +28,27 @@ interface Shortcut {
   icon: string;
 }
 
+interface FolderShortcut {
+  id: string;
+  label: string;
+  path: string;
+}
+
+const FOLDER_STORAGE = 'sakspilot_folder_shortcuts';
+
+// Sjekk om vi kjører i Sakspilot Desktop (Electron) — gir tilgang til
+// shell.openFolder og openInWindow via preload-bridge
+function getDesktopAPI(): {
+  isDesktop: boolean;
+  openFolder?: (path: string) => Promise<{ ok: boolean; error?: string }>;
+  openInWindow?: (url: string, label: string) => Promise<{ ok: boolean }>;
+} {
+  if (typeof window === 'undefined') return { isDesktop: false };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const api = (window as any).sakspilot;
+  return api && api.isDesktop ? api : { isDesktop: false };
+}
+
 const DEFAULT_SHORTCUTS: Shortcut[] = [
   { id: 'tripletex', label: 'Tripletex', url: 'https://tripletex.no', icon: '💼' },
   { id: 'fiken', label: 'Fiken', url: 'https://fiken.no', icon: '💰' },
@@ -42,17 +63,24 @@ const STORAGE_KEY = 'sakspilot_shortcuts';
 export default function Sidebar() {
   const pathname = usePathname();
   const [shortcuts, setShortcuts] = useState<Shortcut[]>(DEFAULT_SHORTCUTS);
+  const [folders, setFolders] = useState<FolderShortcut[]>([]);
   const [addOpen, setAddOpen] = useState(false);
+  const [addFolderOpen, setAddFolderOpen] = useState(false);
   const [newLabel, setNewLabel] = useState('');
   const [newUrl, setNewUrl] = useState('');
   const [newIcon, setNewIcon] = useState('🔗');
+  const [newFolderLabel, setNewFolderLabel] = useState('');
+  const [newFolderPath, setNewFolderPath] = useState('');
   const [mounted, setMounted] = useState(false);
+  const desktop = getDesktopAPI();
 
   useEffect(() => {
     setMounted(true);
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) setShortcuts(JSON.parse(stored));
+      const storedFolders = localStorage.getItem(FOLDER_STORAGE);
+      if (storedFolders) setFolders(JSON.parse(storedFolders));
     } catch {}
   }, []);
 
@@ -61,6 +89,51 @@ export default function Sidebar() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch {}
+  }
+
+  function persistFolders(next: FolderShortcut[]) {
+    setFolders(next);
+    try {
+      localStorage.setItem(FOLDER_STORAGE, JSON.stringify(next));
+    } catch {}
+  }
+
+  function addFolder() {
+    if (!newFolderPath.trim()) return;
+    persistFolders([
+      ...folders,
+      {
+        id: 'f-' + Date.now(),
+        label: newFolderLabel.trim() || newFolderPath.split(/[\\/]/).pop() || 'Mappe',
+        path: newFolderPath.trim(),
+      },
+    ]);
+    setNewFolderLabel('');
+    setNewFolderPath('');
+    setAddFolderOpen(false);
+  }
+
+  function deleteFolder(id: string) {
+    persistFolders(folders.filter((f) => f.id !== id));
+  }
+
+  async function openFolder(folderPath: string) {
+    if (desktop.isDesktop && desktop.openFolder) {
+      const res = await desktop.openFolder(folderPath);
+      if (!res.ok) alert(`Kunne ikke åpne mappa: ${res.error}`);
+    } else {
+      alert(
+        'Mappe-snarveier krever Sakspilot Desktop (.exe-versjonen). I nettleseren kan vi ikke åpne mapper på datamaskinen din pga sikkerhetsbegrensninger.'
+      );
+    }
+  }
+
+  async function openShortcut(e: React.MouseEvent, s: Shortcut) {
+    if (desktop.isDesktop && desktop.openInWindow) {
+      e.preventDefault();
+      await desktop.openInWindow(s.url, s.label);
+    }
+    // I browser: la default-oppførsel (target="_blank") fungere
   }
 
   function addShortcut() {
@@ -86,6 +159,7 @@ export default function Sidebar() {
     { href: '/klienter', label: 'Klienter', Icon: Users },
     { href: '/kalender', label: 'Kalender', Icon: Calendar },
     { href: '/gantt', label: 'Tidslinje', Icon: GanttChartSquare },
+    { href: '/klistrelapper', label: 'Klistrelapper', Icon: StickyNote },
   ];
 
   return (
@@ -166,6 +240,7 @@ export default function Sidebar() {
                 href={s.url}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={(e) => openShortcut(e, s)}
                 style={{ ...itemStyle, paddingRight: 30 }}
               >
                 <ExternalLink size={14} strokeWidth={2} style={{ color: tokens.color.textMuted, flexShrink: 0 }} />
@@ -182,6 +257,76 @@ export default function Sidebar() {
               </button>
             </div>
           ))}
+      </SidebarSection>
+
+      {/* Seksjon: Mapper (Electron-only fungerer fullt) */}
+      <SidebarSection
+        title="Mine mapper"
+        action={
+          mounted && (
+            <button
+              onClick={() => setAddFolderOpen(!addFolderOpen)}
+              style={addButtonStyle}
+              title="Legg til mappe"
+            >
+              {addFolderOpen ? <X size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
+            </button>
+          )
+        }
+      >
+        {addFolderOpen && (
+          <div style={addFormStyle}>
+            <input
+              type="text"
+              value={newFolderLabel}
+              onChange={(e) => setNewFolderLabel(e.target.value)}
+              placeholder="Navn (valgfritt)"
+              style={inputStyle}
+            />
+            <input
+              type="text"
+              value={newFolderPath}
+              onChange={(e) => setNewFolderPath(e.target.value)}
+              placeholder={'C:\\Jobb\\Sakspilot'}
+              style={{ ...inputStyle, marginTop: 6, fontFamily: tokens.font.mono, fontSize: 11 }}
+              onKeyDown={(e) => e.key === 'Enter' && addFolder()}
+            />
+            {!desktop.isDesktop && (
+              <div style={{ fontSize: 10, color: tokens.color.textSubtle, marginTop: 6, lineHeight: 1.3 }}>
+                ⓘ Krever Sakspilot Desktop for å åpne mappa.
+              </div>
+            )}
+            <button onClick={addFolder} style={saveButtonStyle}>Lagre</button>
+          </div>
+        )}
+
+        {mounted && folders.length === 0 && !addFolderOpen && (
+          <div style={{ padding: '4px 12px', fontSize: 11, color: tokens.color.textSubtle }}>
+            Legg til mappe-snarveier
+          </div>
+        )}
+
+        {mounted && folders.map((f) => (
+          <div key={f.id} style={{ position: 'relative' }}>
+            <button
+              onClick={() => openFolder(f.path)}
+              style={{ ...itemStyle, paddingRight: 30, width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}
+              title={f.path}
+            >
+              <FolderOpen size={14} strokeWidth={2} style={{ color: tokens.color.gold, flexShrink: 0 }} />
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: tokens.color.text }}>
+                {f.label}
+              </span>
+            </button>
+            <button
+              onClick={() => deleteFolder(f.id)}
+              style={deleteButtonStyle}
+              title="Slett mappe-snarvei"
+            >
+              <Trash2 size={12} strokeWidth={2} />
+            </button>
+          </div>
+        ))}
       </SidebarSection>
 
       <div style={footerStyle}>

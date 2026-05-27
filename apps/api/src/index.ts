@@ -25,6 +25,7 @@ import authRouter from "./routes/auth";
 import sakerRouter from "./routes/saker";
 import klienterRouter from "./routes/klienter";
 import agentRouter from "./routes/agent";
+import stickiesRouter from "./routes/stickies";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 8001;
@@ -85,6 +86,7 @@ app.use("/auth", authLimiter, authRouter);
 app.use("/saker", sakerRouter);
 app.use("/klienter", klienterRouter);
 app.use("/agent", agentRouter);
+app.use("/stickies", stickiesRouter);
 
 // ── Root ────────────────────────────────────────────────────────
 app.get("/", (_req: Request, res: Response) => {

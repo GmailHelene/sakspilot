@@ -91,6 +91,7 @@ model Organization {
   saker    Sak[]
   invoices Invoice[]
   auditLogs AuditLog[]
+  stickyNotes StickyNote[]
 
   @@map("organizations")
 }
@@ -112,6 +113,7 @@ model User {
   auditLogs    AuditLog[]
   agentSessions AgentSession[]
   graphAccount GraphAccount?
+  stickyNotes  StickyNote[]
 
   @@index([organizationId])
   @@map("users")
@@ -162,6 +164,7 @@ model Sak {
   milestones     Milestone[]
   emailLinks     EmailLink[]
   invoices       Invoice[]
+  stickyNotes    StickyNote[]
 
   @@index([organizationId, status])
   @@index([organizationId, clientId])
@@ -306,6 +309,27 @@ model GraphAccount {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("graph_accounts")
+}
+
+model StickyNote {
+  id              String   @id @default(uuid())
+  organizationId  String   @map("organization_id")
+  userId          String?  @map("user_id")
+  sakId           String?  @map("sak_id")
+  content         String   @db.Text
+  color           String   @default("yellow")
+  pinned          Boolean  @default(false)
+  sortOrder       Int      @default(0) @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  sak          Sak?         @relation(fields: [sakId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, pinned, updatedAt])
+  @@index([sakId])
+  @@map("sticky_notes")
 }
 
 model AuditLog {
