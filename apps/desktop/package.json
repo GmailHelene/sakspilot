@@ -10,8 +10,8 @@
   "main": "src/main.js",
   "scripts": {
     "postinstall": "node scripts/generate-icon.js",
-    "start": "electron .",
-    "dev": "electron . --dev",
+    "start": "node start-electron.js",
+    "dev": "node start-electron.js --dev",
     "build:exe": "electron-builder --win --x64 --config.electronVersion=30.5.1",
     "poc": "node src/poc-logger.js",
     "poc:fast": "node src/poc-logger.js --interval=3 --duration=120",
