@@ -2,8 +2,43 @@
 
 Tray-app for Windows som logger aktivt vindu og kobler det til riktig sak.
 
-**Status: POC** (proof of concept). Full Electron-app kommer i uke 5–6 etter
-fase 0-validering.
+**Status:** Electron-app v0.0.1 + frittstående POC-script. Pakker som .exe
+via `npm run build:exe` (krever ekstra setup for code signing).
+
+## Kjøre Electron-appen
+
+```bash
+cd C:\Users\helen\Desktop\sakspilot\apps\desktop
+npm install         # første gang
+npm start           # starter tray-app
+```
+
+Ved første start dukker innstillinger-vinduet opp. Logg inn med samme
+e-post + passord som på sakspilot-web. Etter innlogging kjører agenten
+i bakgrunnen som tray-ikon (nederst til høyre, ved klokken).
+
+Høyreklikk på tray-ikonet for å se:
+- Status (hvilken sak du jobber på akkurat nå)
+- Antall sessions logget
+- Pause / Fortsett
+- Åpne web-dashboardet
+- Synk nå
+- Innstillinger
+- Logg ut
+
+## Bygg som installerbar .exe
+
+```bash
+npm run build:exe
+```
+
+Lager `release/Sakspilot Setup 0.0.1.exe` som kan installeres på
+Windows-maskiner. Krever ikke admin-rettigheter (per-user install).
+
+For ekte distribusjon trenger appen et **code signing-sertifikat**
+(~3000 kr/år hos Sectigo) — ellers vil SmartScreen advare brukere.
+
+---
 
 ## POC — bevis at vinduslogging fungerer
 

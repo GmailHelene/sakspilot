@@ -1,16 +1,46 @@
 {
   "name": "@sakspilot/desktop",
-  "version": "0.0.1-poc",
+  "version": "0.0.1",
   "private": true,
-  "description": "Sakspilot desktop-agent — vinduslogging og sak-matching",
-  "main": "src/poc-logger.js",
+  "description": "Sakspilot desktop-agent — tray-app for Windows som logger aktivt vindu og kobler til sak",
+  "main": "src/main.js",
   "scripts": {
+    "postinstall": "node scripts/generate-icon.js",
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build:exe": "electron-builder --win --x64",
     "poc": "node src/poc-logger.js",
     "poc:fast": "node src/poc-logger.js --interval=3 --duration=120",
     "poc:matching": "node src/poc-logger.js --rules",
     "diagnose": "node src/diagnose.js"
   },
   "dependencies": {
+    "electron-store": "^8.2.0",
     "get-windows": "^9.2.0"
+  },
+  "devDependencies": {
+    "electron": "^30.5.1",
+    "electron-builder": "^25.0.5"
+  },
+  "build": {
+    "appId": "no.helene.sakspilot",
+    "productName": "Sakspilot",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/tray-icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
