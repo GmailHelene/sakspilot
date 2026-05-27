@@ -1,0 +1,815 @@
+'use client';
+
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
+import Header from '@/components/Header';
+import { tokens } from '@/lib/tokens';
+import { api, isTokenValid, ApiError } from '@/lib/api';
+
+// ── Typer ────────────────────────────────────────────────────────
+type SakStatus =
+  | 'ikke_pabegynt'
+  | 'pagaaende'
+  | 'venter_kunde'
+  | 'venter_3part'
+  | 'ferdig'
+  | 'arkivert';
+
+type MatchingRuleType = 'title' | 'path' | 'app' | 'email';
+
+interface MatchingRule {
+  id: string;
+  type: MatchingRuleType;
+  pattern: string;
+  priority: number;
+  enabled: boolean;
+}
+
+interface Milestone {
+  id: string;
+  title: string;
+  dueDate: string;
+  completedAt: string | null;
+  notifyDaysBefore: number;
+}
+
+interface Sak {
+  id: string;
+  title: string;
+  status: SakStatus;
+  saksnummer: string | null;
+  description: string | null;
+  deadline: string | null;
+  hourlyRate: number | null;
+  folderPath: string | null;
+  createdAt: string;
+  closedAt: string | null;
+  client: { id: string; name: string } | null;
+  matchingRules: MatchingRule[];
+  milestones: Milestone[];
+  _count: { timeEntries: number; emailLinks: number };
+}
+
+interface TimeSummary {
+  entryCount: number;
+  totalHours: number;
+  billableHours: number;
+  totalAmount: number;
+  lastEntryAt: string | null;
+}
+
+const STATUS_OPTIONS: { value: SakStatus; label: string; color: string }[] = [
+  { value: 'ikke_pabegynt', label: 'Ikke påbegynt', color: '#94A3B8' },
+  { value: 'pagaaende', label: 'Pågår', color: '#2D6A4F' },
+  { value: 'venter_kunde', label: 'Venter på kunde', color: '#E9C46A' },
+  { value: 'venter_3part', label: 'Venter på 3.part', color: '#D4A017' },
+  { value: 'ferdig', label: 'Ferdig', color: '#1E3A5F' },
+  { value: 'arkivert', label: 'Arkivert', color: '#CBD5E1' },
+];
+
+const RULE_TYPE_LABELS: Record<MatchingRuleType, string> = {
+  title: 'Vindustittel',
+  path: 'Filsti',
+  app: 'Applikasjon',
+  email: 'E-postavsender',
+};
+
+// ── Komponent ────────────────────────────────────────────────────
+export default function SakDetailPage() {
+  const router = useRouter();
+  const params = useParams<{ id: string }>();
+  const sakId = params.id;
+
+  const [sak, setSak] = useState<Sak | null>(null);
+  const [summary, setSummary] = useState<TimeSummary | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    try {
+      const [s, sum] = await Promise.all([
+        api<Sak>(`/saker/${sakId}`),
+        api<TimeSummary>(`/saker/${sakId}/time-summary`),
+      ]);
+      setSak(s);
+      setSummary(sum);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Ukjent feil');
+    }
+  }, [sakId]);
+
+  useEffect(() => {
+    if (!isTokenValid()) {
+      router.replace('/login');
+      return;
+    }
+    refresh();
+  }, [router, refresh]);
+
+  async function handleStatusChange(newStatus: SakStatus) {
+    await api(`/saker/${sakId}`, { method: 'PATCH', body: { status: newStatus } });
+    refresh();
+  }
+
+  async function handleDelete() {
+    if (
+      !confirm(
+        'Sletter saken permanent. Time-entries beholdes (frikoblet). Sikker?'
+      )
+    )
+      return;
+    await api(`/saker/${sakId}`, { method: 'DELETE' });
+    router.push('/saker');
+  }
+
+  if (error) {
+    return (
+      <>
+        <Header />
+        <main style={pageStyle}>
+          <div style={{ padding: 24, color: tokens.color.red }}>Feil: {error}</div>
+        </main>
+      </>
+    );
+  }
+
+  if (!sak) {
+    return (
+      <>
+        <Header />
+        <main style={pageStyle}>
+          <div style={{ padding: 24, color: tokens.color.textMuted }}>Henter sak…</div>
+        </main>
+      </>
+    );
+  }
+
+  const statusOpt = STATUS_OPTIONS.find((s) => s.value === sak.status)!;
+
+  return (
+    <>
+      <Header />
+      <main style={pageStyle}>
+        <div style={{ maxWidth: 960, margin: '0 auto', padding: 24 }}>
+          <Link
+            href="/saker"
+            style={{ color: tokens.color.textMuted, fontSize: 14, display: 'inline-block', marginBottom: 12 }}
+          >
+            ← Tilbake til saker
+          </Link>
+
+          {/* ── Hovedheader ── */}
+          <div
+            style={{
+              background: tokens.color.white,
+              padding: 24,
+              borderRadius: tokens.radius.lg,
+              border: `1px solid ${tokens.color.border}`,
+              marginBottom: 16,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                gap: 16,
+                flexWrap: 'wrap',
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 280 }}>
+                <h1 style={{ fontSize: 26, color: tokens.color.navy, marginBottom: 8 }}>
+                  {sak.title}
+                </h1>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: 16,
+                    fontSize: 14,
+                    color: tokens.color.textMuted,
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  {sak.client && <span>👤 {sak.client.name}</span>}
+                  {sak.saksnummer && <span># {sak.saksnummer}</span>}
+                  {sak.hourlyRate && (
+                    <span>💰 {sak.hourlyRate.toLocaleString('nb-NO')} kr/t</span>
+                  )}
+                  {sak.deadline && (
+                    <span>
+                      📅 frist {new Date(sak.deadline).toLocaleDateString('nb-NO')}
+                    </span>
+                  )}
+                </div>
+                {sak.folderPath && (
+                  <div
+                    style={{
+                      marginTop: 8,
+                      fontSize: 13,
+                      color: tokens.color.textSubtle,
+                      fontFamily: tokens.font.mono,
+                    }}
+                  >
+                    📁 {sak.folderPath}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                <select
+                  value={sak.status}
+                  onChange={(e) => handleStatusChange(e.target.value as SakStatus)}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: tokens.radius.sm,
+                    border: `2px solid ${statusOpt.color}`,
+                    background: tokens.color.white,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    color: statusOpt.color,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {STATUS_OPTIONS.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleDelete}
+                  style={{
+                    fontSize: 12,
+                    color: tokens.color.red,
+                    padding: '4px 8px',
+                  }}
+                >
+                  Slett sak
+                </button>
+              </div>
+            </div>
+
+            {sak.description && (
+              <div
+                style={{
+                  marginTop: 16,
+                  paddingTop: 16,
+                  borderTop: `1px solid ${tokens.color.border}`,
+                  whiteSpace: 'pre-wrap',
+                  color: tokens.color.text,
+                  fontSize: 14,
+                }}
+              >
+                {sak.description}
+              </div>
+            )}
+          </div>
+
+          {/* ── Tidssammendrag ── */}
+          <SectionCard title="Tidssammendrag">
+            {summary && summary.entryCount > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16 }}>
+                <Stat label="Total tid" value={`${summary.totalHours.toFixed(1)} t`} />
+                <Stat label="Fakturerbart" value={`${summary.billableHours.toFixed(1)} t`} />
+                <Stat
+                  label="Estimert beløp"
+                  value={
+                    summary.totalAmount > 0
+                      ? `${summary.totalAmount.toLocaleString('nb-NO')} kr`
+                      : '—'
+                  }
+                />
+                <Stat label="Entries" value={String(summary.entryCount)} />
+              </div>
+            ) : (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: 24,
+                  color: tokens.color.textMuted,
+                  fontSize: 14,
+                }}
+              >
+                Ingen tid logget enda. Installer desktop-agenten — den fyller dette automatisk
+                når den oppdager at du jobber på saken (matching-regler avgjør koblingen).
+              </div>
+            )}
+          </SectionCard>
+
+          {/* ── Matching-regler ── */}
+          <MatchingRulesSection sak={sak} onChange={refresh} />
+
+          {/* ── Frister ── */}
+          <MilestonesSection sak={sak} onChange={refresh} />
+
+          {/* ── Metadata ── */}
+          <div
+            style={{
+              padding: 12,
+              fontSize: 12,
+              color: tokens.color.textSubtle,
+              textAlign: 'center',
+            }}
+          >
+            Opprettet {new Date(sak.createdAt).toLocaleString('nb-NO')}
+            {sak.closedAt &&
+              ` · Avsluttet ${new Date(sak.closedAt).toLocaleString('nb-NO')}`}
+          </div>
+        </div>
+      </main>
+    </>
+  );
+}
+
+// ── Underkomponenter ─────────────────────────────────────────────
+
+function SectionCard({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        background: tokens.color.white,
+        borderRadius: tokens.radius.lg,
+        border: `1px solid ${tokens.color.border}`,
+        marginBottom: 16,
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          padding: '14px 20px',
+          borderBottom: `1px solid ${tokens.color.border}`,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <h2 style={{ fontSize: 16, color: tokens.color.navy }}>{title}</h2>
+        {action}
+      </div>
+      <div style={{ padding: 20 }}>{children}</div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 12, color: tokens.color.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 700, color: tokens.color.navy }}>{value}</div>
+    </div>
+  );
+}
+
+// ── Matching-regler ──────────────────────────────────────────────
+
+function MatchingRulesSection({ sak, onChange }: { sak: Sak; onChange: () => void }) {
+  const [showForm, setShowForm] = useState(false);
+  const [type, setType] = useState<MatchingRuleType>('title');
+  const [pattern, setPattern] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  async function addRule(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSaving(true);
+    try {
+      await api(`/saker/${sak.id}/matching-rules`, {
+        method: 'POST',
+        body: { type, pattern: pattern.trim() },
+      });
+      setPattern('');
+      setShowForm(false);
+      onChange();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Ukjent feil');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function deleteRule(ruleId: string) {
+    if (!confirm('Sletter regelen?')) return;
+    await api(`/saker/${sak.id}/matching-rules/${ruleId}`, { method: 'DELETE' });
+    onChange();
+  }
+
+  return (
+    <SectionCard
+      title={`Matching-regler for desktop-agent (${sak.matchingRules.length})`}
+      action={
+        !showForm && (
+          <button
+            onClick={() => setShowForm(true)}
+            style={{
+              color: tokens.color.navy,
+              fontWeight: 600,
+              fontSize: 13,
+              padding: '6px 10px',
+              borderRadius: tokens.radius.sm,
+              background: tokens.color.bgAlt,
+            }}
+          >
+            + Legg til regel
+          </button>
+        )
+      }
+    >
+      <div
+        style={{
+          background: tokens.color.bgAlt,
+          padding: 12,
+          borderRadius: tokens.radius.sm,
+          fontSize: 13,
+          color: tokens.color.textMuted,
+          marginBottom: showForm || sak.matchingRules.length > 0 ? 16 : 0,
+        }}
+      >
+        💡 Når desktop-agenten ser et vindu som matcher en av reglene under,
+        kobles tiden automatisk til denne saken. Eksempel: regel{' '}
+        <code style={inlineCodeStyle}>bygd[øo]y[\s\-_]*12</code> matcher Word-vindu
+        med tittel <em>&quot;Bygdoy-12.docx&quot;</em>.
+      </div>
+
+      {showForm && (
+        <form
+          onSubmit={addRule}
+          style={{
+            background: tokens.color.bg,
+            padding: 16,
+            borderRadius: tokens.radius.md,
+            marginBottom: 16,
+            display: 'grid',
+            gap: 10,
+          }}
+        >
+          {error && (
+            <div style={{ color: tokens.color.red, fontSize: 13 }}>{error}</div>
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 10 }}>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as MatchingRuleType)}
+              style={inputStyle}
+            >
+              <option value="title">Vindustittel</option>
+              <option value="path">Filsti</option>
+              <option value="app">Applikasjon</option>
+              <option value="email">E-postavsender</option>
+            </select>
+            <input
+              type="text"
+              value={pattern}
+              onChange={(e) => setPattern(e.target.value)}
+              placeholder="Regex-mønster, f.eks. bygd[øo]y[\s\-_]*12"
+              style={{ ...inputStyle, fontFamily: tokens.font.mono }}
+              required
+              autoFocus
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              type="submit"
+              disabled={saving}
+              style={{
+                background: tokens.color.navy,
+                color: tokens.color.white,
+                padding: '8px 16px',
+                borderRadius: tokens.radius.sm,
+                fontWeight: 600,
+                fontSize: 13,
+              }}
+            >
+              {saving ? 'Lagrer…' : 'Lagre regel'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowForm(false);
+                setPattern('');
+                setError(null);
+              }}
+              style={{
+                padding: '8px 16px',
+                color: tokens.color.textMuted,
+                fontSize: 13,
+              }}
+            >
+              Avbryt
+            </button>
+          </div>
+        </form>
+      )}
+
+      {sak.matchingRules.length === 0 && !showForm ? (
+        <div style={{ color: tokens.color.textSubtle, fontSize: 13, padding: '8px 0' }}>
+          Ingen regler enda. Desktop-agenten kobler ikke tid til denne saken automatisk
+          før du har lagt til minst én regel.
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: 6 }}>
+          {sak.matchingRules.map((rule) => (
+            <div
+              key={rule.id}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '8px 12px',
+                background: tokens.color.bg,
+                borderRadius: tokens.radius.sm,
+                border: `1px solid ${tokens.color.border}`,
+              }}
+            >
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flex: 1 }}>
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: 10,
+                    background: tokens.color.navy,
+                    color: tokens.color.white,
+                    minWidth: 90,
+                    textAlign: 'center',
+                  }}
+                >
+                  {RULE_TYPE_LABELS[rule.type]}
+                </span>
+                <code style={{ ...inlineCodeStyle, fontSize: 13 }}>{rule.pattern}</code>
+              </div>
+              <button
+                onClick={() => deleteRule(rule.id)}
+                style={{
+                  fontSize: 12,
+                  color: tokens.color.red,
+                  padding: '4px 8px',
+                }}
+              >
+                Slett
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
+// ── Frister ──────────────────────────────────────────────────────
+
+function MilestonesSection({ sak, onChange }: { sak: Sak; onChange: () => void }) {
+  const [showForm, setShowForm] = useState(false);
+  const [title, setTitle] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function addMilestone(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSaving(true);
+    try {
+      await api(`/saker/${sak.id}/milestones`, {
+        method: 'POST',
+        body: { title: title.trim(), dueDate: new Date(dueDate).toISOString() },
+      });
+      setTitle('');
+      setDueDate('');
+      setShowForm(false);
+      onChange();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Ukjent feil');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function toggleComplete(id: string) {
+    await api(`/saker/${sak.id}/milestones/${id}/complete`, { method: 'PATCH' });
+    onChange();
+  }
+
+  async function deleteMilestone(id: string) {
+    if (!confirm('Sletter fristen?')) return;
+    await api(`/saker/${sak.id}/milestones/${id}`, { method: 'DELETE' });
+    onChange();
+  }
+
+  return (
+    <SectionCard
+      title={`Frister (${sak.milestones.length})`}
+      action={
+        !showForm && (
+          <button
+            onClick={() => setShowForm(true)}
+            style={{
+              color: tokens.color.navy,
+              fontWeight: 600,
+              fontSize: 13,
+              padding: '6px 10px',
+              borderRadius: tokens.radius.sm,
+              background: tokens.color.bgAlt,
+            }}
+          >
+            + Legg til frist
+          </button>
+        )
+      }
+    >
+      {showForm && (
+        <form
+          onSubmit={addMilestone}
+          style={{
+            background: tokens.color.bg,
+            padding: 16,
+            borderRadius: tokens.radius.md,
+            marginBottom: 12,
+            display: 'grid',
+            gap: 10,
+          }}
+        >
+          {error && (
+            <div style={{ color: tokens.color.red, fontSize: 13 }}>{error}</div>
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 180px', gap: 10 }}>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder='F.eks. "Innsendt rammesøknad"'
+              style={inputStyle}
+              required
+              autoFocus
+            />
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              style={inputStyle}
+              required
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              type="submit"
+              disabled={saving}
+              style={{
+                background: tokens.color.navy,
+                color: tokens.color.white,
+                padding: '8px 16px',
+                borderRadius: tokens.radius.sm,
+                fontWeight: 600,
+                fontSize: 13,
+              }}
+            >
+              {saving ? 'Lagrer…' : 'Lagre frist'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowForm(false);
+                setTitle('');
+                setDueDate('');
+                setError(null);
+              }}
+              style={{
+                padding: '8px 16px',
+                color: tokens.color.textMuted,
+                fontSize: 13,
+              }}
+            >
+              Avbryt
+            </button>
+          </div>
+        </form>
+      )}
+
+      {sak.milestones.length === 0 && !showForm ? (
+        <div style={{ color: tokens.color.textSubtle, fontSize: 13 }}>
+          Ingen frister enda.
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: 6 }}>
+          {sak.milestones.map((m) => {
+            const due = new Date(m.dueDate);
+            const daysUntil = Math.ceil((due.getTime() - Date.now()) / 86400000);
+            const isOverdue = !m.completedAt && daysUntil < 0;
+            const isSoon = !m.completedAt && daysUntil >= 0 && daysUntil <= 7;
+            return (
+              <div
+                key={m.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '10px 12px',
+                  background: tokens.color.bg,
+                  borderRadius: tokens.radius.sm,
+                  border: `1px solid ${isOverdue ? tokens.color.red : tokens.color.border}`,
+                  opacity: m.completedAt ? 0.6 : 1,
+                }}
+              >
+                <button
+                  onClick={() => toggleComplete(m.id)}
+                  title={m.completedAt ? 'Marker ugjort' : 'Marker fullført'}
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 12,
+                    border: `2px solid ${m.completedAt ? tokens.color.green : tokens.color.border}`,
+                    background: m.completedAt ? tokens.color.green : 'transparent',
+                    color: tokens.color.white,
+                    fontSize: 14,
+                    lineHeight: 1,
+                    flexShrink: 0,
+                  }}
+                >
+                  {m.completedAt ? '✓' : ''}
+                </button>
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 500,
+                      textDecoration: m.completedAt ? 'line-through' : 'none',
+                    }}
+                  >
+                    {m.title}
+                  </div>
+                  <div style={{ fontSize: 12, color: tokens.color.textMuted }}>
+                    {due.toLocaleDateString('nb-NO', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                    {m.completedAt ? (
+                      <span style={{ color: tokens.color.green }}>
+                        {' '}
+                        · ✓ fullført{' '}
+                        {new Date(m.completedAt).toLocaleDateString('nb-NO')}
+                      </span>
+                    ) : isOverdue ? (
+                      <span style={{ color: tokens.color.red, fontWeight: 600 }}>
+                        {' '}
+                        · {Math.abs(daysUntil)} dager forsinket
+                      </span>
+                    ) : isSoon ? (
+                      <span style={{ color: tokens.color.gold, fontWeight: 600 }}>
+                        {' '}
+                        · om {daysUntil} dager
+                      </span>
+                    ) : (
+                      <span> · om {daysUntil} dager</span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => deleteMilestone(m.id)}
+                  style={{ fontSize: 12, color: tokens.color.red, padding: '4px 8px' }}
+                >
+                  Slett
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
+// ── Felles stiler ────────────────────────────────────────────────
+
+const pageStyle: React.CSSProperties = {
+  minHeight: 'calc(100vh - 60px)',
+  background: tokens.color.bg,
+};
+
+const inputStyle: React.CSSProperties = {
+  padding: '8px 10px',
+  borderRadius: tokens.radius.sm,
+  border: `1px solid ${tokens.color.border}`,
+  fontSize: 14,
+  background: tokens.color.white,
+};
+
+const inlineCodeStyle: React.CSSProperties = {
+  fontFamily: tokens.font.mono,
+  background: tokens.color.white,
+  padding: '2px 6px',
+  borderRadius: 4,
+  border: `1px solid ${tokens.color.border}`,
+  fontSize: 12,
+  color: tokens.color.text,
+};

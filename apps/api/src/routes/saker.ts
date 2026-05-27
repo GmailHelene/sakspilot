@@ -218,4 +218,183 @@ router.delete("/:id", async (req: Request, res: Response) => {
   return res.json({ ok: true });
 });
 
+// ────────────────────────────────────────────────────────────────
+// Nested: matching-regler (per sak)
+//
+// Disse er kjernen i passiv tidsregistrering: desktop-agenten henter
+// reglene via GET /agent/rules og evaluerer dem lokalt på hver
+// vinduslogging. Hvis tittel/sti matcher → tid kobles til sak.
+// ────────────────────────────────────────────────────────────────
+
+const MatchingRuleTypeEnum = z.enum(["title", "path", "app", "email"]);
+
+const CreateMatchingRuleSchema = z.object({
+  type: MatchingRuleTypeEnum,
+  pattern: z.string().min(1, "Mønster kreves").max(500),
+  priority: z.number().int().min(0).max(1000).optional(),
+  enabled: z.boolean().optional(),
+});
+
+// Hjelpefunksjon: bekreft at saken eksisterer i innloggets organisasjon
+async function ensureSakOwnership(
+  req: Request,
+  res: Response
+): Promise<string | null> {
+  const session = req.session!;
+  const sak = await prisma.sak.findFirst({
+    where: { id: req.params.sakId, organizationId: session.organizationId },
+    select: { id: true },
+  });
+  if (!sak) {
+    res.status(404).json({ error: "Sak ikke funnet" });
+    return null;
+  }
+  return sak.id;
+}
+
+router.post("/:sakId/matching-rules", async (req: Request, res: Response) => {
+  const parsed = CreateMatchingRuleSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: "Ugyldig input",
+      details: parsed.error.flatten().fieldErrors,
+    });
+  }
+
+  const sakId = await ensureSakOwnership(req, res);
+  if (!sakId) return;
+
+  // Valider at regex-mønsteret er gyldig — vi gjør det også i agent,
+  // men best å fange feil her så brukeren ikke får knust desktop-agent.
+  try {
+    // eslint-disable-next-line no-new
+    new RegExp(parsed.data.pattern, "i");
+  } catch {
+    return res
+      .status(400)
+      .json({ error: "Mønsteret er ikke et gyldig regex-uttrykk" });
+  }
+
+  const rule = await prisma.matchingRule.create({
+    data: { ...parsed.data, sakId },
+  });
+
+  return res.status(201).json(rule);
+});
+
+router.delete(
+  "/:sakId/matching-rules/:ruleId",
+  async (req: Request, res: Response) => {
+    const sakId = await ensureSakOwnership(req, res);
+    if (!sakId) return;
+
+    const rule = await prisma.matchingRule.findFirst({
+      where: { id: req.params.ruleId, sakId },
+      select: { id: true },
+    });
+    if (!rule) return res.status(404).json({ error: "Regel ikke funnet" });
+
+    await prisma.matchingRule.delete({ where: { id: rule.id } });
+    return res.json({ ok: true });
+  }
+);
+
+// ────────────────────────────────────────────────────────────────
+// Nested: milepæler/frister (per sak)
+// ────────────────────────────────────────────────────────────────
+
+const CreateMilestoneSchema = z.object({
+  title: z.string().min(1, "Tittel kreves").max(200),
+  dueDate: z.coerce.date(),
+  notifyDaysBefore: z.number().int().min(0).max(60).optional(),
+});
+
+router.post("/:sakId/milestones", async (req: Request, res: Response) => {
+  const parsed = CreateMilestoneSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: "Ugyldig input",
+      details: parsed.error.flatten().fieldErrors,
+    });
+  }
+
+  const sakId = await ensureSakOwnership(req, res);
+  if (!sakId) return;
+
+  const milestone = await prisma.milestone.create({
+    data: { ...parsed.data, sakId },
+  });
+
+  return res.status(201).json(milestone);
+});
+
+router.patch(
+  "/:sakId/milestones/:milestoneId/complete",
+  async (req: Request, res: Response) => {
+    const sakId = await ensureSakOwnership(req, res);
+    if (!sakId) return;
+
+    const milestone = await prisma.milestone.findFirst({
+      where: { id: req.params.milestoneId, sakId },
+    });
+    if (!milestone) return res.status(404).json({ error: "Frist ikke funnet" });
+
+    const updated = await prisma.milestone.update({
+      where: { id: milestone.id },
+      data: { completedAt: milestone.completedAt ? null : new Date() },
+    });
+    return res.json(updated);
+  }
+);
+
+router.delete(
+  "/:sakId/milestones/:milestoneId",
+  async (req: Request, res: Response) => {
+    const sakId = await ensureSakOwnership(req, res);
+    if (!sakId) return;
+
+    const milestone = await prisma.milestone.findFirst({
+      where: { id: req.params.milestoneId, sakId },
+      select: { id: true },
+    });
+    if (!milestone) return res.status(404).json({ error: "Frist ikke funnet" });
+
+    await prisma.milestone.delete({ where: { id: milestone.id } });
+    return res.json({ ok: true });
+  }
+);
+
+// ────────────────────────────────────────────────────────────────
+// Tidssammendrag per sak (lett rapport)
+// ────────────────────────────────────────────────────────────────
+
+router.get("/:sakId/time-summary", async (req: Request, res: Response) => {
+  const sakId = await ensureSakOwnership(req, res);
+  if (!sakId) return;
+
+  // Aggregate i Postgres — billig selv ved 100k+ entries
+  const entries = await prisma.timeEntry.findMany({
+    where: { sakId },
+    select: { durationSec: true, billable: true, hourlyRate: true, startedAt: true },
+    orderBy: { startedAt: "desc" },
+    take: 1000, // siste 1000 — mer enn nok for visning
+  });
+
+  const totalSec = entries.reduce((s, e) => s + e.durationSec, 0);
+  const billableSec = entries
+    .filter((e) => e.billable)
+    .reduce((s, e) => s + e.durationSec, 0);
+  const totalAmount = entries
+    .filter((e) => e.billable && e.hourlyRate)
+    .reduce((s, e) => s + (e.durationSec / 3600) * (e.hourlyRate || 0), 0);
+
+  return res.json({
+    entryCount: entries.length,
+    totalHours: +(totalSec / 3600).toFixed(2),
+    billableHours: +(billableSec / 3600).toFixed(2),
+    totalAmount: Math.round(totalAmount),
+    lastEntryAt: entries[0]?.startedAt ?? null,
+  });
+});
+
 export default router;
