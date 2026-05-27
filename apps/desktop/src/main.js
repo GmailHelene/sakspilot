@@ -66,6 +66,11 @@ app.whenReady().then(async () => {
     openSettingsWindow();
   } else {
     initializeAgent();
+    // Åpne dashbordet automatisk ved oppstart hvis bruker er innlogget
+    // (kan skrus av i innstillinger senere)
+    if (store.get('openDashboardOnStart', true) !== false) {
+      openDashboardWindow();
+    }
   }
 });
 
@@ -156,7 +161,11 @@ function updateTrayMenu() {
       click: () => syncSessions(),
     });
     items.push({
-      label: '🌐 Åpne Sakspilot på web',
+      label: '📊 Åpne dashbord (i Sakspilot)',
+      click: () => openDashboardWindow(),
+    });
+    items.push({
+      label: '🌐 Åpne i nettleser',
       click: () => shell.openExternal(`${store.get('apiUrl').replace(/:\d+$/, ':3001')}/saker`),
     });
     items.push({ type: 'separator' });
@@ -399,6 +408,68 @@ function openSettingsWindow() {
   });
   settingsWindow.loadFile(path.join(__dirname, 'renderer', 'settings.html'));
   settingsWindow.on('closed', () => { settingsWindow = null; });
+}
+
+let dashboardWindow = null;
+
+function openDashboardWindow() {
+  if (dashboardWindow) {
+    dashboardWindow.show();
+    dashboardWindow.focus();
+    return;
+  }
+  // Bygg URL fra konfigurert apiUrl — bytt port 8001 → 3001 for dev,
+  // eller bruk samme host hvis prod (sakspilot.no)
+  const apiUrl = store.get('apiUrl') || 'http://localhost:8001';
+  const webUrl = apiUrl.replace(/:\d+$/, ':3001').replace('/api', '');
+
+  dashboardWindow = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    title: 'Sakspilot — Dashbord',
+    autoHideMenuBar: false,
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+    // Bruk vårt eget ikon i tittel-baren
+    icon: path.join(__dirname, '..', 'assets', 'icon.png'),
+  });
+
+  // Vis splash mens den laster
+  dashboardWindow.loadURL(`data:text/html,
+    <body style="margin:0;font-family:system-ui;background:#1E3A5F;color:white;
+                  height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;">
+      <div style="font-size:32px;font-weight:800;letter-spacing:2px;">SAKSPILOT</div>
+      <div style="font-size:14px;color:#B8860B;margin-top:8px;">Laster dashbordet...</div>
+    </body>
+  `);
+
+  // Når splash er ferdig, last den ekte URL-en
+  dashboardWindow.webContents.once('did-finish-load', () => {
+    setTimeout(() => {
+      dashboardWindow?.loadURL(webUrl).catch((err) => {
+        dashboardWindow?.loadURL(`data:text/html,
+          <body style="margin:0;font-family:system-ui;background:#FAFAF7;color:#222;padding:40px;">
+            <h1 style="color:#9D0208">Kunne ikke koble til Sakspilot</h1>
+            <p>Forventet at web-appen kjører på: <code>${webUrl}</code></p>
+            <p>Feilmelding: ${err.message}</p>
+            <h2>Hva gjør jeg?</h2>
+            <p>Sjekk at backend-tjenesten kjører:</p>
+            <ul>
+              <li>For lokal utvikling: dobbeltklikk <code>Start - Sakspilot dev.bat</code></li>
+              <li>For produksjon: kontakt support på helene@helene.cloud</li>
+            </ul>
+            <button onclick="location.reload()" style="padding:10px 20px;background:#1E3A5F;color:white;border:none;border-radius:8px;cursor:pointer;">
+              Prøv igjen
+            </button>
+          </body>
+        `);
+      });
+    }, 800);
+  });
+
+  dashboardWindow.on('closed', () => { dashboardWindow = null; });
 }
 
 // ── Auth ────────────────────────────────────────────────────────
