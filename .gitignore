@@ -52,5 +52,8 @@ Test/
 ~$*.docx
 ~$*.xlsx
 
-# Electron-builder output
+# Electron-builder + packager output (binærer skal ikke i git)
 apps/desktop/release/
+apps/Sakspilot.exe
+**/Sakspilot.exe
+**/Sakspilot-*-win-*.zip
