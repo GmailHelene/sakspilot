@@ -57,3 +57,6 @@ apps/desktop/release/
 apps/Sakspilot.exe
 **/Sakspilot.exe
 **/Sakspilot-*-win-*.zip
+
+# Arbeidsøkt-rapporter (Helenes egen arbeidsdata, ikke kode)
+Sakspilot-arbeidsokt-*.xlsx
