@@ -469,6 +469,64 @@ function buildRuleTemplates(sak: Sak) {
       pattern: 'fiken',
       hint: 'Tid logget i Fiken',
     },
+
+    // ─── For utviklere / freelance designere ───
+    {
+      id: 'vscode',
+      label: '💻 VS Code / Cursor (auto fra sakens navn)',
+      type: 'title' as const,
+      pattern: titleWords + '.*\\b(Visual Studio Code|Cursor)\\b',
+      hint: 'Editor-vinduer som har sakens navn i tittel — mappenavn eller fil',
+    },
+    {
+      id: 'github',
+      label: '🐙 GitHub-repo (browser-tab)',
+      type: 'title' as const,
+      pattern: titleWords + '.*github',
+      hint: 'Chrome-tab på GitHub repo som matcher sakens navn',
+    },
+    {
+      id: 'wp-admin',
+      label: '🌐 WordPress-admin for klient',
+      type: 'title' as const,
+      pattern: '(wp-admin|wordpress).*' + titleWords,
+      hint: 'For freelance WP-arbeid — Chrome-tab på klientens wp-admin',
+    },
+    {
+      id: 'figma',
+      label: '🎨 Figma med sakens navn',
+      type: 'title' as const,
+      pattern: titleWords + '.*figma|figma.*' + titleWords,
+      hint: 'Designarbeid i Figma',
+    },
+    {
+      id: 'terminal',
+      label: '⌨️  Terminal i sak-mappa',
+      type: 'title' as const,
+      pattern: '(Windows Terminal|PowerShell|cmd).*' + (sak.folderPath?.split(/[\\/]/).pop()?.toLowerCase() || titleWords),
+      hint: sak.folderPath ? 'Terminal med mappenavn i tittel' : 'Sett folderPath for bedre treff',
+    },
+    {
+      id: 'claude-code',
+      label: '🤖 Claude Code (i sak-mappa)',
+      type: 'title' as const,
+      pattern: 'Claude.*' + titleWords,
+      hint: 'Claude Code-økt for denne saken',
+    },
+    {
+      id: 'teams-meet',
+      label: '📞 Teams-møte med klient',
+      type: 'title' as const,
+      pattern: titleWords + '.*(Teams|Møte|Meeting)',
+      hint: 'Møtevinduer med klient-navn i tittel',
+    },
+    {
+      id: 'browser-domain',
+      label: '🌐 Browser på klient-domene',
+      type: 'title' as const,
+      pattern: '\\b' + titleWords.split('[\\s\\-_]*')[0] + '\\.no\\b',
+      hint: 'Chrome-tab på klientens nettside (sett klient-domene manuelt for spesifikk treff)',
+    },
   ];
 }
 
