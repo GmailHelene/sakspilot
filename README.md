@@ -31,12 +31,21 @@ cd C:\Users\helen\Desktop\sakspilot
 npm install
 ```
 
-### 2. Sett opp Supabase-prosjekt
+### 2. Sett opp Postgres-database
 
-1. Lag nytt prosjekt på https://supabase.com (EU-region, gratis-plan)
-2. Hent connection-string: `Settings → Database → Connection string → URI`
-3. Lag `apps/api/.env` (kopier fra `.env.example`)
-4. Lim inn `DATABASE_URL` og `DIRECT_URL`
+**Anbefalt: Neon (gratis 0.5GB, EU Frankfurt, ingen pause-straff)**
+
+1. Opprett prosjekt på https://neon.tech (region: EU Central / Frankfurt)
+2. `Connection Details` → kopier **Pooled connection** som `DATABASE_URL`
+3. Kopier **Direct connection** som `DIRECT_URL`
+4. Lag `apps/api/.env` (kopier fra `.env.example`), lim inn begge URL-er
+5. Generer JWT_SECRET:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+   ```
+
+**Alternativ: Railway Postgres** — bruk hvis du allerede er på Railway Hobby.
+Sett `DATABASE_URL = DIRECT_URL =` samme connection-string fra Railway.
 
 ### 3. Migrer databasen
 

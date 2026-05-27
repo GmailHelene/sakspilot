@@ -1,0 +1,15 @@
+{
+  "name": "@sakspilot/desktop",
+  "version": "0.0.1-poc",
+  "private": true,
+  "description": "Sakspilot desktop-agent — vinduslogging og sak-matching",
+  "main": "src/poc-logger.js",
+  "scripts": {
+    "poc": "node src/poc-logger.js",
+    "poc:fast": "node src/poc-logger.js --interval=3 --duration=120",
+    "poc:matching": "node src/poc-logger.js --rules"
+  },
+  "dependencies": {
+    "get-windows": "^9.2.0"
+  }
+}
