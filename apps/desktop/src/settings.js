@@ -20,7 +20,7 @@ const Store = require('electron-store');
 
 const store = new Store({
   defaults: {
-    apiUrl: 'https://sakspilot.onrender.com',  // prod (Render). For lokal dev: endre til http://localhost:8001
+    apiUrl: 'https://api.sakspilot.no',  // prod (via Render). For lokal dev: endre til http://localhost:8001
     token: null,
     userName: null,
     userEmail: null,
