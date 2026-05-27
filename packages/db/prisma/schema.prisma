@@ -1,0 +1,329 @@
+// Sakspilot — Prisma-skjema
+// Workspace for selvstendig næringsdrivende.
+// Kobler til Postgres på Supabase (EU/Irland).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ────────────────────────────────────────────────────────────────
+// Enums
+// ────────────────────────────────────────────────────────────────
+
+enum Plan {
+  solo
+  pro
+  team
+}
+
+enum UserRole {
+  owner       // eier av organisasjonen (har alltid full tilgang)
+  member      // vanlig bruker i team-plan
+  admin       // har tilgang til adminkonsoll i Sakspilot HQ (oss)
+}
+
+enum SakStatus {
+  ikke_pabegynt   // sak opprettet, ingen arbeid logget
+  pagaaende       // aktiv, jobbes med
+  venter_kunde    // venter på kunde
+  venter_3part    // venter på kommune / motpart / leverandør
+  ferdig          // levert
+  arkivert        // gammel sak, skjult fra hovedvisning
+}
+
+enum MatchingRuleType {
+  title          // matcher mot vindustittel
+  path           // matcher mot filsti
+  app            // matcher mot applikasjonsnavn
+  email          // matcher mot e-postavsender/mottaker
+}
+
+enum TimeEntrySource {
+  auto           // automatisk fra desktop-agent
+  manual         // brukeren la inn manuelt
+  edited         // automatisk, men brukeren endret etterpå
+}
+
+enum InvoiceStatus {
+  draft          // utkast — kan endres
+  exported       // sendt til regnskap eller CSV
+  cancelled
+}
+
+enum InvoiceExportTarget {
+  csv
+  tripletex
+  fiken
+  poweroffice
+  conta
+  visma
+}
+
+enum AgentPlatform {
+  windows
+  macos
+  linux
+}
+
+// ────────────────────────────────────────────────────────────────
+// Modeller
+// ────────────────────────────────────────────────────────────────
+
+model Organization {
+  id              String   @id @default(uuid())
+  name            String
+  plan            Plan     @default(solo)
+  billingEmail    String?  @map("billing_email")
+  orgNumber       String?  @map("org_number")       // norsk organisasjonsnummer
+  defaultHourlyRate Int?   @map("default_hourly_rate") // kr/t — kan overstyres per sak
+  timezone        String   @default("Europe/Oslo")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  users    User[]
+  clients  Client[]
+  saker    Sak[]
+  invoices Invoice[]
+  auditLogs AuditLog[]
+
+  @@map("organizations")
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  passwordHash   String?   @map("password_hash")
+  name           String
+  role           UserRole  @default(owner)
+  organizationId String    @map("organization_id")
+  hourlyRate     Int?      @map("hourly_rate")    // personlig sats — overstyrer org-default
+  lastLoginAt    DateTime? @map("last_login_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  timeEntries  TimeEntry[]
+  auditLogs    AuditLog[]
+  agentSessions AgentSession[]
+  graphAccount GraphAccount?
+
+  @@index([organizationId])
+  @@map("users")
+}
+
+model Client {
+  id                String   @id @default(uuid())
+  organizationId    String   @map("organization_id")
+  name              String
+  orgNumber         String?  @map("org_number")
+  contactEmail      String?  @map("contact_email")
+  contactPhone      String?  @map("contact_phone")
+  address           String?
+  defaultHourlyRate Int?     @map("default_hourly_rate") // overstyrer org-default for denne klienten
+  notes             String?  @db.Text
+  archived          Boolean  @default(false)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  saker        Sak[]
+
+  @@index([organizationId])
+  @@map("clients")
+}
+
+model Sak {
+  id             String    @id @default(uuid())
+  organizationId String    @map("organization_id")
+  clientId       String?   @map("client_id")          // null = intern sak (ikke fakturerbar)
+  title          String
+  saksnummer     String?   // eget saksnummer fra fagsystem (Holte/eByggesøk) eller fritekst
+  description    String?   @db.Text
+  status         SakStatus @default(ikke_pabegynt)
+  deadline       DateTime?
+  hourlyRate     Int?      @map("hourly_rate")        // overstyrer client/org-default
+  folderPath     String?   @map("folder_path")        // lokal mappe på brukerens disk
+  color          String?                              // hex-farge for visning i kanban
+  archived       Boolean   @default(false)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  closedAt       DateTime? @map("closed_at")
+
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client         Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  matchingRules  MatchingRule[]
+  timeEntries    TimeEntry[]
+  milestones     Milestone[]
+  emailLinks     EmailLink[]
+  invoices       Invoice[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, clientId])
+  @@index([organizationId, archived])
+  @@map("saker")
+}
+
+model MatchingRule {
+  id        String           @id @default(uuid())
+  sakId     String           @map("sak_id")
+  type      MatchingRuleType
+  pattern   String           // regex eller substring, avhengig av type
+  priority  Int              @default(0)              // høyere = matches først
+  enabled   Boolean          @default(true)
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  sak Sak @relation(fields: [sakId], references: [id], onDelete: Cascade)
+
+  @@index([sakId])
+  @@map("matching_rules")
+}
+
+model TimeEntry {
+  id            String           @id @default(uuid())
+  sakId         String?          @map("sak_id")       // null = ikke-matchet (må kategoriseres)
+  userId        String           @map("user_id")
+  startedAt     DateTime         @map("started_at")
+  endedAt       DateTime         @map("ended_at")
+  durationSec   Int              @map("duration_sec")
+  source        TimeEntrySource  @default(auto)
+  windowTitle   String?          @map("window_title")
+  appName       String?          @map("app_name")
+  filePath      String?          @map("file_path")
+  deviceId      String?          @map("device_id")    // hvilket Sakspilot-installasjon
+  billable      Boolean          @default(true)
+  hourlyRate    Int?             @map("hourly_rate")  // snapshot ved fakturering
+  note          String?          @db.Text
+  invoiceId     String?          @map("invoice_id")   // satt når entry er fakturert
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  sak     Sak?     @relation(fields: [sakId], references: [id], onDelete: SetNull)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoice Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([userId, startedAt])
+  @@index([sakId, startedAt])
+  @@index([invoiceId])
+  @@map("time_entries")
+}
+
+model Milestone {
+  id                 String    @id @default(uuid())
+  sakId              String    @map("sak_id")
+  title              String
+  dueDate            DateTime  @map("due_date")
+  completedAt        DateTime? @map("completed_at")
+  notifyDaysBefore   Int       @default(7) @map("notify_days_before")
+  notified7d         Boolean   @default(false) @map("notified_7d")
+  notified1d         Boolean   @default(false) @map("notified_1d")
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  sak Sak @relation(fields: [sakId], references: [id], onDelete: Cascade)
+
+  @@index([sakId, dueDate])
+  @@map("milestones")
+}
+
+model EmailLink {
+  id              String   @id @default(uuid())
+  sakId           String   @map("sak_id")
+  graphMessageId  String   @unique @map("graph_message_id")
+  fromAddress     String   @map("from_address")
+  toAddresses     String?  @map("to_addresses")     // kommaseparert
+  subject         String?
+  receivedAt      DateTime @map("received_at")
+  isOutgoing      Boolean  @default(false) @map("is_outgoing")
+  bodyPreview     String?  @map("body_preview") @db.Text
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  sak Sak @relation(fields: [sakId], references: [id], onDelete: Cascade)
+
+  @@index([sakId, receivedAt])
+  @@map("email_links")
+}
+
+model Invoice {
+  id              String              @id @default(uuid())
+  organizationId  String              @map("organization_id")
+  sakId           String?             @map("sak_id")
+  periodStart     DateTime            @map("period_start")
+  periodEnd       DateTime            @map("period_end")
+  totalHours      Decimal             @map("total_hours") @db.Decimal(10, 2)
+  totalAmount     Decimal             @map("total_amount") @db.Decimal(12, 2)
+  currency        String              @default("NOK")
+  status          InvoiceStatus       @default(draft)
+  exportedTo      InvoiceExportTarget? @map("exported_to")
+  exportedAt      DateTime?           @map("exported_at")
+  externalRef     String?             @map("external_ref")  // f.eks. Tripletex-ordrenummer
+  note            String?             @db.Text
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sak          Sak?         @relation(fields: [sakId], references: [id], onDelete: SetNull)
+  timeEntries  TimeEntry[]
+
+  @@index([organizationId, periodStart])
+  @@map("invoices")
+}
+
+model AgentSession {
+  id            String        @id @default(uuid())
+  userId        String        @map("user_id")
+  deviceId      String        @map("device_id")           // stabil id per installasjon
+  deviceName    String?       @map("device_name")         // f.eks. "Helene-PC"
+  platform      AgentPlatform @default(windows)
+  agentVersion  String        @map("agent_version")
+  lastSeenAt    DateTime      @default(now()) @map("last_seen_at")
+  isPaused      Boolean       @default(false) @map("is_paused")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId])
+  @@index([userId])
+  @@map("agent_sessions")
+}
+
+model GraphAccount {
+  id                String    @id @default(uuid())
+  userId            String    @unique @map("user_id")
+  microsoftId       String    @map("microsoft_id")
+  email             String
+  refreshToken      String    @map("refresh_token") @db.Text    // kryptert
+  accessTokenExpiresAt DateTime? @map("access_token_expires_at")
+  lastSyncAt        DateTime? @map("last_sync_at")
+  scopes            String                                       // kommaseparert
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("graph_accounts")
+}
+
+model AuditLog {
+  id              String   @id @default(uuid())
+  userId          String?  @map("user_id")
+  organizationId  String?  @map("organization_id")
+  action          String                              // f.eks. "sak.created", "invoice.exported"
+  entityType      String?  @map("entity_type")
+  entityId        String?  @map("entity_id")
+  ipAddress       String?  @map("ip_address")
+  userAgent       String?  @map("user_agent")
+  metadata        Json?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+  @@map("audit_logs")
+}
