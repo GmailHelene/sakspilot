@@ -12,18 +12,21 @@
     "postinstall": "node scripts/generate-icon.js",
     "start": "node start-electron.js",
     "dev": "node start-electron.js --dev",
-    "build:exe": "electron-builder --win --x64 --config.electronVersion=30.5.1",
+    "build:exe": "node build-portable.js",
+    "build:installer": "electron-builder --win --x64 --config.electronVersion=30.5.1",
     "poc": "node src/poc-logger.js",
     "poc:fast": "node src/poc-logger.js --interval=3 --duration=120",
     "poc:matching": "node src/poc-logger.js --rules",
     "diagnose": "node src/diagnose.js"
   },
   "dependencies": {
+    "archiver": "^7.0.1",
     "electron-store": "^8.2.0",
     "get-windows": "^9.2.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@electron/packager": "^18.3.6",
     "electron": "^30.5.1",
     "electron-builder": "^25.0.5"
   },
