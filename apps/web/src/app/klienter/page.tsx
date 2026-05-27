@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Header from '@/components/Header';
+import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
-import { api, isTokenValid } from '@/lib/api';
+import { api } from '@/lib/api';
 
 interface Client {
   id: string;
@@ -18,21 +17,15 @@ interface Client {
 }
 
 export default function KlienterPage() {
-  const router = useRouter();
   const [clients, setClients] = useState<Client[] | null>(null);
 
   useEffect(() => {
-    if (!isTokenValid()) {
-      router.replace('/login');
-      return;
-    }
     api<{ clients: Client[] }>('/klienter').then((res) => setClients(res.clients));
-  }, [router]);
+  }, []);
 
   return (
-    <>
-      <Header />
-      <main style={{ background: tokens.color.bg, minHeight: 'calc(100vh - 60px)' }}>
+    <AppLayout>
+      <div>
         <div
           style={{
             padding: '24px 24px 12px',
@@ -148,8 +141,8 @@ export default function KlienterPage() {
             </div>
           )}
         </div>
-      </main>
-    </>
+      </div>
+    </AppLayout>
   );
 }
 
