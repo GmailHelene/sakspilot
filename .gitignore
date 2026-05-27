@@ -51,3 +51,6 @@ apps/desktop/out/
 Test/
 ~$*.docx
 ~$*.xlsx
+
+# Electron-builder output
+apps/desktop/release/

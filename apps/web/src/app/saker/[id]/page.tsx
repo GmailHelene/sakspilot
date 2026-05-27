@@ -372,12 +372,123 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 // ── Matching-regler ──────────────────────────────────────────────
 
+// Maler for matching-regler — klikk for å pre-utfylle skjemaet.
+// Noen er sak-spesifikke (genereres dynamisk fra sak.title / folderPath),
+// andre er generelle (matcher alle dokumenter av en gitt type).
+function buildRuleTemplates(sak: Sak) {
+  // Lag regex-mønster fra sak.title som matcher liknende filnavn:
+  //   "Bygdøy 12 — rammetillatelse"  →  /bygd[øo]y[\s\-_]*12/i
+  // Plukker første 1-2 ord + tall (om de finnes) — typisk gateadresse.
+  const titleWords = sak.title
+    .replace(/[—–-].+$/, '') // klipp av etter tankestrek
+    .trim()
+    .split(/\s+/)
+    .slice(0, 3)
+    .map((w) => w.replace(/[øØ]/g, '[øo]').replace(/[æÆ]/g, '[æae]').replace(/[åÅ]/g, '[åa]'))
+    .join('[\\s\\-_]*')
+    .toLowerCase();
+
+  return [
+    {
+      id: 'auto-title',
+      label: '⚡ Auto: match dokumenter med sakens navn',
+      type: 'title' as const,
+      pattern: titleWords,
+      hint: `Genereres fra "${sak.title.slice(0, 40)}"`,
+    },
+    {
+      id: 'folder',
+      label: '📁 Filer i lokal sak-mappe',
+      type: 'path' as const,
+      pattern: sak.folderPath
+        ? sak.folderPath.replace(/[/\\]/g, '[\\\\/]').replace(/\./g, '\\.')
+        : 'C:\\\\Jobb\\\\Sak-mappe',
+      hint: sak.folderPath ? `Bruker saken sin mappe-sti` : 'Sett "Lokal mappe" på saken først',
+      disabled: !sak.folderPath,
+    },
+    {
+      id: 'word',
+      label: '📄 Word-dokumenter (alle .docx)',
+      type: 'title' as const,
+      pattern: '\\.docx?\\b',
+      hint: 'Match enhver Word-fil — bredt, kombineres med spesifikk regel',
+    },
+    {
+      id: 'excel',
+      label: '📊 Excel-ark (alle .xlsx)',
+      type: 'title' as const,
+      pattern: '\\.xlsx?\\b',
+      hint: 'Match enhver Excel-fil',
+    },
+    {
+      id: 'pdf',
+      label: '📕 PDF-filer',
+      type: 'title' as const,
+      pattern: '\\.pdf\\b',
+      hint: 'Match enhver PDF-visning',
+    },
+    {
+      id: 'autocad',
+      label: '📐 AutoCAD-tegning (.dwg)',
+      type: 'title' as const,
+      pattern: '\\.dwg\\b',
+      hint: 'For arkitekter/byggekonsulenter',
+    },
+    {
+      id: 'outlook',
+      label: '📧 Outlook (hele appen)',
+      type: 'app' as const,
+      pattern: '^outlook',
+      hint: 'All tid i Outlook teller — kombiner med e-postregel for sak-spesifikt',
+    },
+    {
+      id: 'email-subject',
+      label: '📧 E-post om saken (emne)',
+      type: 'title' as const,
+      pattern: titleWords.split('[\\s\\-_]*').slice(0, 2).join('.*'),
+      hint: 'Outlook-vinduer med saksrelaterte emner',
+    },
+    {
+      id: 'holte',
+      label: '🏢 Holte (smart.holte.no)',
+      type: 'title' as const,
+      pattern: 'holte|byggsoek',
+      hint: 'Nettleser-tab med Holte-portalen',
+    },
+    {
+      id: 'tripletex',
+      label: '💼 Tripletex',
+      type: 'title' as const,
+      pattern: 'tripletex',
+      hint: 'Tid logget i Tripletex',
+    },
+    {
+      id: 'fiken',
+      label: '💼 Fiken',
+      type: 'title' as const,
+      pattern: 'fiken',
+      hint: 'Tid logget i Fiken',
+    },
+  ];
+}
+
 function MatchingRulesSection({ sak, onChange }: { sak: Sak; onChange: () => void }) {
   const [showForm, setShowForm] = useState(false);
   const [type, setType] = useState<MatchingRuleType>('title');
   const [pattern, setPattern] = useState('');
+  const [showTemplates, setShowTemplates] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const templates = buildRuleTemplates(sak);
+
+  function useTemplate(t: typeof templates[number]) {
+    if (t.disabled) return;
+    setType(t.type);
+    setPattern(t.pattern);
+    setShowTemplates(false);
+    setShowForm(true);
+  }
 
   async function addRule(e: React.FormEvent) {
     e.preventDefault();
@@ -409,19 +520,34 @@ function MatchingRulesSection({ sak, onChange }: { sak: Sak; onChange: () => voi
       title={`Matching-regler for desktop-agent (${sak.matchingRules.length})`}
       action={
         !showForm && (
-          <button
-            onClick={() => setShowForm(true)}
-            style={{
-              color: tokens.color.navy,
-              fontWeight: 600,
-              fontSize: 13,
-              padding: '6px 10px',
-              borderRadius: tokens.radius.sm,
-              background: tokens.color.bgAlt,
-            }}
-          >
-            + Legg til regel
-          </button>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              onClick={() => setShowTemplates(!showTemplates)}
+              style={{
+                color: tokens.color.navy,
+                fontWeight: 600,
+                fontSize: 13,
+                padding: '6px 10px',
+                borderRadius: tokens.radius.sm,
+                background: tokens.color.bgAlt,
+              }}
+            >
+              {showTemplates ? '✕ Lukk maler' : '⚡ Velg mal'}
+            </button>
+            <button
+              onClick={() => setShowForm(true)}
+              style={{
+                color: tokens.color.navy,
+                fontWeight: 600,
+                fontSize: 13,
+                padding: '6px 10px',
+                borderRadius: tokens.radius.sm,
+                background: tokens.color.bgAlt,
+              }}
+            >
+              + Manuell regel
+            </button>
+          </div>
         )
       }
     >
@@ -432,14 +558,74 @@ function MatchingRulesSection({ sak, onChange }: { sak: Sak; onChange: () => voi
           borderRadius: tokens.radius.sm,
           fontSize: 13,
           color: tokens.color.textMuted,
-          marginBottom: showForm || sak.matchingRules.length > 0 ? 16 : 0,
+          marginBottom: showForm || showTemplates || sak.matchingRules.length > 0 ? 16 : 0,
         }}
       >
         💡 Når desktop-agenten ser et vindu som matcher en av reglene under,
-        kobles tiden automatisk til denne saken. Eksempel: regel{' '}
-        <code style={inlineCodeStyle}>bygd[øo]y[\s\-_]*12</code> matcher Word-vindu
-        med tittel <em>&quot;Bygdoy-12.docx&quot;</em>.
+        kobles tiden automatisk til denne saken. Klikk <strong>⚡ Velg mal</strong>{' '}
+        for vanlige mønstre (Word, Outlook, sakens navn, etc.), eller{' '}
+        <strong>+ Manuell regel</strong> for full regex-kontroll.
       </div>
+
+      {showTemplates && (
+        <div
+          style={{
+            background: tokens.color.bg,
+            padding: 12,
+            borderRadius: tokens.radius.md,
+            marginBottom: 16,
+            border: `1px solid ${tokens.color.border}`,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: tokens.color.navy,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+              marginBottom: 10,
+            }}
+          >
+            Maler — klikk for å bruke
+          </div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            {templates.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => useTemplate(t)}
+                disabled={t.disabled}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  textAlign: 'left',
+                  padding: '10px 12px',
+                  background: t.disabled ? tokens.color.bgAlt : tokens.color.white,
+                  border: `1px solid ${tokens.color.border}`,
+                  borderRadius: tokens.radius.sm,
+                  cursor: t.disabled ? 'not-allowed' : 'pointer',
+                  opacity: t.disabled ? 0.5 : 1,
+                  gap: 2,
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: 13, color: tokens.color.text }}>
+                  {t.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: tokens.color.textMuted,
+                    fontFamily: tokens.font.mono,
+                  }}
+                >
+                  {t.type} · {t.pattern.length > 60 ? t.pattern.slice(0, 60) + '…' : t.pattern}
+                </div>
+                <div style={{ fontSize: 11, color: tokens.color.textSubtle }}>{t.hint}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {showForm && (
         <form
