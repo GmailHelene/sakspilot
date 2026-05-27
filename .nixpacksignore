@@ -1,0 +1,10 @@
+apps/desktop/
+*.exe
+*.zip
+*.docx
+*.xlsx
+*.md
+.claude/
+scripts/
+docs-utkast/
+release/
