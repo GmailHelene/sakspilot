@@ -3,6 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import {
+  Home, LayoutGrid, Users, Calendar, GanttChartSquare, Plus, X,
+  ExternalLink, Trash2,
+  type LucideIcon,
+} from 'lucide-react';
 import { tokens } from '@/lib/tokens';
 
 /**
@@ -75,23 +80,24 @@ export default function Sidebar() {
     persist(shortcuts.filter((s) => s.id !== id));
   }
 
-  const navLinks = [
-    { href: '/saker', label: 'Saker', icon: '📋' },
-    { href: '/klienter', label: 'Klienter', icon: '👥' },
-    { href: '/kalender', label: 'Kalender', icon: '📅' },
-    { href: '/gantt', label: 'Tidslinje (Gantt)', icon: '📊' },
+  const navLinks: { href: string; label: string; Icon: LucideIcon }[] = [
+    { href: '/hjem', label: 'Hjem', Icon: Home },
+    { href: '/saker', label: 'Saker', Icon: LayoutGrid },
+    { href: '/klienter', label: 'Klienter', Icon: Users },
+    { href: '/kalender', label: 'Kalender', Icon: Calendar },
+    { href: '/gantt', label: 'Tidslinje', Icon: GanttChartSquare },
   ];
 
   return (
     <aside style={sidebarStyle}>
       {/* Seksjon: Sakspilot */}
       <SidebarSection title="Sakspilot">
-        {navLinks.map((link) => {
-          const active = pathname.startsWith(link.href);
+        {navLinks.map(({ href, label, Icon }) => {
+          const active = pathname.startsWith(href);
           return (
             <Link
-              key={link.href}
-              href={link.href}
+              key={href}
+              href={href}
               style={{
                 ...itemStyle,
                 background: active ? tokens.color.navy : 'transparent',
@@ -99,8 +105,8 @@ export default function Sidebar() {
                 fontWeight: active ? 600 : 500,
               }}
             >
-              <span style={{ width: 22, textAlign: 'center' }}>{link.icon}</span>
-              <span>{link.label}</span>
+              <Icon size={16} strokeWidth={active ? 2.5 : 2} />
+              <span>{label}</span>
             </Link>
           );
         })}
@@ -116,7 +122,7 @@ export default function Sidebar() {
               style={addButtonStyle}
               title="Legg til snarvei"
             >
-              {addOpen ? '×' : '+'}
+              {addOpen ? <X size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
             </button>
           )
         }
@@ -162,7 +168,7 @@ export default function Sidebar() {
                 rel="noopener noreferrer"
                 style={{ ...itemStyle, paddingRight: 30 }}
               >
-                <span style={{ width: 22, textAlign: 'center', fontSize: 14 }}>{s.icon}</span>
+                <ExternalLink size={14} strokeWidth={2} style={{ color: tokens.color.textMuted, flexShrink: 0 }} />
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {s.label}
                 </span>
@@ -172,7 +178,7 @@ export default function Sidebar() {
                 style={deleteButtonStyle}
                 title="Slett snarvei"
               >
-                ×
+                <Trash2 size={12} strokeWidth={2} />
               </button>
             </div>
           ))}
