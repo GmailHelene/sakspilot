@@ -24,6 +24,7 @@ import healthRouter from "./routes/health";
 import authRouter from "./routes/auth";
 import sakerRouter from "./routes/saker";
 import klienterRouter from "./routes/klienter";
+import agentRouter from "./routes/agent";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 8001;
@@ -83,6 +84,7 @@ app.use("/health", healthRouter);
 app.use("/auth", authLimiter, authRouter);
 app.use("/saker", sakerRouter);
 app.use("/klienter", klienterRouter);
+app.use("/agent", agentRouter);
 
 // ── Root ────────────────────────────────────────────────────────
 app.get("/", (_req: Request, res: Response) => {

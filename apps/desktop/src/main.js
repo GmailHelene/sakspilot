@@ -1,21 +1,29 @@
 /**
  * Sakspilot Desktop Agent — Electron main-prosess.
  *
- * Kjører i bakgrunnen som tray-app (Slack/Dropbox-stil). Hovedoppgaver:
- *   1. Vise tray-ikon med meny i system-trayen
- *   2. Holde Poller-instansen i live så lenge appen er åpen
- *   3. Synkronisere sessions til backend hvert 5. minutt
- *   4. Hente matching-regler fra backend hvert 10. minutt
- *   5. Vise innstillings-vindu på første start (innlogging)
+ * Kjører i bakgrunnen som tray-app. To moduser:
+ *   1. "Arbeidsøkt aktiv"  — du har klikket Start, vi logger aktivt vindu
+ *      hvert N. sekund og knytter til sak via matching-regler
+ *   2. "Inaktiv"           — vi logger ikke noe. Klikk Start for å begynne.
  *
- * Appen viser ALDRI noe hovedvindu — alt skjer via tray-menyen og det
- * lille innstillinger-vinduet.
+ * Når du klikker "Stopp + rapport":
+ *   - Pågående session avsluttes
+ *   - Alle sessions fra denne arbeidsøkten samles til en Excel-rapport
+ *   - Du får velge hvor du vil lagre rapporten
+ *   - Sessions sendes til backend via /agent/sync (hvis innlogget)
+ *
+ * Pause/Resume finnes også for korte avbrudd MIDT i en arbeidsøkt (lunsj,
+ * privat-tlf osv.) uten å avslutte rapporten.
  */
-const { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain, dialog, Notification } = require('electron');
+const {
+  app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain,
+  Notification, dialog,
+} = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const store = require('./settings');
 const { Poller } = require('./poller');
+const { buildWorkSessionReport } = require('./report');
 
 // ── Global state ────────────────────────────────────────────────
 let tray = null;
@@ -23,45 +31,81 @@ let settingsWindow = null;
 let poller = null;
 let syncTimer = null;
 let rulesRefreshTimer = null;
-const pendingSessions = []; // ikke-synkede sessions (kø)
 
-// ── Single-instance lock — bare én Sakspilot om gangen ──────────
+// Arbeidsøkt-state (kun i minnet — ny etter restart)
+let workSessionActive = false;
+let workSessionStart = null;
+let workSessionSessions = [];   // sessions samlet i pågående arbeidsøkt
+const pendingSessions = [];     // sessions klare for sync til backend
+let deviceId = null;            // stabil per installasjon
+
+// ── Single-instance lock ────────────────────────────────────────
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
   return;
 }
-app.on('second-instance', () => {
-  // Hvis bruker prøver å starte appen igjen, åpne settings istedenfor
-  openSettingsWindow();
-});
+app.on('second-instance', () => openSettingsWindow());
 
-// ── Skjul Dock-ikon på macOS (vi er tray-only) ──────────────────
 if (process.platform === 'darwin' && app.dock) {
   app.dock.hide();
 }
 
 // ── App lifecycle ───────────────────────────────────────────────
 app.whenReady().then(async () => {
+  // Generer stabil device-id ved første start
+  deviceId = store.get('deviceId');
+  if (!deviceId) {
+    deviceId = 'dev-' + Math.random().toString(36).slice(2, 12) + '-' + Date.now();
+    store.set('deviceId', deviceId);
+  }
+
   createTray();
 
-  // Hvis bruker ikke har logget inn enda — åpne settings-vinduet
   if (!store.get('token')) {
     openSettingsWindow();
   } else {
-    startPoller();
-    scheduleSync();
-    scheduleRulesRefresh();
-    refreshRules(); // hent regler én gang ved oppstart
+    initializeAgent();
   }
 });
 
-// Aldri quit på "window-all-closed" — vi er tray-app
-app.on('window-all-closed', (e) => {
-  e.preventDefault();
-});
+app.on('window-all-closed', (e) => e.preventDefault());
 
-// ── Tray-ikon og meny ───────────────────────────────────────────
+function initializeAgent() {
+  // Poller START seg selv, men VENTER på "Start arbeidsøkt" før den
+  // faktisk logger noe (paused = true til man klikker Start)
+  if (!poller) {
+    poller = new Poller({
+      intervalSec: store.get('intervalSec'),
+      excludedApps: store.get('excludedApps'),
+    });
+
+    poller.on('window-change', ({ snap, match }) => {
+      const sak = match ? ` → ${match.sakTitle}` : '';
+      console.log(`[${ts()}] ▶ ${snap.owner?.name}: "${truncate(snap.title, 60)}"${sak}`);
+      updateTrayMenu();
+    });
+
+    poller.on('session-closed', (sess) => {
+      if (sess.durationSec < 5) return; // ignorer kort støy
+      if (workSessionActive) {
+        workSessionSessions.push(sess);
+      }
+      pendingSessions.push(sess);
+    });
+
+    poller.on('error', (err) => console.error('[Poller] feil:', err.message));
+
+    poller.start();
+    poller.pause(); // start pauset — venter på "Start arbeidsøkt"
+  }
+
+  scheduleSync();
+  scheduleRulesRefresh();
+  refreshRules();
+}
+
+// ── Tray ────────────────────────────────────────────────────────
 function createTray() {
   const iconPath = path.join(__dirname, '..', 'assets', 'tray-icon.png');
   if (!fs.existsSync(iconPath)) {
@@ -69,79 +113,66 @@ function createTray() {
     app.quit();
     return;
   }
-  const icon = nativeImage.createFromPath(iconPath);
-  tray = new Tray(icon);
-  tray.setToolTip('Sakspilot — workspace for selvstendige');
+  tray = new Tray(nativeImage.createFromPath(iconPath));
+  tray.setToolTip('Sakspilot');
   updateTrayMenu();
+  // Dobbeltklikk: åpne settings/status-vindu
+  tray.on('double-click', () => openSettingsWindow());
 }
 
 function updateTrayMenu() {
   const loggedIn = !!store.get('token');
   const userName = store.get('userName') || 'Ikke innlogget';
-  const paused = poller?.paused ?? false;
   const status = poller?.getStatus();
-
-  // Bygg dynamisk meny basert på status
   const items = [];
 
   if (loggedIn) {
     items.push({ label: `📍 ${userName}`, enabled: false });
-    if (status?.currentSession?.sakTitle) {
+
+    if (workSessionActive) {
+      const elapsedSec = Math.round((Date.now() - workSessionStart) / 1000);
+      items.push({ label: `🟢 Arbeidsøkt aktiv — ${formatDur(elapsedSec)}`, enabled: false });
+      if (status?.currentSession?.sakTitle) {
+        items.push({ label: `   🎯 ${truncate(status.currentSession.sakTitle, 38)}`, enabled: false });
+      } else if (status?.currentSession) {
+        items.push({ label: `   ⏱  ${truncate(status.currentSession.app, 38)}`, enabled: false });
+      }
+      items.push({ label: `   ${workSessionSessions.length} sessions i denne økten`, enabled: false });
+      items.push({ type: 'separator' });
+      items.push({ label: '■  Stopp arbeidsøkt + lag rapport', click: () => stopWorkSession() });
       items.push({
-        label: `🎯 Logger: ${truncate(status.currentSession.sakTitle, 40)}`,
-        enabled: false,
-      });
-    } else if (status?.currentSession) {
-      items.push({
-        label: `⏱  Logger: ${truncate(status.currentSession.app, 40)}`,
-        enabled: false,
+        label: poller?.paused ? '▶  Fortsett (etter pause)' : '⏸  Pause (kort avbrudd)',
+        click: () => togglePause(),
       });
     } else {
-      items.push({ label: '⏸  Ingen aktivitet', enabled: false });
+      items.push({ label: '⏹  Ingen arbeidsøkt — klikk Start for å logge', enabled: false });
+      items.push({ type: 'separator' });
+      items.push({ label: '▶  Start arbeidsøkt', click: () => startWorkSession() });
     }
-    if (status) {
-      items.push({
-        label: `   ${status.sessionCount} sessions · ${pendingSessions.length} ikke synket`,
-        enabled: false,
-      });
-    }
+
     items.push({ type: 'separator' });
     items.push({
-      label: paused ? '▶  Fortsett logging' : '⏸  Pause logging',
-      click: () => togglePause(),
+      label: `🔄 Synk til backend (${pendingSessions.length} ventende)`,
+      click: () => syncSessions(),
     });
     items.push({
       label: '🌐 Åpne Sakspilot på web',
       click: () => shell.openExternal(`${store.get('apiUrl').replace(/:\d+$/, ':3001')}/saker`),
     });
-    items.push({
-      label: '🔄 Synk nå',
-      click: () => syncSessions(),
-    });
     items.push({ type: 'separator' });
-    items.push({
-      label: '⚙  Innstillinger',
-      click: () => openSettingsWindow(),
-    });
-    items.push({
-      label: '🚪 Logg ut',
-      click: () => logout(),
-    });
+    items.push({ label: '⚙  Innstillinger', click: () => openSettingsWindow() });
+    items.push({ label: '🚪 Logg ut', click: () => logout() });
   } else {
     items.push({ label: '⚠  Ikke innlogget', enabled: false });
     items.push({ type: 'separator' });
-    items.push({
-      label: '➡  Logg inn',
-      click: () => openSettingsWindow(),
-    });
+    items.push({ label: '➡  Logg inn', click: () => openSettingsWindow() });
   }
 
   items.push({ type: 'separator' });
-  items.push({ label: 'ℹ  Versjon ' + app.getVersion(), enabled: false });
+  items.push({ label: 'ℹ  Sakspilot v' + app.getVersion(), enabled: false });
   items.push({ role: 'quit', label: '❌ Avslutt' });
 
-  const menu = Menu.buildFromTemplate(items);
-  tray.setContextMenu(menu);
+  tray.setContextMenu(Menu.buildFromTemplate(items));
 }
 
 function truncate(s, n) {
@@ -149,58 +180,113 @@ function truncate(s, n) {
   return s.length > n ? s.slice(0, n - 1) + '…' : s;
 }
 
-// ── Innstillinger-vindu ─────────────────────────────────────────
-function openSettingsWindow() {
-  if (settingsWindow) {
-    settingsWindow.show();
-    settingsWindow.focus();
-    return;
-  }
-  settingsWindow = new BrowserWindow({
-    width: 520,
-    height: 620,
-    title: 'Sakspilot — Innstillinger',
-    autoHideMenuBar: true,
-    resizable: false,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false,
-    },
-  });
-  settingsWindow.loadFile(path.join(__dirname, 'renderer', 'settings.html'));
-  settingsWindow.on('closed', () => {
-    settingsWindow = null;
-  });
+function formatDur(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h) return `${h}t ${m}m`;
+  if (m) return `${m}m ${s}s`;
+  return `${s}s`;
 }
 
-// ── Poller-styring ──────────────────────────────────────────────
-function startPoller() {
-  if (poller) poller.stop();
-  poller = new Poller({
-    intervalSec: store.get('intervalSec'),
-    excludedApps: store.get('excludedApps'),
+// ── Arbeidsøkt-håndtering ───────────────────────────────────────
+function startWorkSession() {
+  if (!poller) return;
+  workSessionActive = true;
+  workSessionStart = Date.now();
+  workSessionSessions = [];
+  poller.resume();
+  updateTrayMenu();
+  notify('Sakspilot', 'Arbeidsøkt startet — logging aktiv');
+  // Hent friske regler ved start
+  refreshRules();
+}
+
+async function stopWorkSession() {
+  if (!workSessionActive || !poller) return;
+
+  // Avslutt pågående session så det siste vinduet inkluderes
+  poller.pause();
+  // poller.pause() lukker current session og kaster session-closed → pushes
+  // til workSessionSessions hvis den var lang nok
+
+  // Gi event-loopen et øyeblikk til å prosessere session-closed
+  await new Promise((r) => setTimeout(r, 200));
+
+  const sessions = [...workSessionSessions];
+  const wsStart = new Date(workSessionStart);
+  const wsEnd = new Date();
+  const durSec = Math.round((wsEnd - wsStart) / 1000);
+
+  // Reset state FØR vi viser dialog (så bruker kan starte ny økt selv om
+  // dialogen henger)
+  workSessionActive = false;
+  workSessionStart = null;
+  workSessionSessions = [];
+  updateTrayMenu();
+
+  if (sessions.length === 0) {
+    dialog.showMessageBox({
+      type: 'info',
+      title: 'Sakspilot',
+      message: 'Arbeidsøkt avsluttet',
+      detail: `Varighet: ${formatDur(durSec)}\nIngen aktivitet logget — sessions under 5 sekunder ignoreres.`,
+      buttons: ['OK'],
+    });
+    return;
+  }
+
+  // Berik sessions med sakHourlyRate fra hentede regler
+  const ruleCache = poller?.rules || [];
+  const sakRateMap = new Map();
+  for (const r of ruleCache) {
+    if (r.sakHourlyRate) sakRateMap.set(r.sakId, r.sakHourlyRate);
+  }
+  const enriched = sessions.map((s) => ({
+    ...s,
+    sakHourlyRate: s.sakId ? sakRateMap.get(s.sakId) || null : null,
+  }));
+
+  // Foreslå filnavn med dato + klokkeslett
+  const datePart = wsStart.toISOString().slice(0, 10);
+  const timePart = wsStart.toTimeString().slice(0, 5).replace(':', '');
+  const defaultName = `Sakspilot-arbeidsokt-${datePart}-${timePart}.xlsx`;
+
+  const result = await dialog.showSaveDialog({
+    title: 'Lagre arbeidsøktsrapport',
+    defaultPath: path.join(app.getPath('documents'), defaultName),
+    filters: [{ name: 'Excel-fil', extensions: ['xlsx'] }],
   });
 
-  poller.on('window-change', ({ snap, match }) => {
-    // Logg til konsoll for feilsøking (synlig kun med electron . --dev)
-    const sak = match ? ` → ${match.sakTitle}` : '';
-    console.log(`[${ts()}] ▶ ${snap.owner?.name}: "${truncate(snap.title, 60)}"${sak}`);
-    updateTrayMenu();
-  });
+  if (!result.canceled && result.filePath) {
+    try {
+      const buf = buildWorkSessionReport({
+        workSessionStart: wsStart,
+        workSessionEnd: wsEnd,
+        sessions: enriched,
+        userName: store.get('userName') || '',
+        orgName: store.get('organizationName') || '',
+      });
+      fs.writeFileSync(result.filePath, buf);
 
-  poller.on('session-closed', (sess) => {
-    // Bare sessions over 5 sekunder lagres — kortere er sannsynligvis støy
-    if (sess.durationSec >= 5) {
-      pendingSessions.push(sess);
+      const open = await dialog.showMessageBox({
+        type: 'info',
+        title: 'Sakspilot',
+        message: 'Rapport lagret',
+        detail: `${sessions.length} sessions over ${formatDur(durSec)}\n\n${result.filePath}`,
+        buttons: ['Åpne fil', 'Vis i mappe', 'OK'],
+        defaultId: 0,
+        cancelId: 2,
+      });
+      if (open.response === 0) shell.openPath(result.filePath);
+      if (open.response === 1) shell.showItemInFolder(result.filePath);
+    } catch (err) {
+      dialog.showErrorBox('Rapporteringsfeil', err.message);
     }
-  });
+  }
 
-  poller.on('error', (err) => {
-    console.error('[Poller] feil:', err.message);
-  });
-
-  poller.start();
+  // Synk til backend (uavhengig av om rapport ble lagret)
+  syncSessions();
 }
 
 function togglePause() {
@@ -210,7 +296,7 @@ function togglePause() {
     notify('Sakspilot', 'Logging er på igjen');
   } else {
     poller.pause();
-    notify('Sakspilot', 'Logging er pauset');
+    notify('Sakspilot', 'Logging pauset (arbeidsøkt fortsetter)');
   }
   updateTrayMenu();
 }
@@ -221,7 +307,6 @@ async function apiCall(path, options = {}) {
   const apiUrl = store.get('apiUrl');
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
-
   const res = await fetch(`${apiUrl}${path}`, {
     method: options.method || 'GET',
     headers,
@@ -229,7 +314,7 @@ async function apiCall(path, options = {}) {
   });
   if (!res.ok) {
     const errText = await res.text().catch(() => '');
-    throw new Error(`API ${res.status}: ${errText.slice(0, 200)}`);
+    throw new Error(`API ${res.status}: ${errText.slice(0, 300)}`);
   }
   return res.json();
 }
@@ -237,60 +322,47 @@ async function apiCall(path, options = {}) {
 async function refreshRules() {
   if (!store.get('token') || !poller) return;
   try {
-    // Hent alle saker — i full versjon: GET /agent/rules som returnerer
-    // bare aktive matching-regler. Foreløpig: alle saker + reglene deres.
-    const { saker } = await apiCall('/saker');
-    const flatRules = [];
-    for (const sak of saker || []) {
-      // Hver sak har matchingRules som array (returneres når vi henter
-      // /saker/:id, men /saker liste-endepunkt har bare _count). Vi
-      // henter detaljer for hver sak inntil /agent/rules-endepunktet er bygd.
-      try {
-        const detail = await apiCall(`/saker/${sak.id}`);
-        for (const rule of detail.matchingRules || []) {
-          if (!rule.enabled) continue;
-          flatRules.push({
-            sakId: sak.id,
-            sakTitle: sak.title,
-            type: rule.type,
-            pattern: rule.pattern,
-            priority: rule.priority,
-          });
-        }
-      } catch {
-        // Hopp over saker vi ikke kan lese
-      }
-    }
-    flatRules.sort((a, b) => b.priority - a.priority);
-    poller.setRules(flatRules);
-    console.log(`[Rules] hentet ${flatRules.length} matching-regler`);
+    const { rules } = await apiCall('/agent/rules');
+    poller.setRules(rules);
+    console.log(`[Rules] hentet ${rules.length} matching-regler fra /agent/rules`);
   } catch (err) {
     console.error('[Rules] henting feilet:', err.message);
   }
 }
 
 async function syncSessions() {
-  if (!store.get('token') || pendingSessions.length === 0) {
+  if (!store.get('token')) {
+    updateTrayMenu();
+    return;
+  }
+  if (pendingSessions.length === 0) {
     updateTrayMenu();
     return;
   }
   const batch = pendingSessions.splice(0, pendingSessions.length);
   try {
-    // I full versjon: POST /agent/sync med batch av TimeEntry-utkast.
-    // Endepunktet finnes ikke enda — vi logger til lokal fil som backup.
-    const logFile = path.join(app.getPath('userData'), 'pending-sessions.jsonl');
-    fs.appendFileSync(
-      logFile,
-      batch.map((s) => JSON.stringify(s)).join('\n') + '\n'
-    );
+    const result = await apiCall('/agent/sync', {
+      method: 'POST',
+      body: {
+        agentVersion: app.getVersion(),
+        deviceName: require('node:os').hostname(),
+        sessions: batch.map((s) => ({
+          startedAt: new Date(s.startedAt).toISOString(),
+          endedAt: new Date(s.endedAt).toISOString(),
+          durationSec: s.durationSec,
+          app: s.app,
+          title: s.title,
+          sakId: s.sakId,
+          matchedOn: s.matchedOn,
+          deviceId,
+        })),
+      },
+    });
     store.set('lastSyncAt', new Date().toISOString());
-    console.log(`[Sync] ${batch.length} sessions lagret lokalt (backend-endepunkt /agent/sync mangler ennå)`);
-
-    // TODO når /agent/sync finnes:
-    // await apiCall('/agent/sync', { method: 'POST', body: { sessions: batch } });
+    console.log(`[Sync] ${result.created} sessions synket til backend`);
   } catch (err) {
     console.error('[Sync] feilet:', err.message);
-    // Legg dem tilbake i køen så vi prøver igjen senere
+    // Legg dem tilbake — neste sync-tick prøver igjen
     pendingSessions.unshift(...batch);
   }
   updateTrayMenu();
@@ -306,40 +378,66 @@ function scheduleRulesRefresh() {
   rulesRefreshTimer = setInterval(refreshRules, 10 * 60 * 1000);
 }
 
-// ── Autentisering ───────────────────────────────────────────────
+// ── Innstillinger-vindu ─────────────────────────────────────────
+function openSettingsWindow() {
+  if (settingsWindow) {
+    settingsWindow.show();
+    settingsWindow.focus();
+    return;
+  }
+  settingsWindow = new BrowserWindow({
+    width: 520,
+    height: 650,
+    title: 'Sakspilot — Innstillinger',
+    autoHideMenuBar: true,
+    resizable: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+  settingsWindow.loadFile(path.join(__dirname, 'renderer', 'settings.html'));
+  settingsWindow.on('closed', () => { settingsWindow = null; });
+}
+
+// ── Auth ────────────────────────────────────────────────────────
 async function login(apiUrl, email, password) {
-  // Settings-vinduet kaller hit via IPC. Vi kjører /auth/login.
   const res = await fetch(`${apiUrl}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
   const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error || `Innlogging feilet (${res.status})`);
-  }
+  if (!res.ok) throw new Error(data.error || `Innlogging feilet (${res.status})`);
   store.set({
     apiUrl,
     token: data.token,
     userName: data.user.name,
     userEmail: data.user.email,
     organizationId: data.user.organizationId,
+    organizationName: data.user.organizationName,
   });
-  startPoller();
-  scheduleSync();
-  scheduleRulesRefresh();
-  refreshRules();
+  initializeAgent();
   updateTrayMenu();
   notify('Sakspilot', `Logget inn som ${data.user.name}`);
   return data;
 }
 
 function logout() {
-  store.set({ token: null, userName: null, userEmail: null, organizationId: null });
-  if (poller) {
-    poller.stop();
-    poller = null;
+  // Sync gjenværende før utlogging
+  if (pendingSessions.length > 0) syncSessions();
+
+  // Stopp aktiv arbeidsøkt uten rapport (rapporter krever bruker-input,
+  // ikke noe vi vil tvinge ved logout)
+  if (workSessionActive) {
+    workSessionActive = false;
+    workSessionStart = null;
+    workSessionSessions = [];
   }
+
+  store.set({ token: null, userName: null, userEmail: null, organizationId: null });
+  if (poller) { poller.stop(); poller = null; }
   if (syncTimer) clearInterval(syncTimer);
   if (rulesRefreshTimer) clearInterval(rulesRefreshTimer);
   updateTrayMenu();
@@ -352,16 +450,11 @@ function notify(title, body) {
   }
 }
 
-function ts() {
-  return new Date().toTimeString().slice(0, 8);
-}
+function ts() { return new Date().toTimeString().slice(0, 8); }
 
-// ── IPC fra settings-vinduet ────────────────────────────────────
+// ── IPC ─────────────────────────────────────────────────────────
 ipcMain.handle('settings:get-all', () => store.store);
-ipcMain.handle('settings:set', (_e, key, value) => {
-  store.set(key, value);
-  return true;
-});
+ipcMain.handle('settings:set', (_e, key, value) => { store.set(key, value); return true; });
 ipcMain.handle('auth:login', async (_e, apiUrl, email, password) => {
   try {
     const data = await login(apiUrl, email, password);
@@ -370,12 +463,16 @@ ipcMain.handle('auth:login', async (_e, apiUrl, email, password) => {
     return { ok: false, error: err.message };
   }
 });
-ipcMain.handle('auth:logout', () => {
-  logout();
-  return true;
-});
-ipcMain.handle('agent:status', () => poller?.getStatus() || null);
+ipcMain.handle('auth:logout', () => { logout(); return true; });
+ipcMain.handle('agent:status', () => ({
+  ...(poller?.getStatus() || {}),
+  workSessionActive,
+  workSessionStartedAt: workSessionStart,
+  workSessionSessionCount: workSessionSessions.length,
+}));
 ipcMain.handle('agent:pending-count', () => pendingSessions.length);
+ipcMain.handle('agent:start-work-session', () => { startWorkSession(); return true; });
+ipcMain.handle('agent:stop-work-session', () => { stopWorkSession(); return true; });
 
-// Oppdater tray-menyen hvert 15. sekund så status-linjene er ferske
+// Oppdater tray-menyen hvert 15. sekund for å holde elapsed-tid fersk
 setInterval(() => updateTrayMenu(), 15000);

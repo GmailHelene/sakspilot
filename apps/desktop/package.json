@@ -3,12 +3,16 @@
   "version": "0.0.1",
   "private": true,
   "description": "Sakspilot desktop-agent — tray-app for Windows som logger aktivt vindu og kobler til sak",
+  "author": {
+    "name": "Helene Åsheim Grønberg",
+    "email": "helene@helene.cloud"
+  },
   "main": "src/main.js",
   "scripts": {
     "postinstall": "node scripts/generate-icon.js",
     "start": "electron .",
     "dev": "electron . --dev",
-    "build:exe": "electron-builder --win --x64",
+    "build:exe": "electron-builder --win --x64 --config.electronVersion=30.5.1",
     "poc": "node src/poc-logger.js",
     "poc:fast": "node src/poc-logger.js --interval=3 --duration=120",
     "poc:matching": "node src/poc-logger.js --rules",
@@ -16,7 +20,8 @@
   },
   "dependencies": {
     "electron-store": "^8.2.0",
-    "get-windows": "^9.2.0"
+    "get-windows": "^9.2.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "electron": "^30.5.1",
