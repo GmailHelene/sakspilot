@@ -51,11 +51,23 @@ app.use(
     origin: (origin, callback) => {
       if (!origin) return callback(null, true); // curl, server-til-server
       if (allowedOrigins.includes(origin)) return callback(null, true);
+
       // I dev: tillat alle localhost-origins (Electron, ulike porter,
       // Next.js rewrites som proxer fra port 3001 → 8001 osv.)
       if (isDev && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
         return callback(null, true);
       }
+
+      // I prod: tillat alle Vercel-deploy-URLer (sakspilot-web-*.vercel.app)
+      // og alle Render-genererte URLer (sakspilot*.onrender.com).
+      // Dette dekker preview-deploys uten å måtte oppdatere env-vars.
+      if (/^https:\/\/sakspilot.*\.vercel\.app$/.test(origin)) {
+        return callback(null, true);
+      }
+      if (/^https:\/\/sakspilot.*\.onrender\.com$/.test(origin)) {
+        return callback(null, true);
+      }
+
       return callback(new Error(`CORS: origin ikke tillatt: ${origin}`));
     },
     credentials: true,
