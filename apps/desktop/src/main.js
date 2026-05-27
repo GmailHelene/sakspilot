@@ -473,6 +473,8 @@ ipcMain.handle('agent:status', () => ({
 ipcMain.handle('agent:pending-count', () => pendingSessions.length);
 ipcMain.handle('agent:start-work-session', () => { startWorkSession(); return true; });
 ipcMain.handle('agent:stop-work-session', () => { stopWorkSession(); return true; });
+ipcMain.handle('agent:toggle-pause', () => { togglePause(); return true; });
+ipcMain.handle('agent:sync-now', async () => { await syncSessions(); return true; });
 
 // Oppdater tray-menyen hvert 15. sekund for å holde elapsed-tid fersk
 setInterval(() => updateTrayMenu(), 15000);

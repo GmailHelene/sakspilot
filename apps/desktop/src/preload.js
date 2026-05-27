@@ -12,4 +12,10 @@ contextBridge.exposeInMainWorld('sakspilot', {
   logout: () => ipcRenderer.invoke('auth:logout'),
   getStatus: () => ipcRenderer.invoke('agent:status'),
   getPendingCount: () => ipcRenderer.invoke('agent:pending-count'),
+
+  // Arbeidsøkt-styring (samme som tray-meny-knappene)
+  startWorkSession: () => ipcRenderer.invoke('agent:start-work-session'),
+  stopWorkSession: () => ipcRenderer.invoke('agent:stop-work-session'),
+  togglePause: () => ipcRenderer.invoke('agent:toggle-pause'),
+  syncNow: () => ipcRenderer.invoke('agent:sync-now'),
 });

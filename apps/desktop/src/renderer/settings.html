@@ -108,6 +108,22 @@
       font-size: 13px;
       border: 1px solid var(--border);
     }
+    .btn-warn {
+      background: var(--gold);
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .btn-danger {
+      background: var(--red);
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
     .error {
       background: #FEE2E2;
       color: #7F1D1D;
@@ -194,10 +210,26 @@
     <div class="status-row"><span class="label">E-post</span><span class="value" id="userEmail">—</span></div>
     <div class="status-row"><span class="label">API</span><span class="value" id="currentApi">—</span></div>
     <div class="status-row" id="rowAgent"><span class="label">Agent</span><span class="value" id="agentStatus">—</span></div>
+    <div class="status-row" id="rowWorkSession"><span class="label">Arbeidsøkt</span><span class="value" id="workSessionInfo">—</span></div>
     <div class="status-row"><span class="label">Polls totalt</span><span class="value" id="pollCount">0</span></div>
     <div class="status-row"><span class="label">Sessions logget</span><span class="value" id="sessionCount">0</span></div>
     <div class="status-row" id="rowPending"><span class="label">Ikke synket</span><span class="value" id="pendingCount">0</span></div>
     <div class="status-row"><span class="label">Aktive matching-regler</span><span class="value" id="ruleCount">0</span></div>
+
+    <!-- Kontrollknapper — endres basert på status -->
+    <div id="controls" style="margin-top:18px; display:grid; gap:8px;">
+      <!-- Når INGEN arbeidsøkt — vis kun Start -->
+      <button class="btn-primary" id="btnStart" style="display:none;">▶ Start arbeidsøkt</button>
+
+      <!-- Når arbeidsøkt AKTIV — vis Pause + Stopp -->
+      <div id="activeControls" style="display:none; gap:8px; display:none;">
+        <button class="btn-warn" id="btnTogglePause" style="flex:1;">⏸ Pause</button>
+        <button class="btn-danger" id="btnStop" style="flex:1;">■ Stopp + rapport</button>
+      </div>
+
+      <button class="btn-secondary" id="btnSync">🔄 Synk nå</button>
+    </div>
+
     <div style="margin-top:14px; display:flex; gap:8px;">
       <button class="btn-secondary" id="logoutBtn">Logg ut</button>
     </div>
@@ -262,17 +294,53 @@
           ? '⏸ Pauset'
           : status.currentSession
             ? `▶ ${status.currentSession.sakTitle || status.currentSession.app}`
-            : '⏱ Venter på aktivitet';
+            : status.workSessionActive
+              ? '⏱ Aktiv — venter på vinduskifte'
+              : '⏹ Ingen arbeidsøkt';
         $('agentStatus').textContent = text;
-        $('rowAgent').className = 'status-row ' + (status.paused ? 'warn' : 'ok');
-        $('pollCount').textContent = status.pollCount;
-        $('sessionCount').textContent = status.sessionCount;
-        $('ruleCount').textContent = status.ruleCount;
+        $('rowAgent').className = 'status-row ' + (status.paused ? 'warn' : status.workSessionActive ? 'ok' : '');
+        $('pollCount').textContent = status.pollCount || 0;
+        $('sessionCount').textContent = status.sessionCount || 0;
+        $('ruleCount').textContent = status.ruleCount || 0;
+
+        // Arbeidsøkt-info
+        if (status.workSessionActive && status.workSessionStartedAt) {
+          const elapsedSec = Math.round((Date.now() - new Date(status.workSessionStartedAt)) / 1000);
+          $('workSessionInfo').textContent =
+            `Aktiv — ${formatDur(elapsedSec)} · ${status.workSessionSessionCount || 0} sessions`;
+          $('rowWorkSession').className = 'status-row ok';
+        } else {
+          $('workSessionInfo').textContent = 'Ikke startet';
+          $('rowWorkSession').className = 'status-row';
+        }
+
+        // Vis riktige knapper basert på status
+        if (status.workSessionActive) {
+          hide('btnStart');
+          $('activeControls').style.display = 'flex';
+          $('activeControls').style.gap = '8px';
+          $('btnTogglePause').textContent = status.paused ? '▶ Fortsett' : '⏸ Pause';
+          $('btnTogglePause').className = status.paused ? 'btn-primary' : 'btn-warn';
+        } else {
+          show('btnStart');
+          $('activeControls').style.display = 'none';
+        }
       } else {
         $('agentStatus').textContent = '⚠ Ikke kjørende';
+        hide('btnStart');
+        $('activeControls').style.display = 'none';
       }
-      $('pendingCount').textContent = pending;
+      $('pendingCount').textContent = pending || 0;
       $('rowPending').className = 'status-row ' + (pending > 0 ? 'warn' : '');
+    }
+
+    function formatDur(sec) {
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      if (h) return `${h}t ${m}m ${s}s`;
+      if (m) return `${m}m ${s}s`;
+      return `${s}s`;
     }
 
     // ── Innlogging ───────────────────────────────────────────
@@ -304,6 +372,30 @@
       e.preventDefault();
       const url = $('apiUrl').value.replace(/:\d+$/, ':3001') + '/registrer';
       window.open(url, '_blank');
+    });
+
+    // ── Arbeidsøkt-knapper ───────────────────────────────────
+    $('btnStart').addEventListener('click', async () => {
+      await window.sakspilot.startWorkSession();
+      await refreshStatus();
+    });
+    $('btnTogglePause').addEventListener('click', async () => {
+      await window.sakspilot.togglePause();
+      await refreshStatus();
+    });
+    $('btnStop').addEventListener('click', async () => {
+      if (!confirm('Stoppe arbeidsøkt? Du vil få en Excel-rapport å lagre.')) return;
+      await window.sakspilot.stopWorkSession();
+      await refreshStatus();
+    });
+    $('btnSync').addEventListener('click', async () => {
+      const btn = $('btnSync');
+      btn.textContent = '🔄 Synker...';
+      btn.disabled = true;
+      await window.sakspilot.syncNow();
+      await refreshStatus();
+      btn.textContent = '🔄 Synk nå';
+      btn.disabled = false;
     });
 
     // ── Logg ut ──────────────────────────────────────────────
