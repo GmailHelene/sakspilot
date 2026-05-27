@@ -1,0 +1,17 @@
+ALTERNATIVER FOR INTEGRERING AV LOGGING I WEB VERSJONEN:
+
+Alternativ 1 — "Manuell timer" i web (à la Toggl)
+For brukere som bare har web tilgjengelig (f.eks. på Mac eller Linux). En knapp "Start timer på denne saken" → "Stopp timer". Krever at brukeren husker å starte/stoppe — mister fordelen med passiv logging, men noe er bedre enn ingenting.
+
+Alternativ 2 — Chrome-utvidelse (extension)
+En egen utvidelse som tracker hvilke nettleser-tabber du er i. Fanger Holte, Tripletex, Fiken, WordPress-admin osv. Men IKKE Word, AutoCAD, Outlook (de er utenfor browseren). ~2 dagers jobb, kan lages senere.
+
+Alternativ 3 — Web HAR allerede ALL data + alle visninger
+Dette er det viktigste poenget: Web-appen på sakspilot.no har ALLEREDE alle funksjoner unntatt selve logging-aktiviteten. Du kan:
+
+Se alle saker og klienter
+Sette opp matching-regler
+Se tidsrapporter etter desktop har synket
+Eksportere data
+Endre status, lege til frister osv.
+Det eneste desktop GJØR er å fange tiden. Resten skjer i web.

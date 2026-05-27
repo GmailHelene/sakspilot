@@ -411,6 +411,7 @@ function openSettingsWindow() {
 }
 
 let dashboardWindow = null;
+let dashboardLoadTimer = null;
 
 function openDashboardWindow() {
   if (dashboardWindow) {
@@ -418,8 +419,7 @@ function openDashboardWindow() {
     dashboardWindow.focus();
     return;
   }
-  // Bygg URL fra konfigurert apiUrl — bytt port 8001 → 3001 for dev,
-  // eller bruk samme host hvis prod (sakspilot.no)
+
   const apiUrl = store.get('apiUrl') || 'http://localhost:8001';
   const webUrl = apiUrl.replace(/:\d+$/, ':3001').replace('/api', '');
 
@@ -428,48 +428,130 @@ function openDashboardWindow() {
     height: 800,
     title: 'Sakspilot — Dashbord',
     autoHideMenuBar: false,
-    webPreferences: {
-      contextIsolation: true,
-      nodeIntegration: false,
-    },
-    // Bruk vårt eget ikon i tittel-baren
+    backgroundColor: '#1E3A5F', // unngå hvit-blink før innhold laster
+    webPreferences: { contextIsolation: true, nodeIntegration: false },
     icon: path.join(__dirname, '..', 'assets', 'icon.png'),
   });
 
-  // Vis splash mens den laster
-  dashboardWindow.loadURL(`data:text/html,
-    <body style="margin:0;font-family:system-ui;background:#1E3A5F;color:white;
-                  height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;">
-      <div style="font-size:32px;font-weight:800;letter-spacing:2px;">SAKSPILOT</div>
-      <div style="font-size:14px;color:#B8860B;margin-top:8px;">Laster dashbordet...</div>
-    </body>
-  `);
+  // Splash som ALLTID vises først (også hvis web-laster henger)
+  loadSplash();
 
-  // Når splash er ferdig, last den ekte URL-en
-  dashboardWindow.webContents.once('did-finish-load', () => {
-    setTimeout(() => {
-      dashboardWindow?.loadURL(webUrl).catch((err) => {
-        dashboardWindow?.loadURL(`data:text/html,
-          <body style="margin:0;font-family:system-ui;background:#FAFAF7;color:#222;padding:40px;">
-            <h1 style="color:#9D0208">Kunne ikke koble til Sakspilot</h1>
-            <p>Forventet at web-appen kjører på: <code>${webUrl}</code></p>
-            <p>Feilmelding: ${err.message}</p>
-            <h2>Hva gjør jeg?</h2>
-            <p>Sjekk at backend-tjenesten kjører:</p>
-            <ul>
-              <li>For lokal utvikling: dobbeltklikk <code>Start - Sakspilot dev.bat</code></li>
-              <li>For produksjon: kontakt support på helene@helene.cloud</li>
-            </ul>
-            <button onclick="location.reload()" style="padding:10px 20px;background:#1E3A5F;color:white;border:none;border-radius:8px;cursor:pointer;">
-              Prøv igjen
-            </button>
-          </body>
-        `);
-      });
-    }, 800);
+  // Forsøk å laste web-appen etter 500ms
+  setTimeout(() => attemptLoad(), 500);
+
+  // 'did-fail-load' fanger ERR_CONNECTION_REFUSED osv. som .catch() ikke gjør
+  dashboardWindow.webContents.on('did-fail-load', (_e, errorCode, errorDescription, validatedURL) => {
+    // Hopp over hvis det er splash/error-pagen vår som "feilet" (data: URLs)
+    if (!validatedURL || validatedURL.startsWith('data:')) return;
+    console.error(`[Dashbord] Kunne ikke laste ${validatedURL}: ${errorCode} ${errorDescription}`);
+    loadErrorPage(errorCode, errorDescription, validatedURL);
   });
 
-  dashboardWindow.on('closed', () => { dashboardWindow = null; });
+  dashboardWindow.on('closed', () => {
+    if (dashboardLoadTimer) { clearTimeout(dashboardLoadTimer); dashboardLoadTimer = null; }
+    dashboardWindow = null;
+  });
+
+  // IPC-handler for "prøv igjen"-knappen i error-pagen
+  ipcMain.removeHandler('dashboard:retry');
+  ipcMain.handle('dashboard:retry', () => {
+    loadSplash();
+    setTimeout(() => attemptLoad(), 300);
+    return true;
+  });
+
+  function loadSplash() {
+    if (!dashboardWindow) return;
+    const splashHTML = `
+      <!DOCTYPE html><html><head><meta charset="utf-8"><title>Sakspilot — laster</title>
+      <style>
+        body { margin:0; font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+               background: #1E3A5F; color: white; height: 100vh;
+               display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .logo { font-size: 36px; font-weight: 800; letter-spacing: 3px; margin-bottom: 8px; }
+        .sub { font-size: 13px; color: #B8860B; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 28px; }
+        .loader { width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.2);
+                  border-top-color: #B8860B; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .status { margin-top: 18px; font-size: 13px; color: rgba(255,255,255,0.6); }
+      </style></head><body>
+        <div class="logo">SAKSPILOT</div>
+        <div class="sub">Workspace for selvstendige</div>
+        <div class="loader"></div>
+        <div class="status">Laster dashbord...</div>
+      </body></html>`;
+    dashboardWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(splashHTML));
+  }
+
+  function attemptLoad() {
+    if (!dashboardWindow) return;
+    dashboardWindow.loadURL(webUrl).catch((err) => {
+      loadErrorPage('LOAD_FAILED', err.message, webUrl);
+    });
+  }
+
+  function loadErrorPage(code, desc, url) {
+    if (!dashboardWindow) return;
+    const errorHTML = `
+      <!DOCTYPE html><html><head><meta charset="utf-8"><title>Sakspilot — kunne ikke koble til</title>
+      <style>
+        * { box-sizing: border-box; }
+        body { margin:0; padding: 0; font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+               background: #FAFAF7; color: #1A1A1A; line-height: 1.5; }
+        .container { max-width: 640px; margin: 60px auto; padding: 32px;
+                     background: white; border: 1px solid #E2E2DC; border-radius: 14px;
+                     box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+        .logo-text { font-size: 16px; font-weight: 800; letter-spacing: 1px; color: #1E3A5F; }
+        h1 { color: #9D0208; font-size: 22px; margin: 0 0 8px 0; }
+        .sub { color: #555; margin-bottom: 24px; }
+        code { background: #F4F4F0; padding: 2px 8px; border-radius: 4px;
+               font-family: Consolas, "Courier New", monospace; font-size: 13px; color: #1E3A5F; }
+        h2 { color: #1E3A5F; font-size: 15px; margin-top: 24px; text-transform: uppercase; letter-spacing: 0.5px; }
+        ol { padding-left: 20px; }
+        ol li { margin-bottom: 12px; }
+        .btn { display: inline-block; background: #1E3A5F; color: white;
+               padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;
+               border: none; cursor: pointer; margin-top: 20px; margin-right: 10px;
+               font-family: inherit; }
+        .btn-secondary { background: white; color: #555; border: 1px solid #E2E2DC; }
+        .meta { margin-top: 28px; padding-top: 16px; border-top: 1px solid #E2E2DC;
+                font-size: 12px; color: #999; }
+      </style></head><body>
+        <div class="container">
+          <div class="logo">
+            <svg width="28" height="28" viewBox="0 0 28 28">
+              <polygon points="14,2 26,26 2,26" fill="#152A47" />
+              <polygon points="14,10 22,26 6,26" fill="#B8860B" />
+            </svg>
+            <span class="logo-text">SAKSPILOT</span>
+          </div>
+          <h1>⚠ Kunne ikke koble til dashbordet</h1>
+          <p class="sub">Sakspilot-agenten kjører som den skal, men web-dashbordet er ikke tilgjengelig på <code>${url}</code>.</p>
+
+          <h2>Hva gjør jeg?</h2>
+          <ol>
+            <li><strong>Sjekk at backend-tjenesten kjører.</strong> Den må startes separat fra agenten.</li>
+            <li>Gå til mappa <code>C:\\Users\\helen\\Desktop\\sakspilot</code></li>
+            <li>Dobbeltklikk <code>Start - Sakspilot dev.bat</code></li>
+            <li>Vent til du ser "<em>Ready in Xs</em>" i terminalvinduet</li>
+            <li>Klikk "Prøv igjen" under</li>
+          </ol>
+
+          <p style="margin-top: 24px;">
+            <button class="btn" onclick="window.location.reload()">🔄 Prøv igjen</button>
+            <a class="btn btn-secondary" href="${url}" target="_blank">🌐 Åpne i nettleser</a>
+          </p>
+
+          <div class="meta">
+            <strong>Teknisk:</strong> ${code} — ${desc}<br>
+            <strong>URL forsøkt:</strong> ${url}<br>
+            <strong>Når web er live på sakspilot.no</strong> trenger du ikke kjøre dette lokalt.
+          </div>
+        </div>
+      </body></html>`;
+    dashboardWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(errorHTML));
+  }
 }
 
 // ── Auth ────────────────────────────────────────────────────────
