@@ -42,11 +42,18 @@ const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:3001")
   .split(",")
   .map((s) => s.trim());
 
+const isDev = process.env.NODE_ENV !== "production";
+
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true); // curl, server-til-server
       if (allowedOrigins.includes(origin)) return callback(null, true);
+      // I dev: tillat alle localhost-origins (Electron, ulike porter,
+      // Next.js rewrites som proxer fra port 3001 → 8001 osv.)
+      if (isDev && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+        return callback(null, true);
+      }
       return callback(new Error(`CORS: origin ikke tillatt: ${origin}`));
     },
     credentials: true,
@@ -88,11 +95,26 @@ app.get("/", (_req: Request, res: Response) => {
 
 // ── Error-handler — fanger thrown errors fra async handlers ─────
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error("[API-feil]", err.message, err.stack);
+app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+  // Logg alltid full feil til konsoll (med rute + body for kontekst)
+  console.error(
+    `\n[API-feil] ${req.method} ${req.path}\n`,
+    `  message: ${err.message}\n`,
+    `  body:    ${JSON.stringify(req.body)?.slice(0, 200)}\n`,
+    err.stack
+  );
+
+  // I ikke-produksjon: eksponer feilmelding + Prisma-detaljer i responsen.
+  // Standardiserer på NODE_ENV !== "production" så vi alltid får debug-info
+  // lokalt selv om NODE_ENV ikke er satt eller blir "development" vs udefinert.
+  const isProd = process.env.NODE_ENV === "production";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const prismaErr = err as any;
   res.status(500).json({
     error: "Internfeil",
-    message: process.env.NODE_ENV === "development" ? err.message : undefined,
+    message: isProd ? undefined : err.message,
+    code: isProd ? undefined : prismaErr.code,
+    meta: isProd ? undefined : prismaErr.meta,
   });
 });
 

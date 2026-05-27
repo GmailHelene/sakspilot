@@ -77,22 +77,25 @@ trenger ikke endre noe der.
 
 ## Steg 3: Migrer databasen (1 min)
 
+For utvikling bruker vi `db push` istedenfor `migrate dev` — det pusher schema
+direkte uten å lage migrasjonsfiler (perfekt for solo-arbeid før første pilot).
+
 ```bash
 cd C:\Users\helen\Desktop\sakspilot
-npm run db:generate
-npm run db:migrate
+npm run db:push
 ```
 
-Du blir spurt om navn på første migrasjon — bare trykk Enter for å bruke
-default (`init` eller liknende). Du skal se:
+Du skal se:
 
 ```
-✔ Applied migration `20260527xxxx_init`
-Your database is now in sync with your schema.
+Your database is now in sync with your Prisma schema. Done in 5.47s
 ```
 
-**Hvis du får feil her** — sjekk at DATABASE_URL/DIRECT_URL er riktig kopiert
-og at det ikke er linjeskift i strengen.
+**Viktig om Neon-tilkobling:** Hvis du får `Can't reach database server`-feil
+mot port 5432, har Neon free-tier ofte problemer med direct connection.
+Workaround: sett `DIRECT_URL` til **samme pooled-URL** som `DATABASE_URL`
+i `apps/api/.env` (begge skal ha `-pooler` i hostname). Pooled fungerer for
+både runtime og schema-pushing.
 
 ---
 
