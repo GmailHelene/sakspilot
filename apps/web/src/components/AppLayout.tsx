@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import Launcher from './Launcher';
 import { isTokenValid } from '@/lib/api';
 import { tokens } from '@/lib/tokens';
 
@@ -44,6 +45,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
       <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+        <Launcher />
         <Sidebar />
         <main
           style={{
