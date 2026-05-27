@@ -2,6 +2,7 @@
   "name": "@sakspilot/desktop",
   "version": "0.0.1",
   "private": true,
+  "os": ["win32"],
   "description": "Sakspilot desktop-agent — tray-app for Windows som logger aktivt vindu og kobler til sak",
   "author": {
     "name": "Helene Åsheim Grønberg",
