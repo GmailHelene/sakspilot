@@ -22,8 +22,10 @@
   "dependencies": {
     "archiver": "^7.0.1",
     "electron-store": "^8.2.0",
-    "get-windows": "^9.2.0",
     "xlsx": "^0.18.5"
+  },
+  "optionalDependencies": {
+    "get-windows": "^9.2.0"
   },
   "devDependencies": {
     "@electron/packager": "^18.3.6",
