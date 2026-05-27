@@ -7,7 +7,8 @@
   "scripts": {
     "poc": "node src/poc-logger.js",
     "poc:fast": "node src/poc-logger.js --interval=3 --duration=120",
-    "poc:matching": "node src/poc-logger.js --rules"
+    "poc:matching": "node src/poc-logger.js --rules",
+    "diagnose": "node src/diagnose.js"
   },
   "dependencies": {
     "get-windows": "^9.2.0"

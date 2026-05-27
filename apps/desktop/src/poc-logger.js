@@ -43,19 +43,26 @@ const RULES_MODE = Boolean(args.rules);
 //
 // I produksjon hentes disse fra backend (GET /agent/rules) og caches lokalt
 // i SQLite. POC-en hardkoder noen demo-regler for å bevise mekanismen.
+//
+// NB: get-windows gir oss owner.path = stien til .exe-en (f.eks. WINWORD.EXE),
+// IKKE filen som er åpen i Word. For dokument-matching må vi bruke
+// vindustittelen som vanligvis inneholder filnavnet.
+//
+// Regex'ene tillater både mellomrom, bindestrek, understrek eller ingenting
+// mellom navn og tall, slik at "Bygdoy-12", "Bygdøy 12", "bygdoy12" alle
+// matcher samme sak.
 const DEMO_RULES = [
   {
     sakId: 'demo-bygdoy-12',
     sakTitle: 'Bygdøy 12 — rammetillatelse',
     patterns: [
-      { type: 'title', pattern: /bygd[øo]y\s*12/i },
-      { type: 'path', pattern: /[\\\/]Bygdoy-12($|[\\\/])/i },
+      { type: 'title', pattern: /bygd[øo]y[\s\-_]*12/i },
     ],
   },
   {
     sakId: 'demo-skien-7',
     sakTitle: 'Skien 7 — ferdigattest',
-    patterns: [{ type: 'title', pattern: /skien\s*7/i }],
+    patterns: [{ type: 'title', pattern: /skien[\s\-_]*7/i }],
   },
   {
     sakId: 'demo-administrasjon',
