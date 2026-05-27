@@ -376,25 +376,66 @@ function Stat({ label, value }: { label: string; value: string }) {
 // Noen er sak-spesifikke (genereres dynamisk fra sak.title / folderPath),
 // andre er generelle (matcher alle dokumenter av en gitt type).
 function buildRuleTemplates(sak: Sak) {
-  // Lag regex-mønster fra sak.title som matcher liknende filnavn:
-  //   "Bygdøy 12 — rammetillatelse"  →  /bygd[øo]y[\s\-_]*12/i
-  // Plukker første 1-2 ord + tall (om de finnes) — typisk gateadresse.
-  const titleWords = sak.title
-    .replace(/[—–-].+$/, '') // klipp av etter tankestrek
+  // Stopp-ord vi IKKE bruker som matching-nøkkel (for generiske)
+  const STOPWORDS = new Set([
+    'sak', 'prosjekt', 'oppdrag', 'jobb', 'kunde', 'klient',
+    'for', 'til', 'og', 'i', 'av', 'med', 'fra', 'om', 'på',
+    'en', 'et', 'den', 'det', 'de', 'eller',
+  ]);
+
+  // Escape regex-spesialtegn og legg til norsk-bokstav-toleranse
+  function prepareWord(w: string): string {
+    return w
+      .toLowerCase()
+      .replace(/[.\\+*?^$()|[\]{}]/g, '\\$&') // escape regex-spesialtegn
+      .replace(/ø/g, '[øo]')
+      .replace(/æ/g, '[æae]')
+      .replace(/å/g, '[åa]');
+  }
+
+  // Plukk meningsfulle ord fra tittel (før bindestrek), filtrer stopp-ord
+  const significantWords = sak.title
+    .replace(/[—–-].+$/, '')
     .trim()
     .split(/\s+/)
-    .slice(0, 3)
-    .map((w) => w.replace(/[øØ]/g, '[øo]').replace(/[æÆ]/g, '[æae]').replace(/[åÅ]/g, '[åa]'))
-    .join('[\\s\\-_]*')
-    .toLowerCase();
+    .map((w) => w.toLowerCase())
+    .filter((w) => w.length >= 2 && !STOPWORDS.has(w))
+    .slice(0, 4)
+    .map(prepareWord);
+
+  // FLEKSIBEL pattern (anbefalt): bruker lookahead — alle ord må finnes,
+  // i HVILKEN SOM HELST rekkefølge, med hva som helst mellom.
+  //   "Bygdøy 12 — rammetillatelse" → "(?=.*bygd[øo]y)(?=.*12).*"
+  //   matcher: "Bygdoy-12.docx", "12 Bygdoy.docx", "Tegning Bygdoy nr 12.dwg"
+  // Faller tilbake til substring hvis kun ett meningsfullt ord.
+  let autoFlexPattern: string;
+  if (significantWords.length === 0) {
+    autoFlexPattern = sak.title.slice(0, 20).toLowerCase();
+  } else if (significantWords.length === 1) {
+    autoFlexPattern = significantWords[0];
+  } else {
+    autoFlexPattern = significantWords.map((w) => `(?=.*${w})`).join('') + '.*';
+  }
+
+  // STRENG pattern (gammel): ord i rekkefølge med separator
+  // Brukes som "Auto streng"-alternativ + i andre maler som trenger
+  // substring (VS Code, GitHub osv.)
+  const titleWords = significantWords.join('[\\s\\-_]*') || sak.title.slice(0, 20).toLowerCase();
 
   return [
     {
-      id: 'auto-title',
-      label: '⚡ Auto: match dokumenter med sakens navn',
+      id: 'auto-title-flex',
+      label: '⚡ Auto: match sakens navn (fleksibel)',
+      type: 'title' as const,
+      pattern: autoFlexPattern,
+      hint: `Matcher uansett rekkefølge — f.eks. "${significantWords.join(' ')}" treffer både "${significantWords.join('-')}.docx", "${[...significantWords].reverse().join(' ')}.dwg" og "Notater om ${significantWords.join(' ')}.pdf"`,
+    },
+    {
+      id: 'auto-title-strict',
+      label: '🎯 Auto: streng match (ord i rekkefølge)',
       type: 'title' as const,
       pattern: titleWords,
-      hint: `Genereres fra "${sak.title.slice(0, 40)}"`,
+      hint: 'Krever ordene i samme rekkefølge med kun mellomrom/bindestrek/understrek mellom — færre falske treff',
     },
     {
       id: 'folder',
