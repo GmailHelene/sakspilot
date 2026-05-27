@@ -166,7 +166,13 @@ function updateTrayMenu() {
     });
     items.push({
       label: '🌐 Åpne i nettleser',
-      click: () => shell.openExternal(`${store.get('apiUrl').replace(/:\d+$/, ':3001')}/saker`),
+      click: () => {
+        const apiUrl = store.get('apiUrl') || 'https://sakspilot.onrender.com';
+        const webUrl = apiUrl.includes('onrender.com')
+          ? 'https://sakspilot-web.vercel.app'
+          : apiUrl.replace(/:\d+$/, ':3001');
+        shell.openExternal(`${webUrl}/saker`);
+      },
     });
     items.push({ type: 'separator' });
     items.push({ label: '⚙  Innstillinger', click: () => openSettingsWindow() });
@@ -420,8 +426,11 @@ function openDashboardWindow() {
     return;
   }
 
-  const apiUrl = store.get('apiUrl') || 'http://localhost:8001';
-  const webUrl = apiUrl.replace(/:\d+$/, ':3001').replace('/api', '');
+  const apiUrl = store.get('apiUrl') || 'https://sakspilot.onrender.com';
+  // For prod: api på Render, web på Vercel. For dev: web på samme host, port 3001
+  const webUrl = apiUrl.includes('onrender.com')
+    ? 'https://sakspilot-web.vercel.app'
+    : apiUrl.replace(/:\d+$/, ':3001').replace('/api', '');
 
   dashboardWindow = new BrowserWindow({
     width: 1280,
