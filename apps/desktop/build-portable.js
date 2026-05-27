@@ -33,11 +33,18 @@ async function main() {
   console.log(`Temp:       ${TEMP_DIR}`);
   console.log(`Release:    ${RELEASE_DIR}`);
 
-  // ── Steg 1: rydd release/ ─────────────────────────────────
-  step(1, 6, 'Rydder release/...');
-  if (fs.existsSync(RELEASE_DIR)) {
-    fs.rmSync(RELEASE_DIR, { recursive: true, force: true });
+  // ── Steg 0: drep eventuelle Sakspilot/electron-prosesser ──
+  // (forrige Sakspilot.exe låser release-mappa hvis den fortsatt kjører)
+  if (process.platform === 'win32') {
+    console.log('\nStopper eventuelle kjørende Sakspilot/electron-prosesser...');
+    try { execSync('taskkill /F /IM Sakspilot.exe /T 2>nul', { stdio: 'ignore' }); } catch {}
+    try { execSync('taskkill /F /IM electron.exe /T 2>nul', { stdio: 'ignore' }); } catch {}
+    await sleep(1500);
   }
+
+  // ── Steg 1: rydd release/ (med retry mot EPERM) ───────────
+  step(1, 6, 'Rydder release/...');
+  await rmWithRetry(RELEASE_DIR);
   fs.mkdirSync(RELEASE_DIR, { recursive: true });
 
   // ── Steg 2: kopier kilden til temp ────────────────────────
@@ -157,6 +164,31 @@ Bygget:   ${new Date().toISOString()}
 }
 
 // ── Hjelpere ───────────────────────────────────────────────
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function rmWithRetry(dir, attempts = 5) {
+  if (!fs.existsSync(dir)) return;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+      return;
+    } catch (err) {
+      if (i === attempts - 1) {
+        console.error(`\n❌ Kunne ikke slette ${dir}`);
+        console.error(`   Sannsynlige årsaker:`);
+        console.error(`     - Sakspilot.exe kjører fortsatt (Task Manager → kill)`);
+        console.error(`     - Filutforser har mappa åpen (lukk vinduet)`);
+        console.error(`     - Antivirus skanner mappa (vent 30 sek og prøv igjen)`);
+        throw err;
+      }
+      console.log(`      forsøk ${i + 1}/${attempts} feilet, venter 2s...`);
+      await sleep(2000);
+    }
+  }
+}
 
 function copyRecursive(src, dest, ignore = []) {
   const stat = fs.statSync(src);
