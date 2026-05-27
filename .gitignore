@@ -46,3 +46,8 @@ apps/desktop/out/
 
 # Local
 *.local
+
+# Test-filer (Word/Excel) brukes til manuell POC-testing
+Test/
+~$*.docx
+~$*.xlsx
