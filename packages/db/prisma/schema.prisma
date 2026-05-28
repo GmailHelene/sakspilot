@@ -115,6 +115,7 @@ model User {
   agentSessions AgentSession[]
   graphAccount GraphAccount?
   stickyNotes  StickyNote[]
+  sharedLinks  SharedSakLink[]
 
   @@index([organizationId])
   @@map("users")
@@ -166,6 +167,7 @@ model Sak {
   emailLinks     EmailLink[]
   invoices       Invoice[]
   stickyNotes    StickyNote[]
+  sharedLinks    SharedSakLink[]
 
   @@index([organizationId, status])
   @@index([organizationId, clientId])
@@ -345,6 +347,28 @@ model Automation {
 
   @@index([organizationId, enabled, trigger])
   @@map("automations")
+}
+
+/// Offentlig delt visning av en sak — klient kan se status/milepæler
+/// uten å logge inn. Token er kryptografisk tilfeldig (24 bytes base64url).
+model SharedSakLink {
+  id          String    @id @default(uuid())
+  sakId       String    @map("sak_id")
+  token       String    @unique                            // ugjettbar URL-token
+  createdById String    @map("created_by_id")              // hvem genererte lenken
+  expiresAt   DateTime? @map("expires_at")                 // null = aldri utløper
+  viewCount   Int       @default(0) @map("view_count")
+  lastViewedAt DateTime? @map("last_viewed_at")
+  revokedAt   DateTime? @map("revoked_at")                 // soft-delete
+  showTimeEntries Boolean @default(false) @map("show_time_entries")  // valgfritt: del timeoversikt
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  sak       Sak  @relation(fields: [sakId], references: [id], onDelete: Cascade)
+  createdBy User @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([sakId, revokedAt])
+  @@index([token])
+  @@map("shared_sak_links")
 }
 
 model StickyNote {
