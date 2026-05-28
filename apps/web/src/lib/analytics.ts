@@ -1,29 +1,30 @@
 /**
- * Plausible custom events.
+ * Umami custom events.
  *
- * Bruk: trackEvent('Sak opprettet', { props: { client: 'Nordvik' } });
+ * Bruk: trackEvent('Sak opprettet', { client: 'Nordvik' });
  *
- * Events sendes kun hvis Plausible-skriptet er lastet (prod), faller
- * silent i dev. Sjekk Plausible Dashboard → Goals → Custom Events for
- * å se hva som kommer inn.
+ * Events sendes kun hvis Umami-skriptet er lastet, faller silent ellers.
+ * Sjekk Umami Dashboard → Events for å se hva som kommer inn.
+ *
+ * Umami-API: window.umami.track(eventName, eventData?)
  */
 
-type PlausibleFn = (event: string, opts?: { props?: Record<string, string | number | boolean> }) => void;
+type UmamiFn = (event: string, data?: Record<string, string | number | boolean>) => void;
 
 declare global {
   interface Window {
-    plausible?: PlausibleFn;
+    umami?: { track: UmamiFn };
   }
 }
 
 export function trackEvent(
   event: string,
-  props?: Record<string, string | number | boolean>
+  data?: Record<string, string | number | boolean>
 ): void {
   if (typeof window === 'undefined') return;
-  if (typeof window.plausible !== 'function') return;
+  if (!window.umami?.track) return;
   try {
-    window.plausible(event, props ? { props } : undefined);
+    window.umami.track(event, data);
   } catch {
     // ignore
   }

@@ -43,11 +43,11 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
-        {/* Plausible Analytics — GDPR-vennlig, ingen cookies, EU-host */}
+        {/* Umami Analytics — GDPR-vennlig, ingen cookies */}
         <script
           defer
-          data-domain="sakspilot.no"
-          src="https://plausible.io/js/script.outbound-links.tagged-events.js"
+          src="https://cloud.umami.is/script.js"
+          data-website-id="bfb51e02-b13e-420f-9396-c2704965af39"
         />
       </head>
       <body>
