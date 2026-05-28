@@ -117,7 +117,7 @@ export default function DesktopAgentControls() {
         style={{
           position: 'fixed',
           bottom: 16,
-          left: 16,
+          right: 16,
           zIndex: 9000,
           width: 44,
           height: 44,
