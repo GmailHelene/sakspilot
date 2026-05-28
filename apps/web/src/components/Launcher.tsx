@@ -309,8 +309,8 @@ export default function Launcher() {
               aria-label={app.label}
             >
               {/* Foretrekker simple-icons (offisielt brand-SVG i hvit) — faller
-                  tilbake til emoji for tjenester uten brand-slug eller hvis
-                  CDN feiler. */}
+                  tilbake til INITIALER (ikke 🔗-emoji) for tjenester uten
+                  brand-slug eller hvis CDN feiler. */}
               {app.brandSlug ? (
                 <img
                   src={`https://cdn.simpleicons.org/${app.brandSlug}/ffffff`}
@@ -323,18 +323,44 @@ export default function Launcher() {
                     const target = e.currentTarget as HTMLImageElement;
                     target.style.display = 'none';
                     const parent = target.parentElement;
-                    if (parent && !parent.querySelector('.emoji-fallback')) {
+                    if (parent && !parent.querySelector('.label-fallback')) {
                       const span = document.createElement('span');
-                      span.className = 'emoji-fallback';
-                      span.textContent = app.emoji;
-                      span.style.fontSize = '20px';
+                      span.className = 'label-fallback';
+                      // Initialer fra label (1-2 bokstaver), ikke kjede-emoji
+                      const src = (app.label || '').replace(/^www\./, '');
+                      const words = src.split(/[\s\-_.]+/).filter(Boolean);
+                      const initials = words.length >= 2
+                        ? (words[0][0] + words[1][0]).toUpperCase()
+                        : src.slice(0, 2).toUpperCase();
+                      span.textContent = initials || '?';
+                      span.style.fontSize = '12px';
+                      span.style.fontWeight = '700';
+                      span.style.color = '#FFFFFF';
+                      span.style.lineHeight = '1';
                       parent.appendChild(span);
                     }
                   }}
                 />
               ) : (
-                <span style={{ fontSize: 20, fontWeight: 700, pointerEvents: 'none' }}>
-                  {app.emoji}
+                // Ingen brand-slug = vis initialer direkte (f.eks. for norske
+                // tjenester som Tripletex/Fiken/Holte som ikke har simple-icons-
+                // brand-svg)
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    lineHeight: 1,
+                    color: '#FFFFFF',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  {(() => {
+                    const src = (app.label || '').replace(/^www\./, '');
+                    const words = src.split(/[\s\-_.]+/).filter(Boolean);
+                    return words.length >= 2
+                      ? (words[0][0] + words[1][0]).toUpperCase()
+                      : src.slice(0, 2).toUpperCase() || '?';
+                  })()}
                 </span>
               )}
             </button>
@@ -626,19 +652,20 @@ function LauncherSiteFavicon({ url, label }: { url: string; label: string }) {
     return (
       <div
         style={{
-          width: 22,
-          height: 22,
+          width: 26,
+          height: 26,
           borderRadius: 6,
           background: bg,
           color: 'white',
-          fontSize: 9,
+          fontSize: 11,
           fontWeight: 700,
-          lineHeight: 1,
+          lineHeight: '26px',  // matcher height for perfekt sentrering
           letterSpacing: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          display: 'block',
           textAlign: 'center',
+          fontFamily:
+            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif',
+          boxSizing: 'border-box',
         }}
       >
         {initials}

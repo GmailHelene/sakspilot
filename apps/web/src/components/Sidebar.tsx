@@ -545,19 +545,22 @@ function SiteFavicon({ url, label }: { url: string; label: string }) {
     return (
       <div
         style={{
-          width: 24,
-          height: 24,
+          width: 28,
+          height: 28,
           borderRadius: 6,
           background: bg,
           color: 'white',
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: 700,
-          lineHeight: 1,           // forhindrer vertikal-offset
+          lineHeight: '28px',       // matcher height = perfekt vertikal-sentrering
           letterSpacing: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           textAlign: 'center',
+          fontFamily:
+            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif',
+          // Bruker block + line-height i stedet for flex — mer pålitelig
+          // sentrering med uppercase tekst på tvers av nettlesere
+          display: 'block',
+          boxSizing: 'border-box',
         }}
       >
         {initials}
