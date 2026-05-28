@@ -12,6 +12,28 @@
 import "dotenv/config";
 import "express-async-errors";
 
+// ⚠ Sentry MÅ initialiseres før Express importeres for at v8 auto-instrumentation
+// skal funke. Kalles bare hvis SENTRY_DSN er satt — krasjer ikke uten.
+import * as Sentry from "@sentry/node";
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || "development",
+    tracesSampleRate: 0.1, // 10% av requests sampled
+    // PII filtreres ut — vi vil ikke ha klient-emails/navn i error-rapporter
+    sendDefaultPii: false,
+    beforeSend(event) {
+      // Strip ev. token-headere fra requests
+      if (event.request?.headers) {
+        delete event.request.headers["authorization"];
+        delete event.request.headers["cookie"];
+      }
+      return event;
+    },
+  });
+  console.log("[Sentry] Aktivert for environment:", process.env.NODE_ENV);
+}
+
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -187,6 +209,16 @@ app.get("/", (_req: Request, res: Response) => {
 // ── Error-handler — fanger thrown errors fra async handlers ─────
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+  // Send til Sentry hvis aktivert
+  if (process.env.SENTRY_DSN) {
+    Sentry.captureException(err, {
+      tags: { method: req.method, path: req.path },
+      extra: {
+        body: typeof req.body === "object" ? JSON.stringify(req.body).slice(0, 500) : req.body,
+      },
+    });
+  }
+
   // Logg alltid full feil til konsoll (med rute + body for kontekst)
   console.error(
     `\n[API-feil] ${req.method} ${req.path}\n`,

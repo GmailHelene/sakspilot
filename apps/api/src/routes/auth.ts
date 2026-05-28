@@ -18,6 +18,7 @@ import {
   SakspilotSession,
 } from "../services/auth";
 import { requireAuth } from "../middleware/auth";
+import { sendEmail, passwordResetEmail } from "../lib/email";
 
 const router = Router();
 
@@ -372,21 +373,33 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
   const webOrigin = process.env.WEB_ORIGIN || "https://sakspilot.no";
   const resetUrl = `${webOrigin}/reset-passord?token=${rawToken}`;
 
-  // Pilot-modus: log lenken til serveren så Helene kan videresende manuelt.
-  // PROD-fix: integrer SMTP-tjeneste (Postmark/SendGrid/Resend) og send via e-post.
+  // Send e-post hvis SMTP er konfigurert. Hvis ikke (eller send feiler),
+  // logges lenken til konsollen og returneres i _devResetUrl-feltet for fallback.
+  let emailSent = false;
   if (user) {
-    console.log(`[forgot-password] Reset-lenke for ${email}: ${resetUrl}`);
+    const result = await sendEmail(passwordResetEmail(email, resetUrl));
+    emailSent = result.ok;
+    if (!result.ok) {
+      console.log(
+        `[forgot-password] SMTP fallback — reset-lenke for ${email}: ${resetUrl}` +
+          (result.error ? ` (årsak: ${result.error})` : "")
+      );
+    } else {
+      console.log(`[forgot-password] Reset-lenke sendt til ${email} (msg: ${result.messageId})`);
+    }
   } else {
     console.log(`[forgot-password] Ingen bruker med e-post ${email} (ignorert)`);
   }
 
-  // I dev returneres lenken i response. I prod (med SMTP) ville vi bare returnert ok.
-  const isDev = process.env.NODE_ENV !== "production";
+  // _devResetUrl bare for ikke-prod ELLER hvis SMTP feilet (siste utvei for piloter)
+  const showDevUrl =
+    user && (process.env.NODE_ENV !== "production" || !emailSent);
+
   return res.json({
     ok: true,
     message:
       "Hvis kontoen finnes, har vi sendt en reset-lenke til e-postadressen. Sjekk innboksen.",
-    ...(isDev && user ? { _devResetUrl: resetUrl } : {}),
+    ...(showDevUrl ? { _devResetUrl: resetUrl } : {}),
   });
 });
 
