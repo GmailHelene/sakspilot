@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import PwaInit from '@/components/PwaInit';
 import DesktopShortcutOverlay from '@/components/DesktopShortcutOverlay';
 import DesktopAgentControls from '@/components/DesktopAgentControls';
+import OnboardingModal from '@/components/OnboardingModal';
 
 export const metadata: Metadata = {
   title: 'Sakspilot — Workspace for selvstendig næringsdrivende',
@@ -42,11 +43,18 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
+        {/* Plausible Analytics — GDPR-vennlig, ingen cookies, EU-host */}
+        <script
+          defer
+          data-domain="sakspilot.no"
+          src="https://plausible.io/js/script.outbound-links.tagged-events.js"
+        />
       </head>
       <body>
         <DesktopShortcutOverlay />
         {children}
         <DesktopAgentControls />
+        <OnboardingModal />
         <PwaInit />
       </body>
     </html>

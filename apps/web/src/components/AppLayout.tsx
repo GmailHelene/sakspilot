@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Menu, X } from 'lucide-react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import Launcher from './Launcher';
@@ -11,10 +12,15 @@ import { tokens } from '@/lib/tokens';
 /**
  * Layout for innloggede sider — header på toppen, sidebar til venstre,
  * innhold til høyre. Redirecter til /login hvis ikke autentisert.
+ *
+ * Mobil (< 768px): sidebar er skjult bak hamburger-knapp.
+ * Launcher er også skjult på mobil for å spare plass.
  */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     if (!isTokenValid()) {
@@ -23,6 +29,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
     setAuthed(true);
   }, [router]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
+  // Lukk meny ved navigasjon
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, []);
 
   if (authed === null) {
     return (
@@ -44,14 +64,80 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        <Launcher />
-        <Sidebar />
+      <div style={{ flex: 1, display: 'flex', minHeight: 0, position: 'relative' }}>
+        {/* Mobil-hamburger — floating top-left over innholdet */}
+        {isMobile && (
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? 'Lukk meny' : 'Åpne meny'}
+            style={{
+              position: 'fixed',
+              top: 70,
+              left: 12,
+              zIndex: 998,
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              background: tokens.color.navy,
+              color: 'white',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: tokens.shadow.md,
+            }}
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        )}
+
+        {/* Launcher (eksterne apper) — kun desktop */}
+        {!isMobile && <Launcher />}
+
+        {/* Sidebar */}
+        {isMobile ? (
+          <>
+            {mobileMenuOpen && (
+              <div
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  position: 'fixed',
+                  inset: 0,
+                  background: 'rgba(23, 43, 77, 0.5)',
+                  zIndex: 996,
+                }}
+              />
+            )}
+            <div
+              style={{
+                position: 'fixed',
+                top: 60,
+                left: 0,
+                bottom: 0,
+                width: 260,
+                background: 'white',
+                zIndex: 997,
+                transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
+                transition: 'transform 0.2s ease',
+                boxShadow: mobileMenuOpen ? tokens.shadow.lg : 'none',
+                overflowY: 'auto',
+              }}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Sidebar />
+            </div>
+          </>
+        ) : (
+          <Sidebar />
+        )}
+
         <main
           style={{
             flex: 1,
             overflowY: 'auto',
             background: tokens.color.bg,
+            paddingTop: isMobile ? 8 : 0, // unngå at hamburger overlapper
           }}
         >
           {children}
