@@ -10,7 +10,7 @@ import 'express-async-errors';
 import authRouter from '../routes/auth';
 import sakerRouter from '../routes/saker';
 import { authMiddleware } from '../middleware/auth';
-import { cleanupTestData, testEmail } from './helpers';
+import { cleanupTestData, testEmail, testPassword } from './helpers';
 
 let app: Express;
 
@@ -29,11 +29,12 @@ afterAll(async () => {
 
 async function registerUser() {
   const email = testEmail();
+  const password = testPassword();
   const res = await request(app)
     .post('/auth/register')
     .send({
       email,
-      password: 'Test123!',
+      password,
       name: 'Test',
       organizationName: 'Test AS',
     });

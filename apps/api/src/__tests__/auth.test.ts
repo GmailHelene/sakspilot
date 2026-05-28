@@ -10,7 +10,7 @@ import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import authRouter from '../routes/auth';
 import { authMiddleware } from '../middleware/auth';
-import { cleanupTestData, testEmail } from './helpers';
+import { cleanupTestData, testEmail, testPassword } from './helpers';
 
 let app: Express;
 
@@ -29,11 +29,12 @@ afterAll(async () => {
 describe('Auth flow', () => {
   it('registrerer ny bruker → returnerer token + organisasjon', async () => {
     const email = testEmail();
+    const password = testPassword();
     const res = await request(app)
       .post('/auth/register')
       .send({
         email,
-        password: 'TestPassord123!',
+        password,
         name: 'Test Bruker',
         organizationName: 'Test AS',
       });
@@ -47,13 +48,14 @@ describe('Auth flow', () => {
 
   it('logger inn med riktig passord → ny token', async () => {
     const email = testEmail();
+    const password = testPassword();
     await request(app)
       .post('/auth/register')
-      .send({ email, password: 'Pass1234!', name: 'X', organizationName: 'Y' });
+      .send({ email, password, name: 'X', organizationName: 'Y' });
 
     const res = await request(app)
       .post('/auth/login')
-      .send({ email, password: 'Pass1234!' });
+      .send({ email, password });
 
     expect(res.status).toBe(200);
     expect(res.body.token).toBeTruthy();
@@ -61,13 +63,15 @@ describe('Auth flow', () => {
 
   it('avviser feil passord med 401', async () => {
     const email = testEmail();
+    const correctPassword = testPassword();
+    const wrongPassword = testPassword();
     await request(app)
       .post('/auth/register')
-      .send({ email, password: 'Rett1234!', name: 'X', organizationName: 'Y' });
+      .send({ email, password: correctPassword, name: 'X', organizationName: 'Y' });
 
     const res = await request(app)
       .post('/auth/login')
-      .send({ email, password: 'FeilPassord!' });
+      .send({ email, password: wrongPassword });
 
     expect(res.status).toBe(401);
     expect(res.body.error).toMatch(/Feil/i);
@@ -75,9 +79,10 @@ describe('Auth flow', () => {
 
   it('logout-all bumper tokenVersion → gamle tokens avvises', async () => {
     const email = testEmail();
+    const password = testPassword();
     const reg = await request(app)
       .post('/auth/register')
-      .send({ email, password: 'Test123!', name: 'X', organizationName: 'Y' });
+      .send({ email, password, name: 'X', organizationName: 'Y' });
 
     const oldToken = reg.body.token;
 
@@ -92,11 +97,6 @@ describe('Auth flow', () => {
       .post('/auth/logout-all')
       .set('Authorization', `Bearer ${oldToken}`);
     expect(logoutAll.status).toBe(200);
-
-    // Vent over cache-TTL (30s) — for fast test bruker vi at cache invalideres
-    // ved at vi gjør NY login etterpå (kalles ikke direkte fra middleware-cache).
-    // For å verifisere må vi minst sjekke at logout-all faktisk bumpet DB.
-    // Fullstendig test ville krevd cache-clear-hjelper — skipper for nå.
     expect(logoutAll.body.ok).toBe(true);
   });
 });

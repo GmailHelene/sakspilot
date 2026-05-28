@@ -13,7 +13,7 @@ import authRouter from '../routes/auth';
 import sakerRouter from '../routes/saker';
 import { authRouter as shareAuthRouter, publicRouter as sharePublicRouter } from '../routes/share';
 import { authMiddleware } from '../middleware/auth';
-import { cleanupTestData, testEmail } from './helpers';
+import { cleanupTestData, testEmail, testPassword } from './helpers';
 
 let app: Express;
 
@@ -36,9 +36,10 @@ describe('Share-link flow', () => {
   it('genererer token, henter offentlig, revokerer', async () => {
     // Setup: lag bruker + sak
     const email = testEmail();
+    const password = testPassword();
     const reg = await request(app)
       .post('/auth/register')
-      .send({ email, password: 'Test123!', name: 'X', organizationName: 'Y' });
+      .send({ email, password, name: 'X', organizationName: 'Y' });
     const token = reg.body.token;
 
     const sak = await request(app)

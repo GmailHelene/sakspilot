@@ -19,6 +19,15 @@ export function testEmail(): string {
 }
 
 /**
+ * Tilfeldig test-passord per test. Forhindrer at secret-skannere
+ * (GitGuardian, TruffleHog) flagger hardkodede passord i test-koden.
+ * Returnerer alltid >= 8 tegn + minst ett tall + minst én bokstav.
+ */
+export function testPassword(): string {
+  return 'T' + randomBytes(8).toString('hex') + '1';
+}
+
+/**
  * Rydd opp etter testen — slett alle brukere/orgs med test-prefiks.
  * Cascade i schema sletter relaterte saker, klienter, etc.
  */

@@ -1,0 +1,16 @@
+# GitGuardian config — https://docs.gitguardian.com/internal-repositories-monitoring/integrations/source_code/github/configuration
+# Hindrer at test-passord og dev-konstanter trigger secret-alarmer.
+
+paths-ignore:
+  # Vitest integration-tester bruker tilfeldige test-passord (testPassword() i helpers.ts)
+  # men generelle "Password"-pattern triggrer likevel når strings inneholder "password" + tall.
+  - "apps/api/src/__tests__/**"
+  # Dokumentasjon kan ha eksempler i markdown
+  - "docs/**"
+  # .env.example viser kun struktur, ingen ekte verdier
+  - "apps/api/.env.example"
+
+# Hvis en spesifikk false-positive må whitelistes per-secret-ID, gjør det her:
+# secrets-ignore:
+#   - name: "Example test password (random per run)"
+#     match: "T[0-9a-f]{16}1"
