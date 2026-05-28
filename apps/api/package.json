@@ -7,7 +7,9 @@
     "build": "prisma generate --schema=../../packages/db/prisma/schema.prisma && tsc",
     "start": "tsx src/index.ts",
     "lint": "eslint src --ext .ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.99.0",
@@ -36,6 +38,9 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/morgan": "^1.9.9",
     "@types/node": "^20.14.2",
-    "@types/uuid": "^10.0.0"
+    "@types/supertest": "^7.2.0",
+    "@types/uuid": "^10.0.0",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.7"
   }
 }
