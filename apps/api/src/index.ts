@@ -27,6 +27,7 @@ import klienterRouter from "./routes/klienter";
 import agentRouter from "./routes/agent";
 import stickiesRouter from "./routes/stickies";
 import meRouter from "./routes/me";
+import automationsRouter from "./routes/automations";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 8001;
@@ -105,6 +106,7 @@ app.use("/klienter", klienterRouter);
 app.use("/agent", agentRouter);
 app.use("/stickies", stickiesRouter);
 app.use("/me", meRouter);
+app.use("/automations", automationsRouter);
 
 // ── Root ────────────────────────────────────────────────────────
 app.get("/", (_req: Request, res: Response) => {

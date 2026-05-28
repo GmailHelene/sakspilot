@@ -92,6 +92,7 @@ model Organization {
   invoices Invoice[]
   auditLogs AuditLog[]
   stickyNotes StickyNote[]
+  automations Automation[]
 
   @@map("organizations")
 }
@@ -309,6 +310,41 @@ model GraphAccount {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("graph_accounts")
+}
+
+enum AutomationTrigger {
+  sak_status_changed      // når en sak skifter status
+  sak_created             // når en ny sak opprettes
+  milestone_completed     // når en milepæl markeres fullført
+  milestone_due_soon      // når milepæl er N dager unna (sjekkes per request)
+  time_entry_logged       // når desktop-agent synker tid (kommer)
+}
+
+enum AutomationAction {
+  create_sticky           // opprett klistrelapp med custom tekst
+  create_milestone        // opprett milepæl med offset i dager
+  change_sak_status       // endre sak-status
+  show_notification       // vis varsel på dashbord (kommer)
+}
+
+model Automation {
+  id              String   @id @default(uuid())
+  organizationId  String   @map("organization_id")
+  name            String                                  // brukerens navn for agenten
+  trigger         AutomationTrigger
+  triggerConfig   Json     @map("trigger_config")         // f.eks. { fromStatus: "pagaaende", toStatus: "ferdig" }
+  action          AutomationAction
+  actionConfig    Json     @map("action_config")          // f.eks. { stickyText: "Send faktura til {clientName}", color: "yellow" }
+  enabled         Boolean  @default(true)
+  lastRunAt       DateTime? @map("last_run_at")
+  runCount        Int      @default(0) @map("run_count")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, enabled, trigger])
+  @@map("automations")
 }
 
 model StickyNote {

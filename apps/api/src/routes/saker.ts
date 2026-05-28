@@ -8,6 +8,7 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import prisma from "../lib/prisma";
 import { requireAuth } from "../middleware/auth";
+import { runAutomationsForTrigger } from "../services/automationEngine";
 
 const router = Router();
 
@@ -127,6 +128,13 @@ router.post("/", async (req: Request, res: Response) => {
     },
   });
 
+  // Trigger automatiseringer (fire-and-forget — feiler ikke selve opprettelsen)
+  runAutomationsForTrigger("sak_created", {
+    organizationId: session.organizationId,
+    userId: session.userId,
+    sak: { id: sak.id, title: sak.title, status: sak.status, client: sak.client },
+  }).catch((err) => console.error("[automation] sak_created feilet:", err));
+
   return res.status(201).json(sak);
 });
 
@@ -185,6 +193,21 @@ router.patch("/:id", async (req: Request, res: Response) => {
       metadata: JSON.parse(JSON.stringify(parsed.data)),
     },
   });
+
+  // Trigger automatiseringer hvis status har endret seg
+  if (parsed.data.status && parsed.data.status !== existing.status) {
+    runAutomationsForTrigger("sak_status_changed", {
+      organizationId: session.organizationId,
+      userId: session.userId,
+      sak: {
+        id: sak.id,
+        title: sak.title,
+        status: sak.status,
+        previousStatus: existing.status,
+        client: sak.client,
+      },
+    }).catch((err) => console.error("[automation] sak_status_changed feilet:", err));
+  }
 
   return res.json(sak);
 });
@@ -334,15 +357,40 @@ router.patch(
     const sakId = await ensureSakOwnership(req, res);
     if (!sakId) return;
 
+    const session = req.session!;
     const milestone = await prisma.milestone.findFirst({
       where: { id: req.params.milestoneId, sakId },
+      include: { sak: { include: { client: { select: { id: true, name: true } } } } },
     });
     if (!milestone) return res.status(404).json({ error: "Frist ikke funnet" });
 
+    const wasCompleted = !!milestone.completedAt;
     const updated = await prisma.milestone.update({
       where: { id: milestone.id },
-      data: { completedAt: milestone.completedAt ? null : new Date() },
+      data: { completedAt: wasCompleted ? null : new Date() },
     });
+
+    // Trigger kun ved overgang fra ufullført → fullført
+    if (!wasCompleted) {
+      runAutomationsForTrigger("milestone_completed", {
+        organizationId: session.organizationId,
+        userId: session.userId,
+        sak: {
+          id: milestone.sak.id,
+          title: milestone.sak.title,
+          status: milestone.sak.status,
+          client: milestone.sak.client,
+        },
+        milestone: {
+          id: milestone.id,
+          title: milestone.title,
+          sakId: milestone.sakId,
+          sakTitle: milestone.sak.title,
+          dueDate: milestone.dueDate,
+        },
+      }).catch((err) => console.error("[automation] milestone_completed feilet:", err));
+    }
+
     return res.json(updated);
   }
 );
