@@ -55,8 +55,8 @@ interface Template {
 }
 
 const TRIGGER_LABELS: Record<TriggerType, string> = {
-  sak_status_changed: 'Når sak-status endres',
-  sak_created: 'Når ny sak opprettes',
+  sak_status_changed: 'Når prosjektets status endres',
+  sak_created: 'Når nytt prosjekt opprettes',
   milestone_completed: 'Når milepæl fullføres',
   milestone_due_soon: 'Når frist nærmer seg',
   time_entry_logged: 'Når tid logges',

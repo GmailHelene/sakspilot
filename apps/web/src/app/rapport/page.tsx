@@ -173,10 +173,10 @@ export default function RapportPage() {
           />
         </div>
 
-        {/* ── Topp 5 saker ── */}
+        {/* ── Topp 5 prosjekter ── */}
         <section style={sectionStyle}>
           <h2 style={{ fontSize: 18, color: tokens.color.navy, marginBottom: 12 }}>
-            Topp 5 saker {PERIOD_LABEL[period].toLowerCase()}
+            Topp 5 prosjekter {PERIOD_LABEL[period].toLowerCase()}
           </h2>
           {!data ? (
             <div style={{ color: tokens.color.textMuted, padding: 20, textAlign: 'center' }}>

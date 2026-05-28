@@ -223,7 +223,7 @@ export default function HjemPage() {
               {([
                 ['minikpi', 'Omsetning / Agenter / E-poster'],
                 ['frister', 'Kommende frister'],
-                ['recent', 'Nylige saker'],
+                ['recent', 'Nylige prosjekter'],
                 ['quick', 'Hurtighandlinger'],
                 ['tips', 'Tips for dagen'],
               ] as Array<[WidgetId, string]>).map(([id, label]) => {
@@ -273,7 +273,7 @@ export default function HjemPage() {
         >
           <KPICard
             icon={<Briefcase size={20} strokeWidth={2} />}
-            label="Aktive saker"
+            label="Aktive prosjekter"
             value={stats?.activeSaker ?? '—'}
             href="/saker"
             color={tokens.color.navy}
@@ -364,10 +364,10 @@ export default function HjemPage() {
           </Widget>
           )}
 
-          {/* Nylige saker */}
+          {/* Nylige prosjekter */}
           {!hidden.has('recent') && (
           <Widget
-            title="Nylige saker"
+            title="Nylige prosjekter"
             icon={<Briefcase size={18} strokeWidth={2} />}
             action={<Link href="/saker" style={linkStyle}>Se alle →</Link>}
           >
@@ -375,7 +375,7 @@ export default function HjemPage() {
               <Skeleton />
             ) : stats.recentSaker.length === 0 ? (
               <EmptyMessage
-                text="Ingen saker enda"
+                text="Ingen prosjekter enda"
                 action={<Link href="/saker/ny" style={primaryLinkStyle}>+ Opprett din første sak</Link>}
               />
             ) : (
@@ -410,7 +410,7 @@ export default function HjemPage() {
             icon={<Plus size={18} strokeWidth={2} />}
           >
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <QuickAction href="/saker/ny" icon={<Briefcase size={16} strokeWidth={2} />} label="Ny sak" />
+              <QuickAction href="/saker/ny" icon={<Briefcase size={16} strokeWidth={2} />} label="Nytt prosjekt" />
               <QuickAction href="/klienter/ny" icon={<Plus size={16} strokeWidth={2} />} label="Ny klient" />
               <QuickAction href="/kalender" icon={<CalendarClock size={16} strokeWidth={2} />} label="Se kalender" />
               <QuickAction href="/gantt" icon={<TrendingUp size={16} strokeWidth={2} />} label="Tidslinje" />

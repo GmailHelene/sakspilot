@@ -97,7 +97,7 @@ export default function Header() {
         {mounted && me ? (
           <>
             <Link href="/saker" style={navLinkStyle}>
-              Saker
+              Prosjekter
             </Link>
             <Link href="/klienter" style={navLinkStyle}>
               Klienter

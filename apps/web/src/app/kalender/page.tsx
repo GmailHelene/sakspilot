@@ -70,7 +70,7 @@ export default function KalenderPage() {
             sakId: sak.id,
             sakTitle: sak.title,
             clientName: sak.client?.name ?? null,
-            title: 'Sakens hovedfrist',
+            title: 'Prosjektets hovedfrist',
             completed: false,
           });
         }
@@ -324,7 +324,7 @@ function CreateMilestoneModal({
 
   async function save() {
     if (!sakId || !title.trim()) {
-      setErr('Velg sak og skriv en tittel.');
+      setErr('Velg prosjekt og skriv en tittel.');
       return;
     }
     setBusy(true);

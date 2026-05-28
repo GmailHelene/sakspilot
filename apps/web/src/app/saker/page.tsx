@@ -93,7 +93,7 @@ export default function SakerPage() {
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <ViewToggle current={view} onChange={changeView} />
-            <Link href="/saker/ny" style={primaryButtonStyle}>+ Ny sak</Link>
+            <Link href="/saker/ny" style={primaryButtonStyle}>+ Nytt prosjekt</Link>
           </div>
         </div>
 
@@ -462,11 +462,11 @@ function EmptyState() {
       }}
     >
       <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
-      <h2 style={{ color: tokens.color.navy, marginBottom: 8 }}>Ingen saker enda</h2>
+      <h2 style={{ color: tokens.color.navy, marginBottom: 8 }}>Ingen prosjekter enda</h2>
       <p style={{ color: tokens.color.textMuted, marginBottom: 20 }}>
-        Opprett din første sak for å komme i gang.
+        Opprett ditt første prosjekt for å komme i gang.
       </p>
-      <Link href="/saker/ny" style={primaryButtonStyle}>Opprett første sak →</Link>
+      <Link href="/saker/ny" style={primaryButtonStyle}>Opprett første prosjekt →</Link>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import Header from './Header';
 import Sidebar from './Sidebar';
@@ -18,6 +18,7 @@ import { tokens } from '@/lib/tokens';
  */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -29,6 +30,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
     setAuthed(true);
   }, [router]);
+
+  // Når brukeren navigerer i Sakspilot (klikker Prosjekter, Klienter osv) mens
+  // en snarvei er åpen (Railway/Outlook i BrowserView), lukk BrowserView-en
+  // så hovedinnholdet faktisk vises. Uten dette ligger Railway "på toppen"
+  // og dekker den navigerte siden.
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const api = (typeof window !== 'undefined' ? (window as any).sakspilot : null);
+    if (api?.isDesktop && api.closeShortcutView) {
+      api.closeShortcutView().catch(() => {});
+    }
+  }, [pathname]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

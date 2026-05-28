@@ -94,7 +94,7 @@ export default function NySakPage() {
             }}
           >
             <h1 style={{ fontSize: 24, color: tokens.color.navy, marginBottom: 24 }}>
-              Ny sak
+              Nytt prosjekt
             </h1>
 
             {error && <div style={errorBoxStyle}>{error}</div>}

@@ -115,7 +115,7 @@ export default function KlienterPage() {
                     <th style={thStyle}>Kontakt</th>
                     <th style={thStyle}>Org.nr</th>
                     <th style={{ ...thStyle, textAlign: 'right' }}>Sats</th>
-                    <th style={{ ...thStyle, textAlign: 'right' }}>Saker</th>
+                    <th style={{ ...thStyle, textAlign: 'right' }}>Prosjekter</th>
                   </tr>
                 </thead>
                 <tbody>

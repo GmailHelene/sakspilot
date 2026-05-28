@@ -98,7 +98,7 @@ export default function GanttPage() {
       <div style={{ padding: 24 }}>
         <h1 style={{ fontSize: 26, color: tokens.color.navy }}>Tidslinje (Gantt)</h1>
         <p style={{ color: tokens.color.textMuted, fontSize: 14, marginTop: 4, marginBottom: 20 }}>
-          Visuell oversikt over alle saker fra start til frist/ferdig
+          Visuell oversikt over alle prosjekter fra start til frist/ferdig
         </p>
 
         {error && (
@@ -106,7 +106,7 @@ export default function GanttPage() {
         )}
 
         {!saker ? (
-          <div style={{ color: tokens.color.textMuted, padding: 40, textAlign: 'center' }}>Henter saker…</div>
+          <div style={{ color: tokens.color.textMuted, padding: 40, textAlign: 'center' }}>Henter prosjekter…</div>
         ) : saker.length === 0 || !timeline ? (
           <div
             style={{
@@ -118,7 +118,7 @@ export default function GanttPage() {
             }}
           >
             <div style={{ fontSize: 36, marginBottom: 8 }}>📊</div>
-            <p style={{ color: tokens.color.textMuted }}>Ingen saker å vise tidslinje for.</p>
+            <p style={{ color: tokens.color.textMuted }}>Ingen prosjekter å vise tidslinje for.</p>
             <Link
               href="/saker/ny"
               style={{
