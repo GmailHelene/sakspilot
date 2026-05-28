@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Home, LayoutGrid, Users, Calendar, GanttChartSquare, Plus, X,
-  ExternalLink, Trash2, StickyNote, FolderOpen, Folder, Shield, Zap,
+  ExternalLink, Trash2, StickyNote, FolderOpen, Folder, Shield, Zap, BarChart3,
   type LucideIcon,
 } from 'lucide-react';
 import { tokens } from '@/lib/tokens';
@@ -159,6 +159,7 @@ export default function Sidebar() {
     { href: '/klienter', label: 'Klienter', Icon: Users },
     { href: '/kalender', label: 'Kalender', Icon: Calendar },
     { href: '/gantt', label: 'Tidslinje', Icon: GanttChartSquare },
+    { href: '/rapport', label: 'Rapport', Icon: BarChart3 },
     { href: '/klistrelapper', label: 'Klistrelapper', Icon: StickyNote },
     { href: '/agenter', label: 'Agenter', Icon: Zap },
     { href: '/innstillinger/sikkerhet', label: 'Sikkerhet', Icon: Shield },

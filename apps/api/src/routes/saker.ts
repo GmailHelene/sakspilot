@@ -416,6 +416,126 @@ router.delete(
 // Tidssammendrag per sak (lett rapport)
 // ────────────────────────────────────────────────────────────────
 
+/**
+ * GET /saker/:sakId/time-entries
+ * Detaljert liste over tidsregistreringer for én sak (paginert, default 50).
+ */
+router.get("/:sakId/time-entries", async (req: Request, res: Response) => {
+  const sakId = await ensureSakOwnership(req, res);
+  if (!sakId) return;
+
+  const limit = Math.min(parseInt((req.query.limit as string) || "50", 10), 500);
+  const offset = parseInt((req.query.offset as string) || "0", 10);
+
+  const [entries, total] = await Promise.all([
+    prisma.timeEntry.findMany({
+      where: { sakId },
+      include: { user: { select: { id: true, name: true, email: true } } },
+      orderBy: { startedAt: "desc" },
+      take: limit,
+      skip: offset,
+    }),
+    prisma.timeEntry.count({ where: { sakId } }),
+  ]);
+
+  return res.json({ entries, total, limit, offset });
+});
+
+/**
+ * GET /saker/:sakId/time-entries.csv
+ * CSV-eksport for fakturering. Inkluderer dato, tid, varighet, beløp.
+ */
+router.get("/:sakId/time-entries.csv", async (req: Request, res: Response) => {
+  const sakId = await ensureSakOwnership(req, res);
+  if (!sakId) return;
+
+  const sak = await prisma.sak.findUnique({
+    where: { id: sakId },
+    select: { title: true, client: { select: { name: true } } },
+  });
+
+  const entries = await prisma.timeEntry.findMany({
+    where: { sakId },
+    include: { user: { select: { name: true, email: true } } },
+    orderBy: { startedAt: "asc" },
+  });
+
+  const rows: string[] = [
+    [
+      "Dato",
+      "Start",
+      "Slutt",
+      "Varighet (timer)",
+      "Bruker",
+      "App / vindu",
+      "Notat",
+      "Fakturerbar",
+      "Timesats",
+      "Beløp",
+    ].join(";"),
+  ];
+
+  let totalBillable = 0;
+  let totalAmount = 0;
+
+  for (const e of entries) {
+    const hours = e.durationSec / 3600;
+    const amount = e.billable && e.hourlyRate ? hours * e.hourlyRate : 0;
+    if (e.billable) totalBillable += hours;
+    totalAmount += amount;
+
+    rows.push(
+      [
+        new Date(e.startedAt).toLocaleDateString("nb-NO"),
+        new Date(e.startedAt).toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" }),
+        new Date(e.endedAt).toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" }),
+        hours.toFixed(2).replace(".", ","),
+        csvEscape(e.user?.name || e.user?.email || ""),
+        csvEscape(`${e.appName || ""} ${e.windowTitle || ""}`.trim()),
+        csvEscape(e.note || ""),
+        e.billable ? "Ja" : "Nei",
+        e.hourlyRate ? `${e.hourlyRate} kr` : "",
+        amount > 0 ? `${Math.round(amount)} kr` : "",
+      ].join(";")
+    );
+  }
+
+  // Sum-linje
+  rows.push("");
+  rows.push(
+    [
+      "",
+      "",
+      "",
+      totalBillable.toFixed(2).replace(".", ","),
+      "",
+      "",
+      "SUM FAKTURERBART",
+      "",
+      "",
+      `${Math.round(totalAmount)} kr`,
+    ].join(";")
+  );
+
+  const filename = `tid-${(sak?.client?.name || sak?.title || "sak")
+    .replace(/[^a-zA-Z0-9-]/g, "_")
+    .slice(0, 40)}-${new Date().toISOString().slice(0, 10)}.csv`;
+
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  // BOM for at Excel skal håndtere UTF-8 + nordiske tegn riktig
+  return res.send("﻿" + rows.join("\r\n"));
+});
+
+// Hjelpefunksjon: escape CSV-felt med ; i seg eller anførselstegn
+function csvEscape(s: string): string {
+  if (!s) return "";
+  if (s.includes(";") || s.includes('"') || s.includes("\n")) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
+}
+
 router.get("/:sakId/time-summary", async (req: Request, res: Response) => {
   const sakId = await ensureSakOwnership(req, res);
   if (!sakId) return;
