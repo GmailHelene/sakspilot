@@ -15,18 +15,18 @@ import { z } from "zod";
 import Anthropic from "@anthropic-ai/sdk";
 import prisma from "../lib/prisma";
 import { requireAuth } from "../middleware/auth";
+import { getAIClient, getActiveModel, getProviderInfo } from "../lib/aiProvider";
 
 const router = Router();
 router.use(requireAuth);
 
-const MODEL = "claude-sonnet-4-5";
-
-// Initialiser klienten kun hvis API-nøkkel finnes — bygget skal ikke kræsje
-// hvis env-var ennå ikke er satt på Render.
+// Modell + klient hentes nå via aiProvider, så vi kan route via Anthropic
+// eller AWS Bedrock (stub) basert på AI_PROVIDER env-var.
 function getClient(): Anthropic | null {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return null;
-  return new Anthropic({ apiKey });
+  return getAIClient();
+}
+function MODEL_FN(): string {
+  return getActiveModel();
 }
 
 // ── Hjelpefunksjoner ────────────────────────────────────────────
@@ -119,6 +119,13 @@ Når du skriver e-poster:
 
 Du har ikke tilgang til e-postintegrasjoner — du lager kun utkast som brukeren selv sender.`;
 
+// ── GET /ai/provider ─────────────────────────────────────────────
+// Returnerer aktiv AI-provider (anthropic|bedrock) + konfig-status.
+// Brukes av admin-UI for å vise hva som kjører.
+router.get("/provider", (_req: Request, res: Response) => {
+  return res.json(getProviderInfo());
+});
+
 // ── POST /ai/sak/:id/ask ─────────────────────────────────────────
 
 const AskSchema = z.object({
@@ -144,7 +151,7 @@ router.post("/sak/:id/ask", async (req: Request, res: Response) => {
 
   try {
     const response = await client.messages.create({
-      model: MODEL,
+      model: MODEL_FN(),
       max_tokens: 1024,
       system: [
         { type: "text", text: SYSTEM_PROMPT },
@@ -195,7 +202,7 @@ router.post("/sak/:id/summary", async (req: Request, res: Response) => {
 
   try {
     const response = await client.messages.create({
-      model: MODEL,
+      model: MODEL_FN(),
       max_tokens: 600,
       system: [
         { type: "text", text: SYSTEM_PROMPT },
@@ -264,7 +271,7 @@ router.post("/sak/:id/draft-email", async (req: Request, res: Response) => {
 
   try {
     const response = await client.messages.create({
-      model: MODEL,
+      model: MODEL_FN(),
       max_tokens: 800,
       system: [
         { type: "text", text: SYSTEM_PROMPT },

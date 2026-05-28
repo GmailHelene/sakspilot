@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Mail, CheckCircle2, AlertCircle, RefreshCw, Unlink } from 'lucide-react';
+import { Mail, CheckCircle2, AlertCircle, RefreshCw, Unlink, Receipt, ExternalLink } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
 import { api } from '@/lib/api';
@@ -231,7 +231,10 @@ export default function IntegrasjonerPage() {
           </div>
         </div>
 
-        {/* ── Tripletex / Fiken (CSV-tips for nå) ── */}
+        {/* ── Fiken (PAT-basert) ── */}
+        <FikenSection onMessage={setMessage} />
+
+        {/* ── Tripletex (CSV-tips fortsatt) ── */}
         <a
           href="/innstillinger/tripletex"
           style={{
@@ -269,10 +272,10 @@ export default function IntegrasjonerPage() {
               T
             </div>
             <div style={{ flex: 1 }}>
-              <h2 style={{ fontSize: 18, color: tokens.color.navy }}>Tripletex / Fiken</h2>
+              <h2 style={{ fontSize: 18, color: tokens.color.navy }}>Tripletex</h2>
               <p style={{ fontSize: 13, color: tokens.color.textMuted, marginTop: 4 }}>
-                CSV-eksport fungerer i begge systemer i dag. Direkte API-tilkobling
-                er under utvikling. Klikk for trinn-for-trinn-veiledning →
+                CSV-eksport fungerer i dag. Direkte API-tilkobling krever partner-status
+                hos Tripletex (under søknad). Klikk for trinn-for-trinn-veiledning →
               </p>
             </div>
             <span style={{ fontSize: 11, color: tokens.color.blue, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
@@ -284,6 +287,188 @@ export default function IntegrasjonerPage() {
     </AppLayout>
   );
 }
+
+// ── Fiken-integrasjon ───────────────────────────────────────────
+
+interface FikenStatus {
+  connected: boolean;
+  companySlug?: string;
+  lastVerifiedAt?: string | null;
+  invoicesCreated?: number;
+  connectedAt?: string;
+  hint?: string;
+}
+
+function FikenSection({
+  onMessage,
+}: {
+  onMessage: (m: { kind: 'ok' | 'err'; text: string } | null) => void;
+}) {
+  const [status, setStatus] = useState<FikenStatus | null>(null);
+  const [token, setToken] = useState('');
+  const [slug, setSlug] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function load() {
+    try {
+      const s = await api<FikenStatus>('/accounting/fiken/status');
+      setStatus(s);
+    } catch {
+      // ignore
+    }
+  }
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function connect() {
+    if (!token.trim() || !slug.trim()) {
+      onMessage({ kind: 'err', text: 'Både token og bedrifts-slug må fylles ut.' });
+      return;
+    }
+    setBusy(true);
+    onMessage(null);
+    try {
+      const r = await api<{ ok: boolean; companyName: string }>(
+        '/accounting/fiken/connect',
+        { method: 'POST', body: { token: token.trim(), companySlug: slug.trim() } }
+      );
+      onMessage({ kind: 'ok', text: `Fiken koblet til: ${r.companyName}` });
+      setToken('');
+      setSlug('');
+      await load();
+    } catch (err) {
+      onMessage({
+        kind: 'err',
+        text: err instanceof Error ? err.message : 'Tilkobling feilet',
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function disconnect() {
+    if (!confirm('Koble fra Fiken? Tokenet slettes fra Sakspilot.')) return;
+    setBusy(true);
+    try {
+      await api('/accounting/fiken/disconnect', { method: 'POST' });
+      await load();
+      onMessage({ kind: 'ok', text: 'Fiken er koblet fra.' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div style={cardStyle}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+        <div
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: tokens.radius.md,
+            background: '#FF6A3D',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            boxShadow: tokens.shadow.colored('#FF6A3D'),
+          }}
+        >
+          <Receipt size={24} strokeWidth={2.5} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 6,
+            }}
+          >
+            <h2 style={{ fontSize: 18, color: tokens.color.navy }}>Fiken</h2>
+            {status?.connected && (
+              <span style={badgeStyle('connected')}>
+                <CheckCircle2 size={12} /> Tilkoblet
+              </span>
+            )}
+          </div>
+          <p style={{ fontSize: 13, color: tokens.color.textMuted, marginBottom: 14 }}>
+            Send fakturaer direkte til Fiken fra «Ferdig»-saker. Bruker personlig
+            API-token — ingen partner-godkjenning trengs. Tokenet lagres kryptert
+            (AES-256-GCM) og kan slettes når som helst.
+          </p>
+
+          {status?.connected ? (
+            <>
+              <div style={accountInfoStyle}>
+                <div>
+                  <strong>{status.companySlug}</strong>
+                </div>
+                <div style={{ fontSize: 12, color: tokens.color.textMuted }}>
+                  {status.invoicesCreated || 0} faktura(er) sendt fra Sakspilot
+                  {status.lastVerifiedAt &&
+                    ` · sist brukt ${new Date(status.lastVerifiedAt).toLocaleString('nb-NO')}`}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                <a
+                  href={`https://fiken.no/foretak/${status.companySlug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ ...primaryBtn, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                >
+                  <ExternalLink size={14} /> Åpne i Fiken
+                </a>
+                <button onClick={disconnect} disabled={busy} style={secondaryBtn}>
+                  <Unlink size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                  Koble fra
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
+                <input
+                  type="text"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="Bedrifts-slug (f.eks. fiken-demo)"
+                  style={inputStyle}
+                />
+                <input
+                  type="password"
+                  value={token}
+                  onChange={(e) => setToken(e.target.value)}
+                  placeholder="Personlig API-token"
+                  style={inputStyle}
+                />
+                <div style={{ fontSize: 11, color: tokens.color.textSubtle, lineHeight: 1.4 }}>
+                  Generer i Fiken: <strong>Innstillinger → API-tilgang → Generer
+                  personlig token</strong>. Slug-en finner du i URL-en når du er
+                  inne i bedriften (mellom <code>/foretak/</code> og neste skråstrek).
+                </div>
+              </div>
+              <button onClick={connect} disabled={busy} style={ctaBtn}>
+                {busy ? 'Verifiserer…' : 'Koble til Fiken'}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const inputStyle: React.CSSProperties = {
+  padding: '10px 12px',
+  border: `1px solid ${tokens.color.border}`,
+  borderRadius: tokens.radius.sm,
+  fontSize: 14,
+  fontFamily: 'inherit',
+  width: '100%',
+};
 
 function badgeStyle(state: 'connected'): React.CSSProperties {
   return {

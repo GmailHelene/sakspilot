@@ -98,8 +98,31 @@ model Organization {
   stickyNotes StickyNote[]
   automations Automation[]
   subscription Subscription?
+  fikenIntegration FikenIntegration?
 
   @@map("organizations")
+}
+
+/// Fiken-integrasjon per organisasjon.
+/// Helene bruker personal access token (PAT) i stedet for OAuth — krever ikke
+/// partner-status, hver bruker autoriserer sin egen Fiken-konto.
+/// Brukeren limer inn token + company-slug i /innstillinger/integrasjoner.
+model FikenIntegration {
+  id              String   @id @default(uuid())
+  organizationId  String   @unique @map("organization_id")
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// Fiken company slug (f.eks. "fiken-demo") — del av API-URL
+  companySlug     String   @map("company_slug")
+  /// Personal access token — kryptert med AES-256-GCM (samme som OAuth-tokens)
+  encryptedToken  String   @map("encrypted_token")
+  /// Når tokenet sist ble verifisert mot Fiken API
+  lastVerifiedAt  DateTime? @map("last_verified_at")
+  /// Hvor mange fakturaer Sakspilot har opprettet via dette tokenet
+  invoicesCreated Int      @default(0) @map("invoices_created")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("fiken_integrations")
 }
 
 /// Subscription per organisasjon. Null = ingen aktiv subscription (trial eller pilot).
