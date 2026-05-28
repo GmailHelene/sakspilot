@@ -19,27 +19,32 @@ interface LauncherApp {
   url: string;
   color: string;
   emoji: string;
+  /// Brand-slug for simple-icons.org. Null for tjenester uten kjent brand-ikon
+  /// (f.eks. norske SaaS) — da brukes emoji som fallback.
+  brandSlug?: string | null;
 }
 
+// brandSlug = simple-icons.org sin slug for offisielt brand-ikon i hvit farge
+// (cdn.simpleicons.org/{slug}/{color} returnerer SVG i ønsket farge)
 const DEFAULT_APPS: LauncherApp[] = [
   // Kommunikasjon
-  { id: 'outlook', label: 'Outlook', url: 'https://outlook.office.com/mail/', color: '#0078D4', emoji: '📧' },
-  { id: 'gmail', label: 'Gmail', url: 'https://mail.google.com', color: '#EA4335', emoji: '✉️' },
-  { id: 'teams', label: 'Teams', url: 'https://teams.microsoft.com', color: '#6264A7', emoji: '💬' },
-  { id: 'slack', label: 'Slack', url: 'https://app.slack.com', color: '#4A154B', emoji: '💼' },
+  { id: 'outlook', label: 'Outlook', url: 'https://outlook.office.com/mail/', color: '#0078D4', emoji: '📧', brandSlug: 'microsoftoutlook' },
+  { id: 'gmail', label: 'Gmail', url: 'https://mail.google.com', color: '#EA4335', emoji: '✉️', brandSlug: 'gmail' },
+  { id: 'teams', label: 'Teams', url: 'https://teams.microsoft.com', color: '#6264A7', emoji: '💬', brandSlug: 'microsoftteams' },
+  { id: 'slack', label: 'Slack', url: 'https://app.slack.com', color: '#4A154B', emoji: '💼', brandSlug: 'slack' },
   // Kalender
-  { id: 'gcal', label: 'Google Kalender', url: 'https://calendar.google.com', color: '#4285F4', emoji: '📅' },
+  { id: 'gcal', label: 'Google Kalender', url: 'https://calendar.google.com', color: '#4285F4', emoji: '📅', brandSlug: 'googlecalendar' },
   // Regnskap / norsk
-  { id: 'tripletex', label: 'Tripletex', url: 'https://tripletex.no', color: '#1B73B8', emoji: '💼' },
-  { id: 'fiken', label: 'Fiken', url: 'https://fiken.no', color: '#FF6A3D', emoji: '💰' },
+  { id: 'tripletex', label: 'Tripletex', url: 'https://tripletex.no', color: '#1B73B8', emoji: '💼', brandSlug: null },
+  { id: 'fiken', label: 'Fiken', url: 'https://fiken.no', color: '#FF6A3D', emoji: '💰', brandSlug: null },
   // Bygg
-  { id: 'holte', label: 'Holte', url: 'https://smart.holte.no', color: '#005AAB', emoji: '🏢' },
+  { id: 'holte', label: 'Holte', url: 'https://smart.holte.no', color: '#005AAB', emoji: '🏢', brandSlug: null },
   // Utvikling
-  { id: 'github', label: 'GitHub', url: 'https://github.com', color: '#181717', emoji: '🐙' },
-  { id: 'chatgpt', label: 'ChatGPT', url: 'https://chat.openai.com', color: '#10A37F', emoji: '🤖' },
-  { id: 'claude', label: 'Claude', url: 'https://claude.ai', color: '#D97757', emoji: '✨' },
+  { id: 'github', label: 'GitHub', url: 'https://github.com', color: '#181717', emoji: '🐙', brandSlug: 'github' },
+  { id: 'chatgpt', label: 'ChatGPT', url: 'https://chat.openai.com', color: '#10A37F', emoji: '🤖', brandSlug: 'openai' },
+  { id: 'claude', label: 'Claude', url: 'https://claude.ai', color: '#D97757', emoji: '✨', brandSlug: 'anthropic' },
   // Lagring
-  { id: 'drive', label: 'Google Drive', url: 'https://drive.google.com', color: '#1FA463', emoji: '📁' },
+  { id: 'drive', label: 'Google Drive', url: 'https://drive.google.com', color: '#1FA463', emoji: '📁', brandSlug: 'googledrive' },
 ];
 
 const STORAGE_KEY = 'sakspilot_launcher_apps';
@@ -74,9 +79,26 @@ export default function Launcher() {
   function addApp() {
     if (!newLabel.trim() || !newUrl.trim()) return;
     const url = /^https?:\/\//.test(newUrl) ? newUrl : `https://${newUrl}`;
+    // Forsøk å auto-utlede brandSlug fra hostname (f.eks. notion.so → notion)
+    let brandSlug: string | null = null;
+    try {
+      const hostname = new URL(url).hostname.replace(/^www\./, '');
+      const firstSegment = hostname.split('.')[0];
+      // Bare bruk hvis det er en kjent simple-icons brand (vi gjetter)
+      if (/^[a-z0-9]+$/.test(firstSegment) && firstSegment.length > 2) {
+        brandSlug = firstSegment;
+      }
+    } catch {}
     persist([
       ...apps,
-      { id: 'u-' + Date.now(), label: newLabel.trim(), url, color: '#1E3A5F', emoji: newEmoji || '🔗' },
+      {
+        id: 'u-' + Date.now(),
+        label: newLabel.trim(),
+        url,
+        color: '#1E3A5F',
+        emoji: newEmoji || '🔗',
+        brandSlug,
+      },
     ]);
     setNewLabel('');
     setNewUrl('');
@@ -122,33 +144,46 @@ export default function Launcher() {
                 background: app.color,
                 color: '#FFFFFF',
               }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1.08)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLAnchorElement).style.transform = '';
+              }}
               onContextMenu={(e) => {
                 e.preventDefault();
                 removeApp(app.id);
               }}
               title=""
             >
-              {/* Forsøk favicon, fall tilbake til emoji */}
-              <img
-                src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(new URL(app.url).hostname)}&sz=64`}
-                alt=""
-                width={22}
-                height={22}
-                style={{ display: 'block' }}
-                onError={(e) => {
-                  // Hvis favicon ikke laster, erstatt med emoji
-                  const target = e.currentTarget as HTMLImageElement;
-                  target.style.display = 'none';
-                  const parent = target.parentElement;
-                  if (parent && !parent.querySelector('.emoji-fallback')) {
-                    const span = document.createElement('span');
-                    span.className = 'emoji-fallback';
-                    span.textContent = app.emoji;
-                    span.style.fontSize = '18px';
-                    parent.appendChild(span);
-                  }
-                }}
-              />
+              {/* Foretrekker simple-icons (offisielt brand-SVG i hvit) — faller
+                  tilbake til emoji for tjenester uten brand-slug eller hvis
+                  CDN feiler. */}
+              {app.brandSlug ? (
+                <img
+                  src={`https://cdn.simpleicons.org/${app.brandSlug}/ffffff`}
+                  alt=""
+                  width={22}
+                  height={22}
+                  style={{ display: 'block' }}
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.style.display = 'none';
+                    const parent = target.parentElement;
+                    if (parent && !parent.querySelector('.emoji-fallback')) {
+                      const span = document.createElement('span');
+                      span.className = 'emoji-fallback';
+                      span.textContent = app.emoji;
+                      span.style.fontSize = '20px';
+                      parent.appendChild(span);
+                    }
+                  }}
+                />
+              ) : (
+                <span style={{ fontSize: 20, fontWeight: 700 }}>
+                  {app.emoji}
+                </span>
+              )}
             </a>
 
             {tooltipId === app.id && (
@@ -317,14 +352,14 @@ const iconButtonStyle: React.CSSProperties = {
   justifyContent: 'center',
   width: 40,
   height: 40,
-  borderRadius: 10,
+  borderRadius: 12, // litt mer rounded — moderne app-launcher-look
   textDecoration: 'none',
   marginBottom: 8,
   fontSize: 18,
   border: 'none',
   cursor: 'pointer',
-  transition: 'transform 0.1s',
-  boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+  transition: 'transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s',
+  boxShadow: '0 2px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.12)',
 };
 
 const tooltipStyle: React.CSSProperties = {

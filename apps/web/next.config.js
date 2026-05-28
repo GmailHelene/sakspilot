@@ -12,7 +12,7 @@ const cspHeader = `
   script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cloud.umami.is https://plausible.io;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com;
-  img-src 'self' data: https://www.google.com https://*.googleusercontent.com blob:;
+  img-src 'self' data: https://www.google.com https://*.googleusercontent.com https://cdn.simpleicons.org blob:;
   connect-src 'self' https://api.sakspilot.no https://cloud.umami.is https://plausible.io https://api.anthropic.com;
   frame-ancestors 'none';
   base-uri 'self';
