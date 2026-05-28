@@ -86,10 +86,20 @@ export async function api<T = unknown>(
   if (!res.ok) {
     const errData = data as { error?: string; details?: unknown } | null;
 
-    // 401 = token er ugyldig (utløpt, revokert, bruker slettet, tokenVersion bumpet).
-    // Tøm ALT lokalt så cached UI ikke viser data fra forrige bruker, og redirect
-    // til /login. Uten dette ender vi opp med å vise stale state fra forrige sesjon.
-    if (res.status === 401 && typeof window !== 'undefined') {
+    // 401 = token ugyldig. Tidligere logget vi ut ved enhver 401, men det
+    // betydde at én bakgrunns-feil (timeout/proxy/etc) kastet brukeren ut.
+    // Nå: bare auto-logout hvis 401 kommer fra /auth/me (den ENESTE pålitelige
+    // session-sjekken). Andre endepunkter får bare throw — kallende side kan
+    // bestemme hva som skal skje.
+    //
+    // Stale-state-fra-forrige-bruker-bug (årsaken vi opprinnelig la dette til
+    // for) håndteres uansett av OnboardingModal sin user-id-sammenligning som
+    // tømmer prefs ved bruker-switch.
+    if (
+      res.status === 401 &&
+      typeof window !== 'undefined' &&
+      path.startsWith('/auth/me')
+    ) {
       const keys = [
         'sakspilot_token',
         'sakspilot_active_user',
@@ -103,7 +113,6 @@ export async function api<T = unknown>(
         'sakspilot_hjem_hidden_widgets',
       ];
       for (const k of keys) localStorage.removeItem(k);
-      // Unngå loop hvis vi allerede er på login/registrer/glemt-passord
       const here = window.location.pathname;
       const publicPaths = ['/login', '/registrer', '/glemt-passord', '/reset-passord', '/', '/priser', '/personvern'];
       if (!publicPaths.some((p) => here === p || here.startsWith(p + '/'))) {
