@@ -1,0 +1,46 @@
+{
+  "name": "Sakspilot",
+  "short_name": "Sakspilot",
+  "description": "Workspace for selvstendig næringsdrivende — sak-CRM, passiv tidsregistrering, faktura",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1E3A5F",
+  "theme_color": "#1E3A5F",
+  "orientation": "portrait-primary",
+  "lang": "nb-NO",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-192.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Saker",
+      "short_name": "Saker",
+      "url": "/saker",
+      "description": "Kanban-oversikt over saker"
+    },
+    {
+      "name": "Klistrelapper",
+      "short_name": "Klister",
+      "url": "/klistrelapper",
+      "description": "Hurtignotater"
+    },
+    {
+      "name": "Rapport",
+      "short_name": "Rapport",
+      "url": "/rapport",
+      "description": "Tidsregistrering + CSV"
+    }
+  ]
+}

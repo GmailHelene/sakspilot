@@ -1,10 +1,29 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+import PwaInit from '@/components/PwaInit';
 
 export const metadata: Metadata = {
   title: 'Sakspilot — Workspace for selvstendig næringsdrivende',
   description:
     'Sak-CRM, passiv tidsregistrering, Outlook-integrasjon og faktura — i ett verktøy. For ansvarlige søkere, arkitekter, advokater, regnskapsførere, designere og konsulenter.',
+  manifest: '/manifest.json',
+  applicationName: 'Sakspilot',
+  icons: {
+    icon: '/favicon.svg',
+    apple: '/icon-192.svg',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Sakspilot',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#1E3A5F',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({
@@ -22,7 +41,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <PwaInit />
+      </body>
     </html>
   );
 }

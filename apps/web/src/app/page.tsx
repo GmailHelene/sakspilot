@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Header from '@/components/Header';
 import { tokens } from '@/lib/tokens';
+import { Check, Clock, Mail, FileText, Zap, Share2, Lock, Smartphone } from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -116,6 +117,117 @@ export default function LandingPage() {
               <p style={{ color: tokens.color.textMuted, fontSize: 15 }}>{item.desc}</p>
             </div>
           ))}
+        </section>
+
+        {/* Features-liste */}
+        <section
+          style={{
+            padding: '60px 24px',
+            maxWidth: 980,
+            margin: '0 auto',
+          }}
+        >
+          <h2
+            style={{
+              fontSize: 28,
+              color: tokens.color.navy,
+              textAlign: 'center',
+              marginBottom: 36,
+            }}
+          >
+            Alt du trenger for å holde styr på saker og timer
+          </h2>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+              gap: 16,
+            }}
+          >
+            {[
+              { Icon: Clock, title: 'Automatisk tidsregistrering', desc: 'Desktop-agent logger tid basert på matching-regler' },
+              { Icon: FileText, title: 'CSV til Tripletex / Fiken', desc: 'Månedsrapport én klikk unna' },
+              { Icon: Mail, title: 'Outlook-integrasjon', desc: 'E-poster kobles automatisk til riktig sak' },
+              { Icon: Zap, title: 'Agenter / automatiseringer', desc: 'Monday-stil: når X, gjør Y' },
+              { Icon: Share2, title: 'Delt visning til klient', desc: 'Generer offentlig lenke per sak — uten innlogging' },
+              { Icon: Lock, title: 'GDPR-klar', desc: 'Innsynsrett + sletteplikt innebygget' },
+              { Icon: Smartphone, title: 'Mobil + desktop', desc: 'PWA på telefon, desktop-app på Windows' },
+              { Icon: Check, title: 'AI-assistent', desc: 'Oppsummer saker og skriv klient-eposter' },
+            ].map(({ Icon, title, desc }) => (
+              <div
+                key={title}
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 12,
+                  padding: 16,
+                }}
+              >
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    background: tokens.color.bgAlt,
+                    color: tokens.color.navy,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon size={18} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 600, color: tokens.color.navy, marginBottom: 2 }}>
+                    {title}
+                  </div>
+                  <div style={{ fontSize: 14, color: tokens.color.textMuted, lineHeight: 1.5 }}>
+                    {desc}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Pris */}
+        <section
+          style={{
+            padding: '60px 24px',
+            maxWidth: 720,
+            margin: '0 auto',
+            textAlign: 'center',
+          }}
+        >
+          <h2 style={{ fontSize: 28, color: tokens.color.navy, marginBottom: 8 }}>
+            Gratis i pilotperioden
+          </h2>
+          <p style={{ color: tokens.color.textMuted, fontSize: 16, marginBottom: 24, maxWidth: 540, margin: '0 auto 24px' }}>
+            Vi bygger Sakspilot sammen med de første brukerne. Du får full tilgang,
+            i bytte mot at du gir oss tilbakemeldinger på hva som mangler. Senere kommer
+            en abonnementspris på rundt 199 kr/mnd.
+          </p>
+          <div
+            style={{
+              display: 'inline-block',
+              padding: 24,
+              background: tokens.color.white,
+              border: `2px solid ${tokens.color.gold}`,
+              borderRadius: tokens.radius.lg,
+              marginTop: 12,
+            }}
+          >
+            <div style={{ fontSize: 14, color: tokens.color.textMuted, marginBottom: 4 }}>
+              Pilotpris (frem til 2026-12-31)
+            </div>
+            <div style={{ fontSize: 36, fontWeight: 800, color: tokens.color.navy }}>
+              0 kr<span style={{ fontSize: 14, fontWeight: 400, color: tokens.color.textMuted }}> / mnd</span>
+            </div>
+            <div style={{ fontSize: 12, color: tokens.color.textSubtle, marginTop: 8 }}>
+              Ingen kredittkort kreves
+            </div>
+          </div>
         </section>
 
         {/* For hvem */}
