@@ -828,6 +828,21 @@ ipcMain.handle('agent:stop-work-session', () => { stopWorkSession(); return true
 ipcMain.handle('agent:toggle-pause', () => { togglePause(); return true; });
 ipcMain.handle('agent:sync-now', async () => { await syncSessions(); return true; });
 
+// Åpne ekstern URL i default-nettleser. Brukes f.eks. fra settings.html
+// "Opprett konto"-lenken som skal åpne sakspilot.no/registrer i Chrome/Edge
+// (ikke i Sakspilot-vinduet).
+ipcMain.handle('shell:open-external', async (_e, url) => {
+  if (!url || typeof url !== 'string') return { ok: false, error: 'Ugyldig URL' };
+  // Safety: kun http(s)
+  if (!/^https?:\/\//i.test(url)) return { ok: false, error: 'Kun http(s)-URLer tillatt' };
+  try {
+    await shell.openExternal(url);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
 // Åpne lokal mappe i Windows Explorer
 ipcMain.handle('shell:open-folder', async (_e, folderPath) => {
   if (!folderPath) return { ok: false, error: 'Ingen sti oppgitt' };

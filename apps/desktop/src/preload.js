@@ -29,6 +29,10 @@ contextBridge.exposeInMainWorld('sakspilot', {
   openInWindow: (url, label) => ipcRenderer.invoke('shell:open-in-window', url, label),
   closeShortcutView: () => ipcRenderer.invoke('shell:close-shortcut-view'),
 
+  // Åpne URL i brukerens default-nettleser (brukes f.eks. fra settings.html
+  // for "Opprett konto"-lenken som skal åpnes utenfor Sakspilot)
+  openExternal: (url) => ipcRenderer.invoke('shell:open-external', url),
+
   // Lytt etter shortcut-events fra main-prosessen
   onShortcutOpened: (callback) => {
     const listener = (_e, meta) => callback(meta);

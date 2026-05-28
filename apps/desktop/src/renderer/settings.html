@@ -368,10 +368,27 @@
     });
 
     // ── Web-signup-lenke ─────────────────────────────────────
-    $('openWebSignup').addEventListener('click', (e) => {
+    // Konverterer apiUrl → webUrl korrekt:
+    //   https://api.sakspilot.no  → https://sakspilot.no
+    //   https://*.onrender.com    → https://sakspilot-web.vercel.app
+    //   http://localhost:8001     → http://localhost:3001
+    function apiUrlToWebUrl(apiUrl) {
+      const a = (apiUrl || '').replace(/\/$/, '');
+      if (a.includes('sakspilot.no')) return 'https://sakspilot.no';
+      if (a.includes('onrender.com')) return 'https://sakspilot-web.vercel.app';
+      // localhost / IP — bytt port og fjern eventuelt /api-suffiks
+      return a.replace(/:\d+$/, ':3001').replace(/\/api$/, '');
+    }
+    $('openWebSignup').addEventListener('click', async (e) => {
       e.preventDefault();
-      const url = $('apiUrl').value.replace(/:\d+$/, ':3001') + '/registrer';
-      window.open(url, '_blank');
+      const webUrl = apiUrlToWebUrl($('apiUrl').value);
+      const url = webUrl + '/registrer';
+      // openExternal åpner i default-nettleser (Chrome/Edge), ikke i .exe-en
+      if (window.sakspilot && window.sakspilot.openExternal) {
+        await window.sakspilot.openExternal(url);
+      } else {
+        window.open(url, '_blank');
+      }
     });
 
     // ── Arbeidsøkt-knapper ───────────────────────────────────
