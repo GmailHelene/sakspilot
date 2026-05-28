@@ -159,14 +159,24 @@ async function executeAction(
 }
 
 function interpolateVars(template: string, ctx: TriggerContext): string {
-  return template
+  const result = template
     .replace(/\{sakTitle\}/g, ctx.sak?.title || ctx.milestone?.sakTitle || "")
-    .replace(/\{clientName\}/g, ctx.sak?.client?.name || "")
+    // Intern sak (uten klient): bruk «(intern)» istedenfor tom streng
+    // for å unngå stygge mellomrom i tekstmaler
+    .replace(/\{clientName\}/g, ctx.sak?.client?.name || "(intern)")
     .replace(/\{status\}/g, ctx.sak?.status || "")
     .replace(/\{previousStatus\}/g, ctx.sak?.previousStatus || "")
     .replace(/\{milestoneTitle\}/g, ctx.milestone?.title || "")
     .replace(/\{dueDate\}/g, ctx.milestone?.dueDate?.toLocaleDateString("nb-NO") || "")
     .replace(/\{daysUntil\}/g, String(ctx.milestone?.daysUntil ?? ""));
+
+  // Belt-and-braces: kollaps multiple mellomrom og trim linjevis,
+  // i tilfelle en variabel fortsatt ender opp tom (f.eks. {milestoneTitle}
+  // på sak_created-trigger).
+  return result
+    .split("\n")
+    .map((line) => line.replace(/ {2,}/g, " ").replace(/ +$/g, ""))
+    .join("\n");
 }
 
 /**
