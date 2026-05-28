@@ -8,11 +8,51 @@ html, body {
   height: 100%;
   background: #FAFAF7;
   color: #1A1A1A;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 15px;
-  line-height: 1.5;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  letter-spacing: -0.005em;
+}
+
+h1, h2, h3, h4 {
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+/* Subtile hover/transitions for klikkbare elementer */
+a, button, [role="button"] {
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+              color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease,
+              opacity 0.15s ease;
+}
+
+/* Sak-kort i kanban og listen — løft og skygge på hover */
+a[href^="/saker/"]:not([href="/saker"]):not([href="/saker/ny"]):hover,
+a[href^="/klienter/"]:not([href="/klienter"]):not([href="/klienter/ny"]):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30, 58, 95, 0.08);
+}
+
+/* Knapper — generell hover-løft */
+button[type="submit"]:not(:disabled):hover,
+a[style*="background"]:hover {
+  filter: brightness(1.05);
+}
+
+/* Disabled buttons */
+button:disabled {
+  cursor: not-allowed !important;
+}
+
+/* Smooth focus rings */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #1E3A5F;
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 a {
