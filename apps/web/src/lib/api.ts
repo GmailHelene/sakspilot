@@ -85,6 +85,32 @@ export async function api<T = unknown>(
 
   if (!res.ok) {
     const errData = data as { error?: string; details?: unknown } | null;
+
+    // 401 = token er ugyldig (utløpt, revokert, bruker slettet, tokenVersion bumpet).
+    // Tøm ALT lokalt så cached UI ikke viser data fra forrige bruker, og redirect
+    // til /login. Uten dette ender vi opp med å vise stale state fra forrige sesjon.
+    if (res.status === 401 && typeof window !== 'undefined') {
+      const keys = [
+        'sakspilot_token',
+        'sakspilot_active_user',
+        'sakspilot_onboarded',
+        'sakspilot_profession',
+        'sakspilot_launcher_apps',
+        'sakspilot_shortcuts',
+        'sakspilot_folder_shortcuts',
+        'sakspilot_my_sites',
+        'sakspilot_hidden_nav',
+        'sakspilot_hjem_hidden_widgets',
+      ];
+      for (const k of keys) localStorage.removeItem(k);
+      // Unngå loop hvis vi allerede er på login/registrer/glemt-passord
+      const here = window.location.pathname;
+      const publicPaths = ['/login', '/registrer', '/glemt-passord', '/reset-passord', '/', '/priser', '/personvern'];
+      if (!publicPaths.some((p) => here === p || here.startsWith(p + '/'))) {
+        window.location.href = '/login';
+      }
+    }
+
     throw new ApiError(
       errData?.error || `Forespørsel feilet (${res.status})`,
       res.status,

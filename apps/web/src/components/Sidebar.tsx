@@ -56,14 +56,9 @@ function getDesktopAPI(): {
   return api && api.isDesktop ? api : { isDesktop: false };
 }
 
-const DEFAULT_SHORTCUTS: Shortcut[] = [
-  { id: 'tripletex', label: 'Tripletex', url: 'https://tripletex.no', icon: '💼' },
-  { id: 'fiken', label: 'Fiken', url: 'https://fiken.no', icon: '💰' },
-  { id: 'gmail', label: 'Gmail', url: 'https://mail.google.com', icon: '📧' },
-  { id: 'github', label: 'GitHub', url: 'https://github.com', icon: '🐙' },
-  { id: 'chatgpt', label: 'ChatGPT', url: 'https://chat.openai.com', icon: '🤖' },
-  { id: 'holte', label: 'Holte', url: 'https://smart.holte.no', icon: '🏢' },
-];
+// Tomme defaults — brukeren legger til sine egne via + knappen.
+// Apper/snarveier styres nå av Launcher (bransje-spesifikke ved onboarding).
+const DEFAULT_SHORTCUTS: Shortcut[] = [];
 
 const STORAGE_KEY = 'sakspilot_shortcuts';
 
