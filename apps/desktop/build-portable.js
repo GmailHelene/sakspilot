@@ -16,7 +16,9 @@ const os = require('node:os');
 const { execSync, spawnSync } = require('node:child_process');
 
 const ROOT = __dirname;
-const RELEASE_DIR = path.join(ROOT, 'release');
+// Default = 'release'. Hvis sletting feiler (typisk: Sakspilot.exe kjørte
+// tidligere og noe holder filer låst), bruker vi 'release-<timestamp>' i stedet.
+let RELEASE_DIR = path.join(ROOT, 'release');
 const TEMP_DIR = path.join(os.tmpdir(), 'sakspilot-build-' + Date.now());
 
 function step(n, total, text) {
@@ -43,8 +45,17 @@ async function main() {
   }
 
   // ── Steg 1: rydd release/ (med retry mot EPERM) ───────────
+  // Hvis sletting feiler (typisk Defender som scanner), faller vi tilbake
+  // på release-<timestamp>/ så build kan fullføres.
   step(1, 6, 'Rydder release/...');
-  await rmWithRetry(RELEASE_DIR);
+  try {
+    await rmWithRetry(RELEASE_DIR);
+  } catch (err) {
+    const fallback = path.join(ROOT, 'release-' + Date.now());
+    console.log(`\n⚠  Bruker fallback output-mappe: ${path.basename(fallback)}`);
+    console.log('   (gammel release/ er låst — gå inn manuelt og slett den senere)');
+    RELEASE_DIR = fallback;
+  }
   fs.mkdirSync(RELEASE_DIR, { recursive: true });
 
   // ── Steg 2: kopier kilden til temp ────────────────────────
