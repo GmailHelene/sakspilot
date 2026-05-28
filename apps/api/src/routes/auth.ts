@@ -316,4 +316,140 @@ router.post(
   }
 );
 
+// ── Glemt passord ───────────────────────────────────────────────
+
+/**
+ * POST /auth/forgot-password
+ *
+ * Genererer et engangstoken, lagrer SHA-256-hashen + utløp på User, og
+ * logger reset-lenken til server-logg. I pilotfase sender vi IKKE e-post
+ * (krever Postmark/SendGrid/Resend-oppsett) — Helene videresender lenken
+ * manuelt eller får brukeren til å sjekke logger.
+ *
+ * Returnerer alltid 200 ok (selv hvis e-post ikke finnes) — så vi ikke
+ * lekker hvilke e-poster som har konto.
+ *
+ * I dev/pilot: returnerer resetToken og resetUrl i response så Helene kan
+ * sende manuelt. Dette skal IKKE skje i prod — fjernes når SMTP er på plass.
+ */
+const ForgotSchema = z.object({
+  email: z.string().email().max(200),
+});
+
+router.post("/forgot-password", async (req: Request, res: Response) => {
+  const parsed = ForgotSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: "Ugyldig e-post" });
+  }
+  const email = parsed.data.email.toLowerCase().trim();
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  // Genererer alltid token (selv om user ikke finnes) for å unngå timing-leak
+  const crypto = await import("crypto");
+  const rawToken = crypto.randomBytes(32).toString("hex");
+  const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 time
+
+  if (user) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetTokenHash: tokenHash,
+        passwordResetExpiresAt: expiresAt,
+      },
+    });
+    await prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        organizationId: user.organizationId,
+        action: "user.password_reset_requested",
+        entityType: "user",
+        entityId: user.id,
+      },
+    });
+  }
+
+  const webOrigin = process.env.WEB_ORIGIN || "https://sakspilot.no";
+  const resetUrl = `${webOrigin}/reset-passord?token=${rawToken}`;
+
+  // Pilot-modus: log lenken til serveren så Helene kan videresende manuelt.
+  // PROD-fix: integrer SMTP-tjeneste (Postmark/SendGrid/Resend) og send via e-post.
+  if (user) {
+    console.log(`[forgot-password] Reset-lenke for ${email}: ${resetUrl}`);
+  } else {
+    console.log(`[forgot-password] Ingen bruker med e-post ${email} (ignorert)`);
+  }
+
+  // I dev returneres lenken i response. I prod (med SMTP) ville vi bare returnert ok.
+  const isDev = process.env.NODE_ENV !== "production";
+  return res.json({
+    ok: true,
+    message:
+      "Hvis kontoen finnes, har vi sendt en reset-lenke til e-postadressen. Sjekk innboksen.",
+    ...(isDev && user ? { _devResetUrl: resetUrl } : {}),
+  });
+});
+
+/**
+ * POST /auth/reset-password
+ *
+ * Verifiserer at tokenet matcher en bruker og ikke er utløpt, setter nytt
+ * passord, bumper tokenVersion (invaliderer alle eksisterende sesjoner).
+ */
+const ResetSchema = z.object({
+  token: z.string().min(32).max(200),
+  newPassword: z.string().min(12).max(200),
+});
+
+router.post("/reset-password", async (req: Request, res: Response) => {
+  const parsed = ResetSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: "Ugyldig input — passordet må være minst 12 tegn",
+      details: parsed.error.flatten().fieldErrors,
+    });
+  }
+  const { token, newPassword } = parsed.data;
+  const crypto = await import("crypto");
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+  const user = await prisma.user.findFirst({
+    where: {
+      passwordResetTokenHash: tokenHash,
+      passwordResetExpiresAt: { gte: new Date() },
+    },
+  });
+  if (!user) {
+    return res.status(400).json({
+      error: "Lenken er ugyldig eller utløpt. Be om ny reset-lenke.",
+    });
+  }
+
+  const newHash = await hashPassword(newPassword);
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      passwordHash: newHash,
+      tokenVersion: { increment: 1 },
+      passwordResetTokenHash: null,
+      passwordResetExpiresAt: null,
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId: user.id,
+      organizationId: user.organizationId,
+      action: "user.password_reset_completed",
+      entityType: "user",
+      entityId: user.id,
+    },
+  });
+
+  return res.json({
+    ok: true,
+    message: "Passord oppdatert. Logg inn med det nye passordet.",
+  });
+});
+
 export default router;

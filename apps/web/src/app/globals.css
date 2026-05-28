@@ -1,3 +1,13 @@
+/* CSS-variabler for tema-bytte. ThemeInit overstyrer disse på <html>.
+   Defaults = Navy & Gull. */
+:root {
+  --sp-primary: #1E3A5F;
+  --sp-primary-dark: #152A47;
+  --sp-primary-light: #2D5183;
+  --sp-accent: #D4A017;
+  --sp-accent-light: #E9C46A;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

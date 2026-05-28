@@ -49,8 +49,15 @@ const DEFAULT_APPS: LauncherApp[] = [
 
 const STORAGE_KEY = 'sakspilot_launcher_apps';
 
+interface MySite {
+  id: string;
+  label: string;
+  url: string;
+}
+
 export default function Launcher() {
   const [apps, setApps] = useState<LauncherApp[]>(DEFAULT_APPS);
+  const [mySites, setMySites] = useState<MySite[]>([]);
   const [adding, setAdding] = useState(false);
   const [newLabel, setNewLabel] = useState('');
   const [newUrl, setNewUrl] = useState('');
@@ -61,13 +68,17 @@ export default function Launcher() {
   useEffect(() => {
     setMounted(true);
     loadFromStorage();
-    // Lytt på onboarding-fullført så vi får bransje-spesifikke snarveier
-    // uten å kreve full reload
     function handler() {
       loadFromStorage();
     }
     window.addEventListener('sakspilot:launcher-updated', handler);
-    return () => window.removeEventListener('sakspilot:launcher-updated', handler);
+    // Lytt også når Mine sites endres (Sidebar disptacher det)
+    window.addEventListener('sakspilot:sites-updated', handler);
+    // storage-eventet fyrer på andre tabs/vinduer — fanger samme-vindu via custom event
+    return () => {
+      window.removeEventListener('sakspilot:launcher-updated', handler);
+      window.removeEventListener('sakspilot:sites-updated', handler);
+    };
   }, []);
 
   function loadFromStorage() {
@@ -76,6 +87,13 @@ export default function Launcher() {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) setApps(parsed);
+      }
+      const sites = localStorage.getItem('sakspilot_my_sites');
+      if (sites) {
+        const parsed = JSON.parse(sites);
+        if (Array.isArray(parsed)) setMySites(parsed);
+      } else {
+        setMySites([]);
       }
     } catch {}
   }
@@ -207,6 +225,58 @@ export default function Launcher() {
             )}
           </div>
         ))}
+
+        {/* Mine sites — favicon-knapper, vises rett under apps */}
+        {mounted && mySites.length > 0 && (
+          <>
+            <div
+              style={{
+                width: 28,
+                height: 1,
+                background: 'rgba(255,255,255,0.15)',
+                margin: '12px auto',
+              }}
+            />
+            {mySites.map((s) => (
+              <div
+                key={s.id}
+                style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}
+                onMouseEnter={() => setTooltipId('site-' + s.id)}
+                onMouseLeave={() => setTooltipId(null)}
+              >
+                <a
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={async (e) => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const api = (typeof window !== 'undefined' ? (window as any).sakspilot : null);
+                    if (api?.isDesktop && api.openInWindow) {
+                      e.preventDefault();
+                      await api.openInWindow(s.url, s.label);
+                    }
+                  }}
+                  style={{
+                    ...iconButtonStyle,
+                    background: 'white',
+                    color: '#1E3A5F',
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1.08)';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.transform = '';
+                  }}
+                >
+                  <LauncherSiteFavicon url={s.url} label={s.label} />
+                </a>
+                {tooltipId === 'site-' + s.id && (
+                  <div style={tooltipStyle}>{s.label}</div>
+                )}
+              </div>
+            ))}
+          </>
+        )}
 
         {/* Legg til-knapp */}
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
@@ -344,6 +414,52 @@ export default function Launcher() {
         ↻
       </button>
     </aside>
+  );
+}
+
+function LauncherSiteFavicon({ url, label }: { url: string; label: string }) {
+  const [tier, setTier] = useState<0 | 1 | 2>(0);
+  let hostname = url;
+  try {
+    hostname = new URL(url).hostname;
+  } catch {}
+  if (tier === 2) {
+    const palette = ['#1E3A5F', '#C2185B', '#2C5F2D', '#0086CC', '#A358DF', '#FF7A45', '#00B884', '#E2445C'];
+    let hash = 0;
+    for (let i = 0; i < hostname.length; i++) hash = (hash * 31 + hostname.charCodeAt(i)) | 0;
+    const bg = palette[Math.abs(hash) % palette.length];
+    const letter = (label || hostname).charAt(0).toUpperCase();
+    return (
+      <div
+        style={{
+          width: 22,
+          height: 22,
+          borderRadius: 6,
+          background: bg,
+          color: 'white',
+          fontSize: 11,
+          fontWeight: 700,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {letter}
+      </div>
+    );
+  }
+  const src = tier === 0
+    ? `https://icons.duckduckgo.com/ip3/${hostname}.ico`
+    : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=64`;
+  return (
+    <img
+      src={src}
+      alt=""
+      width={22}
+      height={22}
+      style={{ display: 'block', borderRadius: 4 }}
+      onError={() => setTier((t) => (t + 1) as 0 | 1 | 2)}
+    />
   );
 }
 

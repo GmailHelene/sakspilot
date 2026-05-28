@@ -127,7 +127,12 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p style={{ marginTop: 24, fontSize: 14, color: tokens.color.textMuted }}>
+          <p style={{ marginTop: 16, fontSize: 13, color: tokens.color.textMuted, textAlign: 'center' }}>
+            <Link href="/glemt-passord" style={{ color: tokens.color.navy, fontWeight: 500 }}>
+              Glemt passord?
+            </Link>
+          </p>
+          <p style={{ marginTop: 16, fontSize: 14, color: tokens.color.textMuted }}>
             Ikke konto enda?{' '}
             <Link href="/registrer" style={{ color: tokens.color.navy, fontWeight: 600 }}>
               Opprett konto

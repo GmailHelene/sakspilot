@@ -28,6 +28,25 @@ import ThemePicker from '@/components/ThemePicker';
 
 const STORAGE_KEY = 'sakspilot_onboarded';
 const PROFESSION_KEY = 'sakspilot_profession';
+const USER_TAG_KEY = 'sakspilot_active_user'; // siste innlogga user-id
+
+// Hvis innlogga user.id er forskjellig fra forrige (eller mangler),
+// betraktes det som "ny bruker" → tøm onboarding/launcher/sites/snarveier
+// så hver bruker får ren start.
+function resetClientPrefsForNewUser() {
+  if (typeof window === 'undefined') return;
+  const keys = [
+    STORAGE_KEY,
+    PROFESSION_KEY,
+    LAUNCHER_STORAGE_KEY,
+    'sakspilot_shortcuts',
+    'sakspilot_folder_shortcuts',
+    'sakspilot_my_sites',
+    'sakspilot_hidden_nav',
+    'sakspilot_hjem_hidden_widgets',
+  ];
+  for (const k of keys) localStorage.removeItem(k);
+}
 
 interface ProfessionOption {
   id: Profession;
@@ -59,10 +78,29 @@ export default function OnboardingModal() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!isTokenValid()) return;
-    if (localStorage.getItem(STORAGE_KEY)) return;
-    // Vent litt så ikke modal dukker opp før sidens førsteinntrykk
-    const t = setTimeout(() => setOpen(true), 1500);
-    return () => clearTimeout(t);
+
+    // Sjekk om innlogga user er en NY bruker (forskjellig fra forrige sesjon).
+    // Hvis ja: tøm alle client-prefs så vi får frisk onboarding.
+    let cancelled = false;
+    (async () => {
+      try {
+        const me = await api<{ id: string; email: string }>('/auth/me');
+        const lastUser = localStorage.getItem(USER_TAG_KEY);
+        if (lastUser !== me.id) {
+          resetClientPrefsForNewUser();
+          localStorage.setItem(USER_TAG_KEY, me.id);
+        }
+      } catch {
+        // ignorer — kan være /auth/me som ikke returnerer id
+      }
+      if (cancelled) return;
+      if (localStorage.getItem(STORAGE_KEY)) return;
+      const t = setTimeout(() => setOpen(true), 1500);
+      return () => clearTimeout(t);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function finish() {

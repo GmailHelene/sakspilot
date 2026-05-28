@@ -85,6 +85,7 @@ export default function Sidebar() {
   const [mounted, setMounted] = useState(false);
   const desktop = getDesktopAPI();
 
+  const [navTick, setNavTick] = useState(0);
   useEffect(() => {
     setMounted(true);
     try {
@@ -95,12 +96,19 @@ export default function Sidebar() {
       const storedSites = localStorage.getItem(SITES_STORAGE);
       if (storedSites) setMySites(JSON.parse(storedSites));
     } catch {}
+    // Lytt på nav-toggle fra /innstillinger/utseende
+    function navHandler() {
+      setNavTick((t) => t + 1);
+    }
+    window.addEventListener('sakspilot:nav-updated', navHandler);
+    return () => window.removeEventListener('sakspilot:nav-updated', navHandler);
   }, []);
 
   function persistSites(next: MySite[]) {
     setMySites(next);
     try {
       localStorage.setItem(SITES_STORAGE, JSON.stringify(next));
+      window.dispatchEvent(new Event('sakspilot:sites-updated'));
     } catch {}
   }
   function addSite() {
@@ -214,8 +222,11 @@ export default function Sidebar() {
     { id: 'utseende', href: '/innstillinger/utseende', label: 'Utseende', Icon: Palette },
   ];
   const HIDDEN_NAV_KEY = 'sakspilot_hidden_nav';
+  // navTick i deps tvinger re-eval når toggling skjer
   const navLinks = mounted
     ? (() => {
+        // void navTick — bare for å lytte
+        void navTick;
         try {
           const hidden = new Set(JSON.parse(localStorage.getItem(HIDDEN_NAV_KEY) || '[]') as string[]);
           return ALL_NAV.filter((n) => !hidden.has(n.id));
@@ -474,17 +485,7 @@ export default function Sidebar() {
                     textDecoration: 'none',
                   }}
                 >
-                  <img
-                    src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(
-                      (() => {
-                        try { return new URL(s.url).hostname; } catch { return s.url; }
-                      })()
-                    )}&sz=64`}
-                    alt=""
-                    width={20}
-                    height={20}
-                    style={{ display: 'block' }}
-                  />
+                  <SiteFavicon url={s.url} label={s.label} />
                 </a>
                 <button
                   onClick={() => removeSite(s.id)}
@@ -528,6 +529,57 @@ export default function Sidebar() {
         </a>
       </div>
     </aside>
+  );
+}
+
+/**
+ * SiteFavicon — viser favicon for et site med graceful fallback.
+ * Prioritet: DuckDuckGo (mest pålitelig) → Google s2 → monogram (første bokstav i farget sirkel).
+ */
+function SiteFavicon({ url, label }: { url: string; label: string }) {
+  const [tier, setTier] = useState<0 | 1 | 2>(0);
+  let hostname = url;
+  try {
+    hostname = new URL(url).hostname;
+  } catch {}
+  if (tier === 2) {
+    // Monogram-fallback — første bokstav i deterministisk farge basert på hostname
+    const palette = ['#1E3A5F', '#C2185B', '#2C5F2D', '#0086CC', '#A358DF', '#FF7A45', '#00B884', '#E2445C'];
+    let hash = 0;
+    for (let i = 0; i < hostname.length; i++) hash = (hash * 31 + hostname.charCodeAt(i)) | 0;
+    const bg = palette[Math.abs(hash) % palette.length];
+    const letter = (label || hostname).charAt(0).toUpperCase();
+    return (
+      <div
+        style={{
+          width: 24,
+          height: 24,
+          borderRadius: 6,
+          background: bg,
+          color: 'white',
+          fontSize: 12,
+          fontWeight: 700,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {letter}
+      </div>
+    );
+  }
+  const src = tier === 0
+    ? `https://icons.duckduckgo.com/ip3/${hostname}.ico`
+    : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=64`;
+  return (
+    <img
+      src={src}
+      alt=""
+      width={22}
+      height={22}
+      style={{ display: 'block' }}
+      onError={() => setTier((t) => (t + 1) as 0 | 1 | 2)}
+    />
   );
 }
 

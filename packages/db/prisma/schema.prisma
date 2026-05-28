@@ -205,6 +205,11 @@ model User {
   /// Brukes til å tilpasse default-snarveier i Launcher, og kan brukes
   /// til å filtrere agent-templates senere.
   profession     Profession? @default(annet)
+  /// Reset-token for glemt-passord-flyt. SHA-256-hash av tokenet som ble
+  /// e-postet. Brukeren får selve tokenet i mailen — vi lagrer kun hashen
+  /// så DB-lekkasje ikke gir reset-tilgang.
+  passwordResetTokenHash String?   @map("password_reset_token_hash")
+  passwordResetExpiresAt DateTime? @map("password_reset_expires_at")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 

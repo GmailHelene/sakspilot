@@ -8,12 +8,13 @@
  */
 export const tokens = {
   color: {
-    // Primary — fortsatt navy/gull (brand)
-    navy: '#1E3A5F',
-    navyDark: '#152A47',
-    navyLight: '#2D5183',
-    gold: '#D4A017',          // litt lysere/mer levende enn før
-    goldLight: '#E9C46A',
+    // Primary — leser fra CSS-variabler så ThemePicker faktisk endrer farger
+    // i hele UI-et. Fallback til navy hvis ThemeInit ikke har kjørt ennå (SSR).
+    navy: 'var(--sp-primary, #1E3A5F)',
+    navyDark: 'var(--sp-primary-dark, #152A47)',
+    navyLight: 'var(--sp-primary-light, #2D5183)',
+    gold: 'var(--sp-accent, #D4A017)',
+    goldLight: 'var(--sp-accent-light, #E9C46A)',
 
     // Vibrant statusfarger (Monday-stil)
     green: '#00B884',         // pågående / suksess
@@ -42,10 +43,13 @@ export const tokens = {
     textMuted: '#5E6C84',
     textSubtle: '#8993A4',
   },
-  // Gradients til CTA-knapper og hero-elementer (subtilt brukt)
+  // Gradients til CTA-knapper og hero-elementer.
+  // navy/gold leser CSS-vars så de bytter med tema.
   gradient: {
-    navy: 'linear-gradient(135deg, #1E3A5F 0%, #2D5183 100%)',
-    gold: 'linear-gradient(135deg, #D4A017 0%, #E9C46A 100%)',
+    navy:
+      'linear-gradient(135deg, var(--sp-primary, #1E3A5F) 0%, var(--sp-primary-light, #2D5183) 100%)',
+    gold:
+      'linear-gradient(135deg, var(--sp-accent, #D4A017) 0%, var(--sp-accent-light, #E9C46A) 100%)',
     green: 'linear-gradient(135deg, #00B884 0%, #00D4A1 100%)',
     blue: 'linear-gradient(135deg, #0086CC 0%, #00A3E0 100%)',
     pink: 'linear-gradient(135deg, #FF5AC4 0%, #FF85D7 100%)',
