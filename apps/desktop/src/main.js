@@ -479,9 +479,11 @@ function openDashboardWindow() {
   // session.clearStorageData som tar alt for sakspilot.no.
   Promise.all([
     dashboardWindow.webContents.session.clearCache(),
+    // Ingen origin-filter: clear ALT av SW + cachestorage. URL-en kan være
+    // både sakspilot.no og www.sakspilot.no, og origin-filteret krever
+    // EKSAKT match, så vi dropper det.
     dashboardWindow.webContents.session.clearStorageData({
       storages: ['serviceworkers', 'cachestorage'],
-      origin: 'https://sakspilot.no',
     }),
   ]).catch(() => {});
 

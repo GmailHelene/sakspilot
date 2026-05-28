@@ -23,10 +23,20 @@ export default function PwaInit() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    // Registrer service worker
-    if ('serviceWorker' in navigator) {
+    // Registrer service worker — MEN IKKE i Electron.
+    // I .exe-en er SW kun en kilde til chunk-cache-mismatch etter deploy.
+    // Brukeren er allerede i en "wrappet app" som ikke trenger PWA-shell.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const isDesktop = (window as any).sakspilot?.isDesktop;
+    if (!isDesktop && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch((err) => {
         console.warn('[PWA] Service worker-registrering feilet:', err);
+      });
+    } else if (isDesktop && 'serviceWorker' in navigator) {
+      // Hvis brukeren tidligere registrerte SW (i nettleser), unregister
+      // når de nå er i Electron — så vi ikke får chunk-mismatch
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((r) => r.unregister().catch(() => {}));
       });
     }
 
