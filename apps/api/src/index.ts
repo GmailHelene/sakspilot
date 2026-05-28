@@ -33,6 +33,7 @@ import { authRouter as shareAuthRouter, publicRouter as sharePublicRouter } from
 import aiRouter from "./routes/ai";
 import oauthRouter from "./routes/oauth";
 import emailsRouter from "./routes/emails";
+import accountingRouter from "./routes/accounting";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 8001;
@@ -146,6 +147,7 @@ app.use("/public", publicLimiter, sharePublicRouter); // /public/sak/:token
 app.use("/ai", aiLimiter, aiRouter);
 app.use("/oauth", oauthLimiter, oauthRouter);
 app.use("/emails", emailsRouter);
+app.use("/accounting", accountingRouter);
 
 // ── Root ────────────────────────────────────────────────────────
 app.get("/", (_req: Request, res: Response) => {
