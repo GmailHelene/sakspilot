@@ -17,37 +17,43 @@
 
 import { useEffect, useState } from 'react';
 import {
-  Briefcase, Scale, Building, Calculator, Palette, Lightbulb,
-  ArrowRight, Check, X, Sparkles,
+  Briefcase, Scale, Building, Calculator, Palette, Lightbulb, Code,
+  Stethoscope, Pencil, ArrowRight, Check, X, Sparkles,
 } from 'lucide-react';
 import { tokens } from '@/lib/tokens';
-import { isTokenValid } from '@/lib/api';
+import { api, isTokenValid } from '@/lib/api';
 import { events } from '@/lib/analytics';
+import { getDefaultLaunchersFor, type Profession } from '@/lib/professionLaunchers';
 
 const STORAGE_KEY = 'sakspilot_onboarded';
 const PROFESSION_KEY = 'sakspilot_profession';
 
-interface Profession {
-  id: string;
+interface ProfessionOption {
+  id: Profession;
   label: string;
   Icon: typeof Briefcase;
   color: string;
   tagline: string;
 }
 
-const PROFESSIONS: Profession[] = [
-  { id: 'advokat', label: 'Advokat / jurist', Icon: Scale, color: '#1E3A5F', tagline: 'Kontrakter, rettssaker, klientkorrespondanse' },
-  { id: 'arkitekt', label: 'Arkitekt / ansvarlig søker', Icon: Building, color: '#FF7A45', tagline: 'Byggesaker, dokumentasjon, kommune-kontakt' },
-  { id: 'regnskap', label: 'Regnskap / revisor', Icon: Calculator, color: '#00B884', tagline: 'Skatteoppgjør, månedsavslutning, fakturering' },
+const PROFESSIONS: ProfessionOption[] = [
+  { id: 'it_konsulent', label: 'IT-konsulent / utvikler', Icon: Code, color: '#1E3A5F', tagline: 'Kode, deploy, kunder, devops' },
+  { id: 'konsulent_annet', label: 'Konsulent (annet)', Icon: Lightbulb, color: '#A358DF', tagline: 'Strategi, prosjekter, workshops' },
+  { id: 'ansvarlig_soker', label: 'Ansvarlig søker / byggesak', Icon: Building, color: '#FF7A45', tagline: 'Byggesaker, frister, kommune-dialog' },
+  { id: 'advokat', label: 'Advokat / jurist', Icon: Scale, color: '#005AAB', tagline: 'Kontrakter, rettssaker, klientkorrespondanse' },
+  { id: 'regnskap', label: 'Regnskap / revisor', Icon: Calculator, color: '#00B884', tagline: 'Skatt, månedsavslutning, fakturering' },
   { id: 'designer', label: 'Designer / kreativ', Icon: Palette, color: '#FF5AC4', tagline: 'Logo, web, branding, leveranser' },
-  { id: 'konsulent', label: 'Konsulent / rådgiver', Icon: Lightbulb, color: '#A358DF', tagline: 'Strategi, prosjekter, workshops' },
+  { id: 'arkitekt', label: 'Arkitekt', Icon: Pencil, color: '#D97757', tagline: 'Tegninger, prosjekter, byggherrer' },
+  { id: 'lege_psykolog', label: 'Lege / psykolog', Icon: Stethoscope, color: '#E2445C', tagline: 'Pasienter, journaler, oppfølging' },
   { id: 'annet', label: 'Annet / blandet', Icon: Briefcase, color: '#5E6C84', tagline: 'Jeg gjør litt av hvert' },
 ];
+
+const LAUNCHER_STORAGE_KEY = 'sakspilot_launcher_apps';
 
 export default function OnboardingModal() {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [profession, setProfession] = useState<string | null>(null);
+  const [profession, setProfession] = useState<Profession | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -58,13 +64,28 @@ export default function OnboardingModal() {
     return () => clearTimeout(t);
   }, []);
 
-  function finish() {
+  async function finish() {
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEY, String(Date.now()));
-      if (profession) localStorage.setItem(PROFESSION_KEY, profession);
+      if (profession) {
+        localStorage.setItem(PROFESSION_KEY, profession);
+        // Sett bransje-spesifikke launcher-snarveier (overskriver default)
+        const launchers = getDefaultLaunchersFor(profession);
+        localStorage.setItem(LAUNCHER_STORAGE_KEY, JSON.stringify(launchers));
+        // Lagre bransje på user via API (krever innlogging)
+        try {
+          await api('/me/profile', { method: 'PATCH', body: { profession } });
+        } catch {
+          // Hvis bruker ikke er innlogget eller API feiler — vi har localStorage som backup
+        }
+      }
     }
     events.onboardingCompleted(profession || undefined);
     setOpen(false);
+    // Trigger re-render av Launcher (som leser localStorage ved mount)
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('sakspilot:launcher-updated'));
+    }
   }
 
   function skip() {

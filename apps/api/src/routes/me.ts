@@ -15,6 +15,64 @@ import { verifyPassword } from "../services/auth";
 const router = Router();
 router.use(requireAuth);
 
+// ── Profession (bransje) — settes ved onboarding ─────────────────
+
+const ProfessionSchema = z.enum([
+  "it_konsulent",
+  "konsulent_annet",
+  "ansvarlig_soker",
+  "advokat",
+  "regnskap",
+  "designer",
+  "arkitekt",
+  "lege_psykolog",
+  "annet",
+]);
+
+router.get("/profile", async (req: Request, res: Response) => {
+  const session = req.session!;
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      profession: true,
+      trialEndsAt: true,
+      organization: {
+        select: {
+          id: true,
+          name: true,
+          plan: true,
+          pilotUntil: true,
+        },
+      },
+    },
+  });
+  if (!user) return res.status(404).json({ error: "Bruker ikke funnet" });
+  return res.json(user);
+});
+
+router.patch("/profile", async (req: Request, res: Response) => {
+  const parsed = z
+    .object({
+      name: z.string().min(1).max(120).optional(),
+      profession: ProfessionSchema.optional(),
+    })
+    .safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: "Ugyldig input" });
+  }
+  const session = req.session!;
+  const user = await prisma.user.update({
+    where: { id: session.userId },
+    data: parsed.data,
+    select: { id: true, name: true, profession: true },
+  });
+  return res.json(user);
+});
+
 /**
  * GET /me/export
  * Returnerer ALL data om innloggets bruker som strukturert JSON.

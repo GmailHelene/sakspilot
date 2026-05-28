@@ -60,6 +60,17 @@ export default function Launcher() {
 
   useEffect(() => {
     setMounted(true);
+    loadFromStorage();
+    // Lytt på onboarding-fullført så vi får bransje-spesifikke snarveier
+    // uten å kreve full reload
+    function handler() {
+      loadFromStorage();
+    }
+    window.addEventListener('sakspilot:launcher-updated', handler);
+    return () => window.removeEventListener('sakspilot:launcher-updated', handler);
+  }, []);
+
+  function loadFromStorage() {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -67,7 +78,7 @@ export default function Launcher() {
         if (Array.isArray(parsed) && parsed.length > 0) setApps(parsed);
       }
     } catch {}
-  }, []);
+  }
 
   function persist(next: LauncherApp[]) {
     setApps(next);

@@ -130,6 +130,18 @@ model Subscription {
   @@map("subscriptions")
 }
 
+enum Profession {
+  it_konsulent
+  konsulent_annet
+  ansvarlig_soker
+  advokat
+  regnskap
+  designer
+  arkitekt
+  lege_psykolog
+  annet
+}
+
 enum SubscriptionStatus {
   trialing
   active
@@ -166,6 +178,10 @@ model User {
   /// Settes til registrering + 14 dager. Etter dette kreves Subscription
   /// (i pilotfasen overskrives av Organization.pilotUntil).
   trialEndsAt    DateTime? @map("trial_ends_at")
+  /// Brukerens bransje — settes ved første gangs onboarding.
+  /// Brukes til å tilpasse default-snarveier i Launcher, og kan brukes
+  /// til å filtrere agent-templates senere.
+  profession     Profession? @default(annet)
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
