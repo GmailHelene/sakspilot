@@ -34,6 +34,7 @@ import aiRouter from "./routes/ai";
 import oauthRouter from "./routes/oauth";
 import emailsRouter from "./routes/emails";
 import accountingRouter from "./routes/accounting";
+import billingRouter from "./routes/billing";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 8001;
@@ -148,6 +149,7 @@ app.use("/ai", aiLimiter, aiRouter);
 app.use("/oauth", oauthLimiter, oauthRouter);
 app.use("/emails", emailsRouter);
 app.use("/accounting", accountingRouter);
+app.use("/billing", billingRouter);
 
 // ── Root ────────────────────────────────────────────────────────
 app.get("/", (_req: Request, res: Response) => {

@@ -341,9 +341,10 @@ export default function LandingPage() {
           © 2026 Sakspilot · Helene Åsheim Grønberg ·{' '}
           <a href="https://helene.cloud" style={{ color: 'inherit' }}>helene.cloud</a>
           <br />
-          <Link href="/personvern" style={{ color: tokens.color.navy, fontWeight: 500, marginTop: 6, display: 'inline-block' }}>
-            Personvernerklæring
-          </Link>
+          <span style={{ display: 'inline-flex', gap: 16, marginTop: 6 }}>
+            <Link href="/priser" style={{ color: tokens.color.navy, fontWeight: 500 }}>Priser</Link>
+            <Link href="/personvern" style={{ color: tokens.color.navy, fontWeight: 500 }}>Personvern</Link>
+          </span>
         </footer>
       </main>
 

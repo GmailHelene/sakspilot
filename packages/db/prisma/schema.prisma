@@ -83,6 +83,10 @@ model Organization {
   orgNumber       String?  @map("org_number")       // norsk organisasjonsnummer
   defaultHourlyRate Int?   @map("default_hourly_rate") // kr/t — kan overstyres per sak
   timezone        String   @default("Europe/Oslo")
+  /// Pilotperiode-utløp. Mens denne er i fremtiden er produktet GRATIS
+  /// uansett trial-status på User. Settes manuelt (eller via seed).
+  /// Default: alle nye org i pilotfasen settes til 2026-12-31 av registreringskoden.
+  pilotUntil      DateTime? @map("pilot_until")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -93,8 +97,57 @@ model Organization {
   auditLogs AuditLog[]
   stickyNotes StickyNote[]
   automations Automation[]
+  subscription Subscription?
 
   @@map("organizations")
+}
+
+/// Subscription per organisasjon. Null = ingen aktiv subscription (trial eller pilot).
+/// stripeSubscriptionId fylles inn ved Stripe-integrasjon (Q1-Q2 2027).
+/// Frem til da: settes manuelt ved manuell fakturering via Fiken.
+model Subscription {
+  id              String              @id @default(uuid())
+  organizationId  String              @unique @map("organization_id")
+  status          SubscriptionStatus  @default(trialing)
+  plan            SubscriptionPlan    @default(solo_monthly)
+  currentPeriodStart DateTime         @map("current_period_start")
+  currentPeriodEnd   DateTime         @map("current_period_end")
+  cancelAtPeriodEnd  Boolean          @default(false) @map("cancel_at_period_end")
+  // Stripe-felter (null inntil vi aktiverer Stripe Billing)
+  stripeCustomerId       String?  @map("stripe_customer_id")
+  stripeSubscriptionId   String?  @unique @map("stripe_subscription_id")
+  stripePriceId          String?  @map("stripe_price_id")
+  // Manuell faktura-flow inntil Stripe
+  invoiceMethod          BillingMethod @default(manual_invoice) @map("invoice_method")
+  notes                  String?       @db.Text
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([currentPeriodEnd])
+  @@map("subscriptions")
+}
+
+enum SubscriptionStatus {
+  trialing
+  active
+  past_due
+  cancelled
+  expired
+}
+
+enum SubscriptionPlan {
+  solo_monthly      // 199 kr/mnd (planlagt)
+  solo_yearly       // 1990 kr/år (planlagt)
+  team_monthly      // for fremtidig 2-5 brukere
+}
+
+enum BillingMethod {
+  manual_invoice    // Faktura via Fiken/Tripletex (default frem til Stripe)
+  stripe
+  vipps
 }
 
 model User {
@@ -109,6 +162,10 @@ model User {
   /// Inkrementeres ved logg-ut-alle-enheter, passordbytte, eller manuell revoke.
   /// JWT inneholder denne verdien — middleware avviser tokens med utdatert versjon.
   tokenVersion   Int       @default(0) @map("token_version")
+  /// Når den gratis 14-dagers trial-perioden utløper.
+  /// Settes til registrering + 14 dager. Etter dette kreves Subscription
+  /// (i pilotfasen overskrives av Organization.pilotUntil).
+  trialEndsAt    DateTime? @map("trial_ends_at")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 

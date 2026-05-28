@@ -75,12 +75,18 @@ router.post("/register", async (req: Request, res: Response) => {
 
   // Atomisk: opprett org + user samtidig. Hvis user-opprettelsen feiler,
   // rulles org-opprettelsen tilbake.
+  // Pilot-perioden er gratis frem til denne datoen — alle nye orgs gratis.
+  const PILOT_UNTIL = new Date("2026-12-31T23:59:59Z");
+  // Trial 14 dager fra registrering — relevant ETTER pilotperioden slutter.
+  const trialEnd = new Date(Date.now() + 14 * 86400000);
+
   const result = await prisma.$transaction(async (tx) => {
     const org = await tx.organization.create({
       data: {
         name: organizationName?.trim() || `${name.trim()} (Solo)`,
         plan: "solo",
         billingEmail: emailNorm,
+        pilotUntil: PILOT_UNTIL,
       },
     });
 
@@ -91,6 +97,7 @@ router.post("/register", async (req: Request, res: Response) => {
         name: name.trim(),
         role: "owner",
         organizationId: org.id,
+        trialEndsAt: trialEnd,
       },
     });
 
