@@ -63,9 +63,11 @@ export default function Header() {
           color: tokens.color.white,
         }}
       >
-        <svg width="26" height="26" viewBox="0 0 28 28">
-          <polygon points="14,2 26,26 2,26" fill={tokens.color.navyDark} />
-          <polygon points="14,10 22,26 6,26" fill={tokens.color.gold} />
+        <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+          {/* Pilot-trekant med kompassnål — matcher PWA-ikonet */}
+          <path d="M16 5 L26 24 L6 24 Z" fill={tokens.color.gold} stroke="#FFFFFF" strokeWidth="0.9" strokeLinejoin="round" />
+          <path d="M16 11 L14 21 L16 19.5 L18 21 Z" fill="#FFFFFF" />
+          <circle cx="16" cy="9" r="1.3" fill="#FFFFFF" />
         </svg>
         <div>
           <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: 1 }}>

@@ -42,23 +42,41 @@ function createSakspilotIconPNG(size) {
 }
 
 function pickColor(x, y, size) {
-  // Trekant-pilot-ikon i midten (samme som web-headeren)
+  // Sakspilot-ikon: gull pilot-trekant med hvit kompassnål inni.
+  // Matcher web-PWA-ikonet i apps/web/public/icon-512.svg.
   const cx = size / 2;
-  // Trekant-toppunkt på (cx, size*0.15), basis på y=size*0.85
-  const top = size * 0.15;
-  const bot = size * 0.85;
-  // Trekantbredde øker lineært med y
-  const halfWidthAtY = ((y - top) / (bot - top)) * (size * 0.4);
-  if (y >= top && y <= bot) {
-    if (Math.abs(x - cx) <= halfWidthAtY) {
-      // Indre liten trekant gull, ytre navy-mørk
-      const innerTop = size * 0.4;
-      const innerHalfWidth = ((y - innerTop) / (bot - innerTop)) * (size * 0.25);
-      if (y >= innerTop && Math.abs(x - cx) <= innerHalfWidth) {
-        return GOLD;
+  const top = size * 0.16;
+  const bot = size * 0.78;
+
+  // Trekantens halvbredde øker lineært fra topp til bunn
+  const halfWidthAtY = ((y - top) / (bot - top)) * (size * 0.42);
+
+  if (y >= top && y <= bot && Math.abs(x - cx) <= halfWidthAtY) {
+    // Hvit nål (diamond-form) i midten av trekanten
+    const needleTop = size * 0.27;
+    const needleBot = size * 0.66;
+    if (y >= needleTop && y <= needleBot) {
+      // Diamond: bredest på midten, smal i topp og bunn
+      const mid = (needleTop + needleBot) / 2;
+      const halfHeight = (needleBot - needleTop) / 2;
+      const needleHalfWidth =
+        (1 - Math.abs(y - mid) / halfHeight) * (size * 0.05);
+      if (Math.abs(x - cx) <= needleHalfWidth) {
+        return WHITE;
       }
-      return { r: 21, g: 42, b: 71 }; // navyDark
     }
+    // Hvit tip-prikk over nålen
+    const dotY = size * 0.21;
+    const dotR = size * 0.03;
+    if (Math.hypot(x - cx, y - dotY) <= dotR) {
+      return WHITE;
+    }
+    // Hvit outline rundt trekanten (tynn)
+    const distFromEdge = halfWidthAtY - Math.abs(x - cx);
+    if (distFromEdge < size * 0.012 || y - top < size * 0.012 || bot - y < size * 0.012) {
+      return WHITE;
+    }
+    return GOLD;
   }
   return NAVY;
 }
