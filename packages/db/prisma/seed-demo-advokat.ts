@@ -26,7 +26,17 @@ import bcrypt from "bcrypt";
 const prisma = new PrismaClient();
 
 const DEMO_EMAIL = "demo.advokat@sakspilot.no";
-const DEMO_PASSWORD = "DemoAdvokat2026!";
+// Passordet leses fra env-var DEMO_PASSWORD (settes lokalt eller via shell).
+// Hvis ikke satt: generer kryptografisk tilfeldig passord (16 tegn) per kjøring
+// og skriv det til konsollen. Dette unngår at et statisk passord havner i git
+// (GitGuardian flagger statisk-ish strenger som "DemoX2026!" som secrets).
+const DEMO_PASSWORD =
+  process.env.DEMO_PASSWORD ||
+  (() => {
+    const crypto = require("crypto") as typeof import("crypto");
+    // 12 bytes base64url ≈ 16 tegn, mixed case + tall, oppfyller 12-tegn minimum
+    return "Demo!" + crypto.randomBytes(9).toString("base64").replace(/[+/=]/g, "x");
+  })();
 const DEMO_USER_NAME = "Astrid Berg-Lindahl";
 const DEMO_ORG_NAME = "Berg & Lindahl Advokatfirma DA";
 const DEMO_ORG_NR = "924 567 891";
