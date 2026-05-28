@@ -21,6 +21,27 @@ const {
 } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
+const os = require('node:os');
+
+// ── Crash-logger — skriv ALLE krasj til fil + dialog ────────────
+// Uten dette feiler en pakket .exe stille hvis noe går galt ved oppstart.
+// Loggen kan deles for feilsøking.
+const crashLogPath = path.join(os.tmpdir(), 'sakspilot-crash.log');
+function logCrash(label, err) {
+  try {
+    const msg = `[${new Date().toISOString()}] ${label}\n${err && err.stack ? err.stack : String(err)}\n\n`;
+    fs.appendFileSync(crashLogPath, msg);
+    try {
+      dialog.showErrorBox(
+        'Sakspilot — feil ved oppstart',
+        `${label}\n\n${err && err.message ? err.message : String(err)}\n\nFull logg: ${crashLogPath}`
+      );
+    } catch {}
+  } catch {}
+}
+process.on('uncaughtException', (err) => logCrash('uncaughtException', err));
+process.on('unhandledRejection', (err) => logCrash('unhandledRejection', err));
+
 const store = require('./settings');
 const { Poller } = require('./poller');
 const { buildWorkSessionReport } = require('./report');
