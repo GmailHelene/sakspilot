@@ -3,8 +3,18 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';
-import { tokens } from '@/lib/tokens';
+import { tokens, clientColor } from '@/lib/tokens';
 import { api } from '@/lib/api';
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+}
 
 interface Client {
   id: string;
@@ -124,7 +134,32 @@ export default function KlienterPage() {
                       }}
                     >
                       <td style={tdStyle}>
-                        <span style={{ fontWeight: 600, color: tokens.color.navy }}>{c.name}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          {(() => {
+                            const col = clientColor(c.name);
+                            return (
+                              <div
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: '50%',
+                                  background: col.bg,
+                                  color: col.fg,
+                                  fontSize: 12,
+                                  fontWeight: 700,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  flexShrink: 0,
+                                  boxShadow: tokens.shadow.sm,
+                                }}
+                              >
+                                {initials(c.name)}
+                              </div>
+                            );
+                          })()}
+                          <span style={{ fontWeight: 600, color: tokens.color.navy }}>{c.name}</span>
+                        </div>
                       </td>
                       <td style={tdStyle}>
                         <div style={{ fontSize: 13 }}>{c.contactEmail || '—'}</div>
