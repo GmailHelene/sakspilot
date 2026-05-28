@@ -211,18 +211,30 @@ export default function PersonvernPage() {
               <ul>
                 <li>Saks-tittel, status, beskrivelse</li>
                 <li>Milepæler og frister</li>
-                <li>Klientens navn (ikke kontaktinfo)</li>
-                <li>Tidsstatistikk (timer, ikke detaljer)</li>
+                <li>Klientens navn (firmanavn — for at AI-en skal kunne tilpasse tonen)</li>
+                <li>Tidsstatistikk (totaltimer, ikke detaljer)</li>
                 <li>Din spørsmål-tekst</li>
               </ul>
               <p>
-                <strong>Hva Anthropic IKKE får:</strong> dine matching-regler, e-post-innhold,
-                tidsregistreringer-detaljer, eller informasjon om andre saker du har.
+                <strong>PII-minimisering — hva Anthropic IKKE får:</strong>
               </p>
+              <ul>
+                <li>Klient-eposter eller telefonnumre</li>
+                <li>Dine matching-regler for tidsregistrering</li>
+                <li>E-post-innhold fra Outlook</li>
+                <li>Tidsregistreringer-detaljer (vindustittel, appname)</li>
+                <li>Informasjon om andre saker enn den du jobber med</li>
+                <li>Personnumre, fødselsdato, eller andre identifikatorer</li>
+              </ul>
               <p>
                 <strong>Retention:</strong> Anthropic beholder prompts i opptil 30 dager for
-                «trust &amp; safety»-vurdering. Vi søker om Zero Data Retention.
-                <strong> Data brukes ikke til å trene modellene</strong> (verifisert i Anthropics avtalevilkår).
+                «trust &amp; safety»-vurdering. Vi har søkt om Zero Data Retention og er
+                i dialog med Anthropic. <strong>Data brukes ikke til å trene modellene</strong>{' '}
+                (kontraktsfestet i Anthropic Commercial Terms).
+              </p>
+              <p>
+                <strong>Lokasjon:</strong> Anthropic Claude er hostet i USA. Dataoverføring
+                er regulert av Standard Contractual Clauses (SCC) iht. GDPR art. 46.
               </p>
               <p>
                 Du kan deaktivere AI-funksjoner helt ved å la dem være — alle andre funksjoner i

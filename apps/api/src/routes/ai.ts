@@ -35,7 +35,8 @@ async function loadSakContext(sakId: string, organizationId: string) {
   const sak = await prisma.sak.findFirst({
     where: { id: sakId, organizationId },
     include: {
-      client: { select: { name: true, contactEmail: true, contactPhone: true } },
+      // KUN navn — kontaktinfo skal ikke til Claude (PII-minimisering)
+      client: { select: { name: true, contactEmail: true } },
       milestones: { orderBy: { dueDate: "asc" } },
       timeEntries: {
         select: { startedAt: true, durationSec: true, billable: true, hourlyRate: true },
@@ -77,14 +78,16 @@ function buildSakContextText(ctx: NonNullable<Awaited<ReturnType<typeof loadSakC
     )
     .join("\n") || "  (ingen milepæler)";
 
+  // PII-minimisering: vi sender klient-NAVN (nødvendig kontekst for AI),
+  // men IKKE e-post eller telefon. AI-modellen trenger ikke kontaktinfo
+  // for å skrive utkast — bruker fyller inn selv før sending.
+  // Dette reduserer risiko ved Anthropics 30-dagers retention betraktelig.
   return `## Saksinformasjon
 
 Tittel: ${sak.title}
 Status: ${sak.status}
 Saksnummer: ${sak.saksnummer || "—"}
 Klient: ${sak.client?.name || "(intern sak)"}
-${sak.client?.contactEmail ? `Klient-epost: ${sak.client.contactEmail}` : ""}
-${sak.client?.contactPhone ? `Klient-telefon: ${sak.client.contactPhone}` : ""}
 Frist: ${fmt(sak.deadline)}
 Opprettet: ${fmt(sak.createdAt)}
 ${sak.closedAt ? `Avsluttet: ${fmt(sak.closedAt)}` : ""}
