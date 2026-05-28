@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.99.0",
     "@prisma/client": "^5.14.0",
     "@sakspilot/db": "file:../../packages/db",
     "@sentry/node": "^7.120.3",
