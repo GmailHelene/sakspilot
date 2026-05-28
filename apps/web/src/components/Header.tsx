@@ -44,14 +44,16 @@ export default function Header() {
 
   return (
     <header
+      className="sp-header"
       style={{
         background: tokens.color.navy,
         color: tokens.color.white,
-        padding: '14px 24px',
+        padding: '12px 16px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         boxShadow: tokens.shadow.sm,
+        gap: 12,
       }}
     >
       <Link
@@ -61,9 +63,10 @@ export default function Header() {
           alignItems: 'center',
           gap: 10,
           color: tokens.color.white,
+          minWidth: 0, // tillat shrink ved trang plass
         }}
       >
-        <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true" style={{ flexShrink: 0 }}>
           {/* Bold "S" på charcoal — matcher PWA-ikonet */}
           <rect width="32" height="32" rx="7" fill="#1F1F1F" />
           <path
@@ -75,16 +78,18 @@ export default function Header() {
             strokeLinejoin="round"
           />
         </svg>
-        <div>
-          <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: 1 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: 1, whiteSpace: 'nowrap' }}>
             SAKSPILOT
           </div>
           <div
+            className="sp-header-subtitle"
             style={{
               fontSize: 9,
               letterSpacing: 1.5,
               color: tokens.color.gold,
               textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
             }}
           >
             Workspace for selvstendige
@@ -95,9 +100,10 @@ export default function Header() {
       <nav
         style={{
           display: 'flex',
-          gap: 16,
+          gap: 10,
           alignItems: 'center',
           fontSize: 13,
+          flexShrink: 0,
         }}
       >
         {mounted && me ? (
@@ -122,6 +128,7 @@ export default function Header() {
                 padding: '7px 14px',
                 borderRadius: tokens.radius.sm,
                 fontWeight: 600,
+                whiteSpace: 'nowrap',
               }}
             >
               Logg ut
@@ -140,6 +147,7 @@ export default function Header() {
                 padding: '7px 14px',
                 borderRadius: tokens.radius.sm,
                 fontWeight: 600,
+                whiteSpace: 'nowrap',
               }}
             >
               Kom i gang
@@ -154,4 +162,5 @@ export default function Header() {
 const navLinkStyle = {
   color: '#FFFFFF',
   opacity: 0.85,
+  whiteSpace: 'nowrap' as const,
 };

@@ -85,7 +85,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#1E3A5F',
+  themeColor: '#1F1F1F', // charcoal — matcher S-ikonet
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,

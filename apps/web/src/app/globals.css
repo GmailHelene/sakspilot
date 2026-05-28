@@ -39,6 +39,34 @@ a, button, [role="button"] {
               opacity 0.15s ease;
 }
 
+/* ────────────────────────────────────────────────────────────────
+ * Mobil-tilpasninger (max-width: 600px)
+ * Inline-styles dekker desktop; CSS-overrides her sparer plass på
+ * små skjermer uten å forstyrre desktop-layout.
+ * ──────────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  /* Skjul "Workspace for selvstendige"-subtittelen i headeren */
+  .sp-header-subtitle {
+    display: none !important;
+  }
+  /* Mindre padding på header */
+  .sp-header {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+  /* SAKSPILOT-tittelen kan være litt mindre */
+  .sp-header > a > div > div:first-child {
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 400px) {
+  /* På veldig små skjermer: hopp logo-tittel også, vis kun ikon */
+  .sp-header > a > div {
+    display: none !important;
+  }
+}
+
 /* Sak-kort i kanban og listen — løft og skygge på hover */
 a[href^="/saker/"]:not([href="/saker"]):not([href="/saker/ny"]):hover,
 a[href^="/klienter/"]:not([href="/klienter"]):not([href="/klienter/ny"]):hover {
