@@ -6,11 +6,62 @@ import DesktopAgentControls from '@/components/DesktopAgentControls';
 import OnboardingModal from '@/components/OnboardingModal';
 
 export const metadata: Metadata = {
-  title: 'Sakspilot — Workspace for selvstendig næringsdrivende',
+  metadataBase: new URL('https://sakspilot.no'),
+  title: {
+    default: 'Sakspilot — Workspace for selvstendig næringsdrivende',
+    template: '%s · Sakspilot',
+  },
   description:
     'Sak-CRM, passiv tidsregistrering, Outlook-integrasjon og faktura — i ett verktøy. For ansvarlige søkere, arkitekter, advokater, regnskapsførere, designere og konsulenter.',
-  manifest: '/manifest.json',
   applicationName: 'Sakspilot',
+  manifest: '/manifest.json',
+  alternates: { canonical: '/' },
+  keywords: [
+    'sakshåndtering',
+    'tidsregistrering',
+    'selvstendig næringsdrivende',
+    'frilanser',
+    'CRM',
+    'Tripletex',
+    'Fiken',
+    'Outlook',
+    'ansvarlig søker',
+    'arkitekt',
+    'advokat',
+    'regnskap',
+  ],
+  authors: [{ name: 'Helene Åsheim Grønberg', url: 'https://helene.cloud' }],
+  creator: 'Helene Åsheim Grønberg',
+  publisher: 'Sakspilot',
+  openGraph: {
+    type: 'website',
+    locale: 'nb_NO',
+    url: 'https://sakspilot.no',
+    siteName: 'Sakspilot',
+    title: 'Sakspilot — Workspace for selvstendig næringsdrivende',
+    description:
+      'Sak-CRM + automatisk tidsregistrering + Outlook + AI-assistent + faktura — i ett verktøy. Gratis i pilotperioden.',
+    images: [
+      {
+        url: '/icon-512.svg',
+        width: 512,
+        height: 512,
+        alt: 'Sakspilot — workspace for selvstendig næringsdrivende',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Sakspilot — Workspace for selvstendig næringsdrivende',
+    description:
+      'Du jobber. Sakspilot teller timene. Sak-CRM, passiv tidsregistrering, AI-assistent, faktura.',
+    images: ['/icon-512.svg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
+  },
   icons: {
     icon: '/favicon.svg',
     apple: '/icon-192.svg',

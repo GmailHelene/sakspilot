@@ -3,6 +3,42 @@ import Header from '@/components/Header';
 import { tokens } from '@/lib/tokens';
 import { Check, Clock, Mail, FileText, Zap, Share2, Lock, Smartphone } from 'lucide-react';
 
+// FAQ — også injisert som JSON-LD i bunnen for AEO (ChatGPT/Perplexity/Claude-svar)
+const FAQ = [
+  {
+    q: 'Hva er Sakspilot?',
+    a: 'Sakspilot er et workspace for selvstendig næringsdrivende — sak-CRM, automatisk tidsregistrering, Outlook-integrasjon, AI-assistent og fakturagrunnlag i ett verktøy. Du slipper å hoppe mellom Excel, klistrelapper og 3 forskjellige timeregistreringer.',
+  },
+  {
+    q: 'Hvor mye koster Sakspilot?',
+    a: 'Sakspilot er gratis i pilotperioden frem til 2026-12-31. Etter det vil prisen være rundt 199 kr/mnd. Ingen kredittkort kreves for å prøve.',
+  },
+  {
+    q: 'Hvordan fungerer den automatiske tidsregistreringen?',
+    a: 'Du installerer en liten Windows-app (Sakspilot Desktop). Den ser hva du jobber på basert på vindustittel og filsti, og kobler tiden til riktig sak via dine egne matching-regler. Ingen behov for å starte og stoppe timer manuelt.',
+  },
+  {
+    q: 'Fungerer Sakspilot med Tripletex eller Fiken?',
+    a: 'Ja — du kan eksportere månedlig fakturagrunnlag som CSV som importeres rett til Tripletex, Fiken eller Excel. Direkte API-integrasjon kommer snart.',
+  },
+  {
+    q: 'Er Sakspilot GDPR-trygt?',
+    a: 'Ja. All data lagres på EU-servere (Neon i Frankfurt). Du har full data-eksport (GDPR §15) og slette-rett (§17) tilgjengelig i innstillinger. Ingen tracking-cookies — bruker Umami analytics (samtykke-fritt).',
+  },
+  {
+    q: 'Hvilke yrkesgrupper passer Sakspilot for?',
+    a: 'Sakspilot er bygget for selvstendig næringsdrivende: ansvarlige søkere, arkitekter, advokater, regnskapsførere, designere, konsulenter, og andre med klientoppdrag og timeføring.',
+  },
+  {
+    q: 'Hvordan kobler jeg Outlook til Sakspilot?',
+    a: 'Gå til Innstillinger → Integrasjoner → "Koble til Outlook". Logg inn med Microsoft-kontoen din (Outlook.com, Hotmail eller jobb-Microsoft 365). Sakspilot kobler automatisk innkommende e-poster til riktig sak basert på avsender eller emnefelt.',
+  },
+  {
+    q: 'Kan jeg dele en sak med klienten min?',
+    a: 'Ja — generer en offentlig delt lenke per sak. Klienten ser status, milepæler og fremdrift uten å logge inn. Sensitive data (notater, tidsregistreringer, beløp) deles ikke.',
+  },
+];
+
 export default function LandingPage() {
   return (
     <>
@@ -259,6 +295,40 @@ export default function LandingPage() {
           </Link>
         </section>
 
+        {/* FAQ — viktig for AEO (ChatGPT/Perplexity/Claude-svar) */}
+        <section
+          id="faq"
+          style={{
+            padding: '60px 24px',
+            maxWidth: 800,
+            margin: '0 auto',
+          }}
+        >
+          <h2 style={{ fontSize: 28, color: tokens.color.navy, marginBottom: 24, textAlign: 'center' }}>
+            Vanlige spørsmål
+          </h2>
+          <div style={{ display: 'grid', gap: 12 }}>
+            {FAQ.map((q, i) => (
+              <details
+                key={i}
+                style={{
+                  background: tokens.color.white,
+                  border: `1px solid ${tokens.color.border}`,
+                  borderRadius: tokens.radius.md,
+                  padding: 16,
+                }}
+              >
+                <summary style={{ fontWeight: 600, color: tokens.color.navy, cursor: 'pointer', fontSize: 16 }}>
+                  {q.q}
+                </summary>
+                <p style={{ marginTop: 10, color: tokens.color.textMuted, lineHeight: 1.6 }}>
+                  {q.a}
+                </p>
+              </details>
+            ))}
+          </div>
+        </section>
+
         {/* Footer */}
         <footer
           style={{
@@ -271,6 +341,71 @@ export default function LandingPage() {
           © 2026 Sakspilot · Helene Åsheim Grønberg · helene.cloud
         </footer>
       </main>
+
+      {/* JSON-LD: SoftwareApplication + FAQPage for SEO/AEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'SoftwareApplication',
+                name: 'Sakspilot',
+                applicationCategory: 'BusinessApplication',
+                operatingSystem: 'Web, Windows',
+                description:
+                  'Workspace for selvstendig næringsdrivende. Sak-CRM, passiv tidsregistrering, Outlook-integrasjon, AI-assistent og fakturagrunnlag i ett verktøy.',
+                url: 'https://sakspilot.no',
+                offers: {
+                  '@type': 'Offer',
+                  price: '0',
+                  priceCurrency: 'NOK',
+                  availability: 'https://schema.org/InStock',
+                  description: 'Gratis i pilotperioden frem til 2026-12-31',
+                },
+                creator: {
+                  '@type': 'Person',
+                  name: 'Helene Åsheim Grønberg',
+                  url: 'https://helene.cloud',
+                },
+                inLanguage: 'nb-NO',
+                featureList: [
+                  'Sak-CRM med kanban',
+                  'Passiv tidsregistrering (desktop-agent)',
+                  'Outlook-integrasjon (Microsoft Graph)',
+                  'AI-assistent (Claude)',
+                  'Klient-portal med delte lenker',
+                  'CSV-eksport til Tripletex og Fiken',
+                  'PWA / installerbar mobil-app',
+                  'GDPR-klar (data-eksport + slett konto)',
+                ],
+              },
+              {
+                '@type': 'FAQPage',
+                mainEntity: FAQ.map((q) => ({
+                  '@type': 'Question',
+                  name: q.q,
+                  acceptedAnswer: { '@type': 'Answer', text: q.a },
+                })),
+              },
+              {
+                '@type': 'Organization',
+                name: 'Sakspilot',
+                url: 'https://sakspilot.no',
+                logo: 'https://sakspilot.no/icon-512.svg',
+                founder: { '@type': 'Person', name: 'Helene Åsheim Grønberg' },
+                contactPoint: {
+                  '@type': 'ContactPoint',
+                  email: 'helene@helene.cloud',
+                  contactType: 'customer support',
+                  availableLanguage: ['Norwegian', 'English'],
+                },
+              },
+            ],
+          }),
+        }}
+      />
     </>
   );
 }

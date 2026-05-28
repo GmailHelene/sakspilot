@@ -37,6 +37,11 @@ export default function PwaInit() {
       window.navigator.standalone === true;
     if (isStandalone) return;
 
+    // Kjører i Sakspilot Desktop (Electron) → IS allerede installasjonen,
+    // ingen mening i å vise "Installer Sakspilot"-banner
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((window as any).sakspilot?.isDesktop) return;
+
     // Sjekk om brukeren har avvist før
     if (localStorage.getItem(DISMISSED_KEY)) return;
 

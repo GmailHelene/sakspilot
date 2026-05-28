@@ -36,7 +36,7 @@ router.post("/microsoft/start", requireAuth, (req: Request, res: Response) => {
   // Signert state — kobler tilbake til riktig user ved callback
   const state = jwt.sign(
     { userId: session.userId, t: Date.now() },
-    process.env.JWT_SECRET || "fallback",
+    (process.env.JWT_SECRET || (() => { throw new Error("JWT_SECRET mangler — kan ikke signere OAuth-state"); })()),
     { expiresIn: "10m" }
   );
 
@@ -77,7 +77,7 @@ router.get("/microsoft/callback", async (req: Request, res: Response) => {
   // Verifiser state
   let userId: string;
   try {
-    const decoded = jwt.verify(stateStr, process.env.JWT_SECRET || "fallback") as {
+    const decoded = jwt.verify(stateStr, (process.env.JWT_SECRET || (() => { throw new Error("JWT_SECRET mangler — kan ikke signere OAuth-state"); })())) as {
       userId: string;
     };
     userId = decoded.userId;

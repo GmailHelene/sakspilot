@@ -23,7 +23,7 @@ interface LauncherApp {
 
 const DEFAULT_APPS: LauncherApp[] = [
   // Kommunikasjon
-  { id: 'outlook', label: 'Outlook', url: 'https://outlook.live.com', color: '#0078D4', emoji: '📧' },
+  { id: 'outlook', label: 'Outlook', url: 'https://outlook.office.com/mail/', color: '#0078D4', emoji: '📧' },
   { id: 'gmail', label: 'Gmail', url: 'https://mail.google.com', color: '#EA4335', emoji: '✉️' },
   { id: 'teams', label: 'Teams', url: 'https://teams.microsoft.com', color: '#6264A7', emoji: '💬' },
   { id: 'slack', label: 'Slack', url: 'https://app.slack.com', color: '#4A154B', emoji: '💼' },
@@ -108,6 +108,15 @@ export default function Launcher() {
               href={app.url}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={async (e) => {
+                // I Electron: åpne INNE i dashbordet via BrowserView, ikke ny tab
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const api = (typeof window !== 'undefined' ? (window as any).sakspilot : null);
+                if (api?.isDesktop && api.openInWindow) {
+                  e.preventDefault();
+                  await api.openInWindow(app.url, app.label);
+                }
+              }}
               style={{
                 ...iconButtonStyle,
                 background: app.color,
