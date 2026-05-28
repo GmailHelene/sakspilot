@@ -123,8 +123,8 @@ export default function LandingPage() {
           {[
             {
               icon: '⏱',
-              title: 'Passiv tidsregistrering',
-              desc: 'En diskret app i bakgrunnen logger automatisk hvilken sak du jobber på — basert på vindustittel og filsti. Du slipper å starte og stoppe timer.',
+              title: 'Passiv tidsregistrering (Windows)',
+              desc: 'En diskret app i bakgrunnen logger automatisk hvilken sak du jobber på — basert på vindustittel og filsti. Du slipper å starte og stoppe timer. Desktop-agenten kjører på Windows. Web-app + Outlook-integrasjon funker på alle plattformer.',
             },
             {
               icon: '📋',
