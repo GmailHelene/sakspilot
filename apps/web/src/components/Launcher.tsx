@@ -626,7 +626,11 @@ function LauncherSiteFavicon({ url, label }: { url: string; label: string }) {
     let hash = 0;
     for (let i = 0; i < hostname.length; i++) hash = (hash * 31 + hostname.charCodeAt(i)) | 0;
     const bg = palette[Math.abs(hash) % palette.length];
-    const letter = (label || hostname).charAt(0).toUpperCase();
+    const source = (label || hostname).replace(/^www\./, '');
+    const words = source.split(/[\s\-_.]+/).filter(Boolean);
+    const initials = words.length >= 2
+      ? (words[0][0] + words[1][0]).toUpperCase()
+      : source.slice(0, 2).toUpperCase();
     return (
       <div
         style={{
@@ -635,14 +639,17 @@ function LauncherSiteFavicon({ url, label }: { url: string; label: string }) {
           borderRadius: 6,
           background: bg,
           color: 'white',
-          fontSize: 11,
+          fontSize: 9,
           fontWeight: 700,
+          lineHeight: 1,
+          letterSpacing: 0,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          textAlign: 'center',
         }}
       >
-        {letter}
+        {initials}
       </div>
     );
   }

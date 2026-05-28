@@ -280,22 +280,14 @@ export default function Sidebar() {
       >
         {addOpen && (
           <div style={addFormStyle}>
-            <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr', gap: 6 }}>
-              <input
-                type="text"
-                value={newIcon}
-                onChange={(e) => setNewIcon(e.target.value.slice(0, 2))}
-                placeholder="🔗"
-                style={{ ...inputStyle, textAlign: 'center', fontSize: 16 }}
-              />
-              <input
-                type="text"
-                value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value)}
-                placeholder="Navn (f.eks. Slack)"
-                style={inputStyle}
-              />
-            </div>
+            <input
+              type="text"
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
+              placeholder="Navn (f.eks. Slack)"
+              style={inputStyle}
+              autoFocus
+            />
             <input
               type="text"
               value={newUrl}
@@ -538,12 +530,18 @@ function SiteFavicon({ url, label }: { url: string; label: string }) {
     hostname = new URL(url).hostname;
   } catch {}
   if (tier === 2) {
-    // Monogram-fallback — første bokstav i deterministisk farge basert på hostname
+    // Monogram-fallback — viser 2 initialer (LH, GM osv) i farget sirkel
     const palette = ['#1E3A5F', '#C2185B', '#2C5F2D', '#0086CC', '#A358DF', '#FF7A45', '#00B884', '#E2445C'];
     let hash = 0;
     for (let i = 0; i < hostname.length; i++) hash = (hash * 31 + hostname.charCodeAt(i)) | 0;
     const bg = palette[Math.abs(hash) % palette.length];
-    const letter = (label || hostname).charAt(0).toUpperCase();
+    // Initialer: hvis label har flere ord (mellomrom/bindestrek/punktum), ta første
+    // bokstav i de to første ordene. Ellers ta de to første bokstavene.
+    const source = (label || hostname).replace(/^www\./, '');
+    const words = source.split(/[\s\-_.]+/).filter(Boolean);
+    const initials = words.length >= 2
+      ? (words[0][0] + words[1][0]).toUpperCase()
+      : source.slice(0, 2).toUpperCase();
     return (
       <div
         style={{
@@ -552,14 +550,17 @@ function SiteFavicon({ url, label }: { url: string; label: string }) {
           borderRadius: 6,
           background: bg,
           color: 'white',
-          fontSize: 12,
+          fontSize: 10,
           fontWeight: 700,
+          lineHeight: 1,           // forhindrer vertikal-offset
+          letterSpacing: 0,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          textAlign: 'center',
         }}
       >
-        {letter}
+        {initials}
       </div>
     );
   }
