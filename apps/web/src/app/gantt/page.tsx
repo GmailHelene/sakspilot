@@ -131,7 +131,7 @@ export default function GanttPage() {
                 fontWeight: 600,
               }}
             >
-              + Opprett første sak
+              + Opprett første prosjekt
             </Link>
           </div>
         ) : (

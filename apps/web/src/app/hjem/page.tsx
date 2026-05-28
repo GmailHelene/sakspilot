@@ -376,7 +376,7 @@ export default function HjemPage() {
             ) : stats.recentSaker.length === 0 ? (
               <EmptyMessage
                 text="Ingen prosjekter enda"
-                action={<Link href="/saker/ny" style={primaryLinkStyle}>+ Opprett din første sak</Link>}
+                action={<Link href="/saker/ny" style={primaryLinkStyle}>+ Opprett ditt første prosjekt</Link>}
               />
             ) : (
               <div style={{ display: 'grid', gap: 6 }}>

@@ -256,7 +256,7 @@ export default function OnboardingModal() {
             </p>
             <div style={{ display: 'grid', gap: 12 }}>
               <FeatureRow
-                title="📋 Sak-CRM med kanban"
+                title="📋 Prosjekt-CRM med kanban"
                 desc="Hold styr på alle oppdrag i én visning. Drag-and-drop mellom status (Pågår → Venter → Ferdig)."
               />
               <FeatureRow
@@ -265,15 +265,15 @@ export default function OnboardingModal() {
               />
               <FeatureRow
                 title="🤖 Agenter / automatiseringer"
-                desc='Når en sak blir Ferdig — Sakspilot lager automatisk en klistrelapp som minner deg om å sende faktura.'
+                desc='Når et prosjekt blir Ferdig — Sakspilot lager automatisk en klistrelapp som minner deg om å sende faktura.'
               />
               <FeatureRow
                 title="✨ AI-assistent (Claude)"
-                desc="Få oppsummert saker. La AI-en skrive utkast til klient-eposter (status, utsettelse, faktura-påminnelse)."
+                desc="Få oppsummert prosjekter. La AI-en skrive utkast til klient-eposter (status, utsettelse, faktura-påminnelse)."
               />
               <FeatureRow
                 title="🔗 Del med klient"
-                desc="Generer offentlig lenke per sak. Klienten ser status og fremdrift uten å logge inn."
+                desc="Generer offentlig lenke per prosjekt. Klienten ser status og fremdrift uten å logge inn."
               />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24 }}>
@@ -323,7 +323,7 @@ export default function OnboardingModal() {
               <NextStepLink
                 href="/saker/ny"
                 number="2"
-                title="Opprett din første sak"
+                title="Opprett ditt første prosjekt"
                 desc="Koble til klient + sett frist"
                 onClick={finish}
               />
