@@ -113,6 +113,7 @@ router.post("/register", async (req: Request, res: Response) => {
     email: result.user.email,
     name: result.user.name,
     role: result.user.role as SakspilotSession["role"],
+    tv: result.user.tokenVersion,
   };
 
   const token = createSessionToken(session);
@@ -173,6 +174,7 @@ router.post("/login", async (req: Request, res: Response) => {
     email: user.email,
     name: user.name,
     role: user.role as SakspilotSession["role"],
+    tv: user.tokenVersion,
   };
 
   const token = createSessionToken(session);
@@ -224,11 +226,36 @@ router.get("/me", requireAuth, async (req: Request, res: Response) => {
 });
 
 /**
- * POST /auth/logout
+ * POST /auth/logout — logger ut KUN denne enheten (sletter cookie).
+ * Andre enheter beholder gyldig token til /auth/logout-all.
  */
 router.post("/logout", (_req: Request, res: Response) => {
   res.clearCookie("sakspilot_session", COOKIE_OPTIONS);
   return res.json({ ok: true });
+});
+
+/**
+ * POST /auth/logout-all — invaliderer ALLE eksisterende tokens for bruker.
+ * Bumper User.tokenVersion → middleware avviser alle gamle JWTer.
+ * Krever innlogging (du må ha en gyldig token for å si "logg meg ut alle steder").
+ */
+router.post("/logout-all", requireAuth, async (req: Request, res: Response) => {
+  const session = req.session!;
+  await prisma.user.update({
+    where: { id: session.userId },
+    data: { tokenVersion: { increment: 1 } },
+  });
+  await prisma.auditLog.create({
+    data: {
+      userId: session.userId,
+      organizationId: session.organizationId,
+      action: "user.logout_all_devices",
+      entityType: "user",
+      entityId: session.userId,
+    },
+  });
+  res.clearCookie("sakspilot_session", COOKIE_OPTIONS);
+  return res.json({ ok: true, message: "Logget ut fra alle enheter" });
 });
 
 /**
@@ -260,9 +287,12 @@ router.post(
     }
 
     const newHash = await hashPassword(newPassword);
+    // Bump tokenVersion → invaliderer alle eksisterende tokens overalt.
+    // Brukeren må logge inn på nytt på alle enheter (god sikkerhetspraksis
+    // ved passordbytte).
     await prisma.user.update({
       where: { id: user.id },
-      data: { passwordHash: newHash },
+      data: { passwordHash: newHash, tokenVersion: { increment: 1 } },
     });
 
     await prisma.auditLog.create({

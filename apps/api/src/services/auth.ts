@@ -32,6 +32,9 @@ export interface SakspilotSession {
   email: string;
   name: string;
   role: "owner" | "member" | "admin";
+  /// Bumpes ved logg-ut-alle-enheter / passordbytte. Middleware sjekker
+  /// at JWT-versjonen er === User.tokenVersion i DB.
+  tv: number;
 }
 
 export async function hashPassword(plain: string): Promise<string> {

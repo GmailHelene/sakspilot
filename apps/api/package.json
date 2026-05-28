@@ -13,7 +13,6 @@
     "@anthropic-ai/sdk": "^0.99.0",
     "@prisma/client": "^5.14.0",
     "@sakspilot/db": "file:../../packages/db",
-    "@sentry/node": "^7.120.3",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

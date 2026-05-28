@@ -6,6 +6,7 @@
  */
 import { Router, Request, Response } from "express";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma";
 import { requireAuth } from "../middleware/auth";
 import { runAutomationsForTrigger } from "../services/automationEngine";
@@ -46,9 +47,10 @@ router.get("/", async (req: Request, res: Response) => {
   const { organizationId } = req.session!;
   const { status, clientId, includeArchived } = req.query;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const where: any = { organizationId };
-  if (status && typeof status === "string") where.status = status;
+  const where: Prisma.SakWhereInput = { organizationId };
+  if (status && typeof status === "string") {
+    where.status = status as Prisma.SakWhereInput["status"];
+  }
   if (clientId && typeof clientId === "string") where.clientId = clientId;
   if (includeArchived !== "true") where.archived = false;
 
@@ -170,8 +172,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
   }
 
   // Sett closedAt automatisk når status skifter til ferdig
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateData: any = { ...parsed.data };
+  const updateData: Prisma.SakUpdateInput = { ...parsed.data };
   if (parsed.data.status === "ferdig" && existing.status !== "ferdig") {
     updateData.closedAt = new Date();
   }

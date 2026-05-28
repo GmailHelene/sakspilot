@@ -68,10 +68,12 @@ app.use(
       // I prod: tillat alle Vercel-deploy-URLer (sakspilot-web-*.vercel.app)
       // og alle Render-genererte URLer (sakspilot*.onrender.com).
       // Dette dekker preview-deploys uten å måtte oppdatere env-vars.
-      if (/^https:\/\/sakspilot.*\.vercel\.app$/.test(origin)) {
+      // VIKTIG: strengt regex — kun [a-z0-9-] mellom "sakspilot" og ".vercel.app"
+      // for å unngå at sakspilotXevil.vercel.app passerer.
+      if (/^https:\/\/sakspilot(-[a-z0-9-]+)?\.vercel\.app$/.test(origin)) {
         return callback(null, true);
       }
-      if (/^https:\/\/sakspilot.*\.onrender\.com$/.test(origin)) {
+      if (/^https:\/\/sakspilot(-[a-z0-9-]+)?\.onrender\.com$/.test(origin)) {
         return callback(null, true);
       }
       // Custom domain (apex + www)
@@ -103,6 +105,32 @@ const authLimiter = rateLimit({
   message: { error: "For mange forsøk — prøv igjen om 15 minutter." },
 });
 
+// AI er dyrt — strammere limit per IP (forhindrer "API-tyveri" ved
+// stjålet JWT og forhindrer kostnads-bomb hvis bot misbruker)
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,                     // 20 AI-kall per minutt per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "For mange AI-forespørsler — vent et minutt." },
+});
+
+// OAuth init: bot-resistent
+const oauthLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Public endepunkter (delte saker) — sikrer mot enumeration
+const publicLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // ── Ruter ───────────────────────────────────────────────────────
 app.use("/health", healthRouter);
 app.use("/auth", authLimiter, authRouter);
@@ -114,9 +142,9 @@ app.use("/me", meRouter);
 app.use("/automations", automationsRouter);
 app.use("/reports", reportsRouter);
 app.use("/saker", shareAuthRouter);   // /saker/:sakId/share (delt prefix med sakerRouter — fungerer)
-app.use("/public", sharePublicRouter); // /public/sak/:token
-app.use("/ai", aiRouter);
-app.use("/oauth", oauthRouter);
+app.use("/public", publicLimiter, sharePublicRouter); // /public/sak/:token
+app.use("/ai", aiLimiter, aiRouter);
+app.use("/oauth", oauthLimiter, oauthRouter);
 app.use("/emails", emailsRouter);
 
 // ── Root ────────────────────────────────────────────────────────
