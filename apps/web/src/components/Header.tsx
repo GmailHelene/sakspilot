@@ -102,6 +102,9 @@ export default function Header() {
             <Link href="/klienter" style={navLinkStyle}>
               Klienter
             </Link>
+            <Link href="/last-ned" style={navLinkStyle} title="Last ned Windows-appen">
+              ⬇ Desktop
+            </Link>
             <span style={{ color: tokens.color.white, opacity: 0.85 }}>
               {me.name}
             </span>

@@ -66,21 +66,7 @@ Slik at e-poster fra byggherrer og kommune knyttes til riktig sak automatisk.
 Synking skjer hvert 15. minutt, eller klikk **«Synk nå»** for å hente
 manuelt.
 
-### Steg 5: Koble til Fiken (3 min, valgfritt)
 
-Slik at du kan sende faktura med ett klikk fra en ferdig sak.
-
-1. Logg inn på Fiken og gå til **Innstillinger → API-tilgang**
-2. Klikk **«Generer personlig token»** og kopier tokenet (lang streng)
-3. Noter bedrifts-slug-en din — finn det i URL-en når du er inne i bedriften.
-   F.eks. `https://fiken.no/foretak/torgersen-bygg/...` → slug er
-   `torgersen-bygg`
-4. Tilbake i Sakspilot: **Innstillinger → Integrasjoner → Fiken**
-5. Lim inn slug + token, klikk **«Koble til Fiken»**
-6. Du får bekreftelse hvis tokenet er gyldig
-
-Tokenet lagres kryptert (AES-256-GCM) på Sakspilot-serveren. Du kan koble
-fra når som helst.
 
 ---
 
@@ -149,7 +135,7 @@ Når du sliter med å formulere en e-post til kommunen eller byggherren:
 klient-navn, milepæler, timer. Ingen klient-eposter eller telefon. Du kan
 trygt bruke den.
 
-### Slik fakturerer du en ferdig sak (med Fiken-integrasjon)
+### Slik fakturerer du en ferdig sak (med Fiken-integrasjon) **Under arbeid
 
 1. Åpne saken
 2. Endre status til **«Ferdig»** (drag-and-drop i kanban eller velg i
@@ -238,6 +224,25 @@ Mange byggherrer vil se «hva du har brukt tid på». Generer rapport:
 
 ---
 
+### Senere (under arbeid)
+ Koble til Fiken (3 min, valgfritt)
+
+Slik at du kan sende faktura med ett klikk fra en ferdig sak.
+
+1. Logg inn på Fiken og gå til **Innstillinger → API-tilgang**
+2. Klikk **«Generer personlig token»** og kopier tokenet (lang streng)
+3. Noter bedrifts-slug-en din — finn det i URL-en når du er inne i bedriften.
+   F.eks. `https://fiken.no/foretak/torgersen-bygg/...` → slug er
+   `torgersen-bygg`
+4. Tilbake i Sakspilot: **Innstillinger → Integrasjoner → Fiken**
+5. Lim inn slug + token, klikk **«Koble til Fiken»**
+6. Du får bekreftelse hvis tokenet er gyldig
+
+Tokenet lagres kryptert (AES-256-GCM) på Sakspilot-serveren. Du kan koble
+fra når som helst.
+
+
+
 ## Del 5 — Hva Sakspilot **ikke** gjør (og hvorfor)
 
 - **Sender ikke e-poster for deg** — AI lager utkast, du sender. Bevisst valg
@@ -252,7 +257,7 @@ Mange byggherrer vil se «hva du har brukt tid på». Generer rapport:
 
 ## Kontakt
 
-- **Helene:** helene@helene.cloud · 📞 [Helenes nummer]
+- **Helene:** helene721@gmail.com · 📞 96912907
 - **Akutt feil i prod:** SMS — jeg fikser samme dag i pilotperioden
 - **Tilbakemelding / forslag:** bare skriv i samme tråd, jeg leser alt
 
