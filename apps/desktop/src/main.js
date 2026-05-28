@@ -668,20 +668,43 @@ function openDashboardWindow() {
 
 // ── Auth ────────────────────────────────────────────────────────
 async function login(apiUrl, email, password) {
-  const res = await fetch(`${apiUrl}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
-  const data = await res.json();
+  // Timeout etter 15 sek — så vi ikke henger evig hvis API er nede
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  let res;
+  try {
+    res = await fetch(`${apiUrl}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error(`Tidsavbrudd: API svarte ikke innen 15 sek. Sjekk nettverket eller om ${apiUrl} er riktig.`);
+    }
+    throw new Error(`Nettverksfeil: ${err.message}. Sjekk nettverket eller om ${apiUrl} er riktig.`);
+  }
+  clearTimeout(timeoutId);
+
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error(`API svarte med ugyldig data (${res.status}). Sjekk om ${apiUrl} faktisk er Sakspilot-API.`);
+  }
   if (!res.ok) throw new Error(data.error || `Innlogging feilet (${res.status})`);
+  if (!data.user) throw new Error('API returnerte ingen brukerdata.');
+
   store.set({
     apiUrl,
     token: data.token,
     userName: data.user.name,
     userEmail: data.user.email,
     organizationId: data.user.organizationId,
-    organizationName: data.user.organizationName,
+    organizationName: data.user.organizationName || '',
   });
   initializeAgent();
   updateTrayMenu();
