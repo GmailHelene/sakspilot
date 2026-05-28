@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';
-import { tokens } from '@/lib/tokens';
+import { tokens, clientColor } from '@/lib/tokens';
 import { api } from '@/lib/api';
 
 interface Sak {
@@ -13,6 +13,7 @@ interface Sak {
   saksnummer: string | null;
   deadline: string | null;
   hourlyRate: number | null;
+  color: string | null;
   createdAt: string;
   client: { id: string; name: string } | null;
   _count: { timeEntries: number; milestones: number };
@@ -36,10 +37,10 @@ const STATUS_LABEL: Record<SakStatus, string> = {
 };
 
 const STATUS_COLOR: Record<SakStatus, string> = {
-  ikke_pabegynt: '#94A3B8',
-  pagaaende: '#2D6A4F',
-  venter_kunde: '#E9C46A',
-  venter_3part: '#D4A017',
+  ikke_pabegynt: '#8993A4',
+  pagaaende: '#00B884',
+  venter_kunde: '#FFCB00',
+  venter_3part: '#FF7A45',
   ferdig: '#1E3A5F',
   arkivert: '#CBD5E1',
 };
@@ -206,26 +207,125 @@ function KanbanView({ saker }: { saker: Sak[] }) {
 }
 
 function SakCard({ sak }: { sak: Sak }) {
+  const initials = sak.client?.name
+    ? sak.client.name
+        .split(' ')
+        .map((w) => w[0])
+        .filter(Boolean)
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
+    : null;
+  const avatarColor = sak.client ? clientColor(sak.client.name) : null;
+  const deadlineSoon =
+    sak.deadline && new Date(sak.deadline).getTime() - Date.now() < 7 * 86400000;
+  const overdue = sak.deadline && new Date(sak.deadline).getTime() < Date.now();
+
   return (
     <Link
       href={`/saker/${sak.id}`}
       style={{
         background: tokens.color.white,
-        padding: 12,
+        padding: 14,
         borderRadius: tokens.radius.md,
         border: `1px solid ${tokens.color.border}`,
         display: 'block',
         textDecoration: 'none',
         color: 'inherit',
+        boxShadow: tokens.shadow.sm,
+        transition: 'transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease',
+        position: 'relative',
+        borderLeft: sak.color ? `4px solid ${sak.color}` : `1px solid ${tokens.color.border}`,
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = tokens.shadow.md;
+        e.currentTarget.style.borderColor = tokens.color.navy;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = '';
+        e.currentTarget.style.boxShadow = tokens.shadow.sm;
+        e.currentTarget.style.borderColor = tokens.color.border;
       }}
     >
-      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 6 }}>{sak.title}</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
+        <div style={{ fontWeight: 600, fontSize: 14, lineHeight: 1.35, color: tokens.color.text }}>
+          {sak.title}
+        </div>
+        {avatarColor && initials && (
+          <div
+            title={sak.client?.name}
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: avatarColor.bg,
+              color: avatarColor.fg,
+              fontSize: 11,
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              boxShadow: tokens.shadow.sm,
+            }}
+          >
+            {initials}
+          </div>
+        )}
+      </div>
       {sak.client && (
-        <div style={{ fontSize: 12, color: tokens.color.textMuted, marginBottom: 6 }}>{sak.client.name}</div>
+        <div style={{ fontSize: 12, color: tokens.color.textMuted, marginBottom: 8 }}>
+          {sak.client.name}
+        </div>
       )}
-      <div style={{ display: 'flex', gap: 12, fontSize: 11, color: tokens.color.textSubtle }}>
-        <span>⏱ {sak._count.timeEntries}</span>
-        {sak.deadline && <span>📅 {new Date(sak.deadline).toLocaleDateString('nb-NO')}</span>}
+      <div style={{ display: 'flex', gap: 8, fontSize: 11, alignItems: 'center', flexWrap: 'wrap' }}>
+        <span
+          style={{
+            background: tokens.color.bgAlt,
+            color: tokens.color.textMuted,
+            padding: '3px 8px',
+            borderRadius: tokens.radius.pill,
+            fontWeight: 500,
+          }}
+        >
+          ⏱ {sak._count.timeEntries}
+        </span>
+        {sak.deadline && (
+          <span
+            style={{
+              background: overdue
+                ? tokens.color.redSoft
+                : deadlineSoon
+                  ? tokens.color.yellowSoft
+                  : tokens.color.bgAlt,
+              color: overdue
+                ? tokens.color.red
+                : deadlineSoon
+                  ? '#8B6F00'
+                  : tokens.color.textMuted,
+              padding: '3px 8px',
+              borderRadius: tokens.radius.pill,
+              fontWeight: 600,
+            }}
+          >
+            {overdue ? '⚠️ ' : '📅 '}
+            {new Date(sak.deadline).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}
+          </span>
+        )}
+        {sak._count.milestones > 0 && (
+          <span
+            style={{
+              background: tokens.color.blueSoft,
+              color: tokens.color.blue,
+              padding: '3px 8px',
+              borderRadius: tokens.radius.pill,
+              fontWeight: 600,
+            }}
+          >
+            🎯 {sak._count.milestones}
+          </span>
+        )}
       </div>
     </Link>
   );

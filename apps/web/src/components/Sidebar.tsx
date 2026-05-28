@@ -177,9 +177,17 @@ export default function Sidebar() {
               href={href}
               style={{
                 ...itemStyle,
-                background: active ? tokens.color.navy : 'transparent',
+                background: active ? tokens.gradient.navy : 'transparent',
                 color: active ? tokens.color.white : tokens.color.text,
                 fontWeight: active ? 600 : 500,
+                boxShadow: active ? tokens.shadow.colored(tokens.color.navy) : 'none',
+                transform: active ? 'translateX(2px)' : 'none',
+              }}
+              onMouseEnter={(e) => {
+                if (!active) (e.currentTarget as HTMLElement).style.background = tokens.color.bgAlt;
+              }}
+              onMouseLeave={(e) => {
+                if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent';
               }}
             >
               <Icon size={16} strokeWidth={active ? 2.5 : 2} />

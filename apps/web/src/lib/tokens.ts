@@ -1,44 +1,99 @@
 /**
- * Design-tokens for Sakspilot. Inline-styling mønster — samme som ByggPilot.
- * Hold alle farger/spacing/typografi her så endringer er sentraliserte.
+ * Design-tokens for Sakspilot. Inline-styling mønster.
+ *
+ * Designspråk: Monday/Basaas-inspirert — vibrante statusfarger, romsligere
+ * radius, mykere skygger, mer pastell i bakgrunner. Beholder navy + gull
+ * som primær-/aksentbrand, men legger til en bredere palett for
+ * statusbadges, kategorier og illustrasjoner.
  */
 export const tokens = {
   color: {
-    // Primary — dyp navy (tillit, profesjonell)
+    // Primary — fortsatt navy/gull (brand)
     navy: '#1E3A5F',
     navyDark: '#152A47',
     navyLight: '#2D5183',
-    // Accent — varm gull (verdi, premium)
-    gold: '#B8860B',
-    goldLight: '#D4A017',
-    // Status
-    green: '#2D6A4F',
-    greenLight: '#52B788',
-    red: '#9D0208',
-    yellow: '#E9C46A',
-    // Nøytral
+    gold: '#D4A017',          // litt lysere/mer levende enn før
+    goldLight: '#E9C46A',
+
+    // Vibrant statusfarger (Monday-stil)
+    green: '#00B884',         // pågående / suksess
+    greenSoft: '#D5F5E9',
+    blue: '#0086CC',          // info / aktiv
+    blueSoft: '#D6EEFA',
+    purple: '#A358DF',        // venter / spesial
+    purpleSoft: '#EEDFF9',
+    pink: '#FF5AC4',          // notater / kreativt
+    pinkSoft: '#FFDAF1',
+    orange: '#FF7A45',        // varsel / mellomstatus
+    orangeSoft: '#FFE2D4',
+    red: '#E2445C',           // kritisk / sletting
+    redSoft: '#FBD9DD',
+    yellow: '#FFCB00',        // venter / advarsel
+    yellowSoft: '#FFF5CC',
+    teal: '#00C7BE',          // alternativ aksent
+    tealSoft: '#CCF4F2',
+
+    // Nøytral — lysere og roligere
     white: '#FFFFFF',
-    bg: '#FAFAF7',
-    bgAlt: '#F4F4F0',
-    border: '#E2E2DC',
-    text: '#1A1A1A',
-    textMuted: '#555555',
-    textSubtle: '#8A8A8A',
+    bg: '#F8F9FB',            // litt blålig — mer levende enn varmgrå
+    bgAlt: '#F1F3F7',
+    border: '#E6E9EF',
+    text: '#172B4D',          // dyp blå-grå, ikke svart
+    textMuted: '#5E6C84',
+    textSubtle: '#8993A4',
+  },
+  // Gradients til CTA-knapper og hero-elementer (subtilt brukt)
+  gradient: {
+    navy: 'linear-gradient(135deg, #1E3A5F 0%, #2D5183 100%)',
+    gold: 'linear-gradient(135deg, #D4A017 0%, #E9C46A 100%)',
+    green: 'linear-gradient(135deg, #00B884 0%, #00D4A1 100%)',
+    blue: 'linear-gradient(135deg, #0086CC 0%, #00A3E0 100%)',
+    pink: 'linear-gradient(135deg, #FF5AC4 0%, #FF85D7 100%)',
   },
   font: {
-    sans: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    sans: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     mono: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   },
   radius: {
-    sm: '6px',
-    md: '10px',
-    lg: '14px',
-    xl: '20px',
+    sm: '8px',
+    md: '12px',
+    lg: '18px',
+    xl: '24px',
+    pill: '999px',
   },
   shadow: {
-    sm: '0 1px 2px rgba(0,0,0,0.05)',
-    md: '0 4px 12px rgba(0,0,0,0.08)',
-    lg: '0 8px 24px rgba(0,0,0,0.12)',
+    sm: '0 1px 2px rgba(23, 43, 77, 0.06)',
+    md: '0 4px 16px rgba(23, 43, 77, 0.08)',
+    lg: '0 12px 32px rgba(23, 43, 77, 0.12)',
+    xl: '0 24px 64px rgba(23, 43, 77, 0.18)',
+    colored: (color: string) => `0 6px 20px ${color}40`,
   },
   spacing: (n: number) => `${n * 4}px`,
 };
+
+// Statusfarge-mapper — brukes på saker, milepæler, agent-status
+export const statusColors: Record<string, { bg: string; fg: string; soft: string }> = {
+  ikke_pabegynt: { bg: '#8993A4', fg: '#FFFFFF', soft: '#E6E9EF' },
+  pagaaende: { bg: '#00B884', fg: '#FFFFFF', soft: '#D5F5E9' },
+  venter_kunde: { bg: '#FFCB00', fg: '#172B4D', soft: '#FFF5CC' },
+  venter_3part: { bg: '#FF7A45', fg: '#FFFFFF', soft: '#FFE2D4' },
+  ferdig: { bg: '#1E3A5F', fg: '#FFFFFF', soft: '#D6EEFA' },
+  arkivert: { bg: '#CBD5E1', fg: '#5E6C84', soft: '#F1F3F7' },
+};
+
+// Klient-farge basert på navn (hash → palett) — for avatar-sirkler
+export function clientColor(name: string): { bg: string; fg: string } {
+  const palette = [
+    { bg: '#FF5AC4', fg: '#FFFFFF' },
+    { bg: '#A358DF', fg: '#FFFFFF' },
+    { bg: '#0086CC', fg: '#FFFFFF' },
+    { bg: '#00B884', fg: '#FFFFFF' },
+    { bg: '#FF7A45', fg: '#FFFFFF' },
+    { bg: '#00C7BE', fg: '#FFFFFF' },
+    { bg: '#D4A017', fg: '#FFFFFF' },
+    { bg: '#E2445C', fg: '#FFFFFF' },
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
+  return palette[Math.abs(hash) % palette.length];
+}
