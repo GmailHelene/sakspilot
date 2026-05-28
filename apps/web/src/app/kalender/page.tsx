@@ -38,11 +38,14 @@ const UKEDAGER = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
 
 export default function KalenderPage() {
   const [items, setItems] = useState<CalendarItem[] | null>(null);
+  const [saker, setSaker] = useState<Sak[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => {
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
+  // Klikkbar dag-modal — null = ikke åpen, ellers valgt dato
+  const [createForDate, setCreateForDate] = useState<Date | null>(null);
 
   useEffect(() => {
     loadAll();
@@ -50,11 +53,12 @@ export default function KalenderPage() {
 
   async function loadAll() {
     try {
-      const { saker } = await api<{ saker: Sak[] }>('/saker');
+      const { saker: list } = await api<{ saker: Sak[] }>('/saker');
+      setSaker(list);
       // Hent detaljer for hver sak (for å få milestones) — kunne vært
       // ett samle-endepunkt, men for nå er denne tilstrekkelig for ~50 saker
       const details = await Promise.all(
-        saker.map((s) => api<Sak & { milestones: Milestone[] }>(`/saker/${s.id}`))
+        list.map((s) => api<Sak & { milestones: Milestone[] }>(`/saker/${s.id}`))
       );
 
       const collected: CalendarItem[] = [];
@@ -191,6 +195,11 @@ export default function KalenderPage() {
                 return (
                   <div
                     key={i}
+                    onClick={(e) => {
+                      // Bare reager hvis brukeren klikket på selve cellen (ikke på en milepæl-Link)
+                      if ((e.target as HTMLElement).closest('a')) return;
+                      setCreateForDate(day.date);
+                    }}
                     style={{
                       minHeight: 100,
                       padding: 6,
@@ -198,6 +207,14 @@ export default function KalenderPage() {
                       borderLeft: i % 7 !== 0 ? `1px solid ${tokens.color.border}` : undefined,
                       background: inMonth ? tokens.color.white : '#FAFAFA',
                       opacity: inMonth ? 1 : 0.5,
+                      cursor: 'pointer',
+                      transition: 'background 0.1s',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (inMonth) (e.currentTarget as HTMLElement).style.background = '#F5F8FC';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.background = inMonth ? tokens.color.white : '#FAFAFA';
                     }}
                   >
                     <div
@@ -267,11 +284,230 @@ export default function KalenderPage() {
           <LegendItem color={tokens.color.red} label="Sak-frist" />
           <LegendItem color={tokens.color.gold} label="Milepæl" />
           <LegendItem color={tokens.color.textSubtle} label="Fullført" />
+          <span style={{ marginLeft: 'auto', fontStyle: 'italic' }}>
+            💡 Klikk på en dato for å legge til milepæl
+          </span>
         </div>
+
+        {createForDate && (
+          <CreateMilestoneModal
+            date={createForDate}
+            saker={saker}
+            onClose={() => setCreateForDate(null)}
+            onCreated={() => {
+              setCreateForDate(null);
+              setItems(null);
+              loadAll();
+            }}
+          />
+        )}
       </div>
     </AppLayout>
   );
 }
+
+function CreateMilestoneModal({
+  date,
+  saker,
+  onClose,
+  onCreated,
+}: {
+  date: Date;
+  saker: Sak[];
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [sakId, setSakId] = useState<string>(saker[0]?.id || '');
+  const [title, setTitle] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function save() {
+    if (!sakId || !title.trim()) {
+      setErr('Velg sak og skriv en tittel.');
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    try {
+      await api(`/saker/${sakId}/milestones`, {
+        method: 'POST',
+        body: { title: title.trim(), dueDate: date.toISOString() },
+      });
+      onCreated();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Lagring feilet');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(23, 43, 77, 0.55)',
+        backdropFilter: 'blur(4px)',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: 'white',
+          borderRadius: 16,
+          padding: 28,
+          maxWidth: 460,
+          width: '100%',
+          boxShadow: tokens.shadow.xl,
+        }}
+      >
+        <h2 style={{ fontSize: 20, color: tokens.color.navy, marginBottom: 4 }}>
+          Ny milepæl
+        </h2>
+        <p style={{ fontSize: 13, color: tokens.color.textMuted, marginBottom: 18 }}>
+          {date.toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+        </p>
+
+        {saker.length === 0 ? (
+          <>
+            <div
+              style={{
+                padding: 14,
+                background: tokens.color.yellowSoft,
+                color: '#8B6F00',
+                borderRadius: 8,
+                fontSize: 13,
+                marginBottom: 18,
+                lineHeight: 1.5,
+              }}
+            >
+              Du må opprette en sak først før du kan legge til milepæler.
+              Milepæler hører alltid til en sak.
+            </div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={onClose} style={ghostBtn}>Lukk</button>
+              <Link
+                href="/saker/ny"
+                style={{
+                  ...primaryBtn,
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                }}
+              >
+                + Opprett sak
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            {err && (
+              <div
+                style={{
+                  padding: 10,
+                  background: '#FEE2E2',
+                  color: '#7F1D1D',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  marginBottom: 14,
+                }}
+              >
+                {err}
+              </div>
+            )}
+
+            <label style={labelStyle}>Sak</label>
+            <select
+              value={sakId}
+              onChange={(e) => setSakId(e.target.value)}
+              style={inputStyle}
+            >
+              {saker.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.title}
+                  {s.client?.name ? ` — ${s.client.name}` : ''}
+                </option>
+              ))}
+            </select>
+
+            <label style={{ ...labelStyle, marginTop: 14 }}>Tittel på milepæl</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="F.eks. «Søknad innlevert kommune»"
+              autoFocus
+              style={inputStyle}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !busy) save();
+              }}
+              maxLength={200}
+            />
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }}>
+              <button onClick={onClose} disabled={busy} style={ghostBtn}>
+                Avbryt
+              </button>
+              <button onClick={save} disabled={busy} style={primaryBtn}>
+                {busy ? 'Lagrer…' : 'Lagre milepæl'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: 12,
+  fontWeight: 600,
+  color: tokens.color.navy,
+  marginBottom: 6,
+  textTransform: 'uppercase',
+  letterSpacing: 0.5,
+};
+
+const inputStyle: React.CSSProperties = {
+  padding: '10px 12px',
+  border: `1px solid ${tokens.color.border}`,
+  borderRadius: 8,
+  fontSize: 14,
+  fontFamily: 'inherit',
+  width: '100%',
+  background: 'white',
+};
+
+const primaryBtn: React.CSSProperties = {
+  padding: '10px 18px',
+  background: tokens.gradient.navy,
+  color: 'white',
+  border: 'none',
+  borderRadius: 8,
+  fontSize: 14,
+  fontWeight: 600,
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+};
+
+const ghostBtn: React.CSSProperties = {
+  padding: '10px 16px',
+  background: 'transparent',
+  color: tokens.color.textMuted,
+  border: `1px solid ${tokens.color.border}`,
+  borderRadius: 8,
+  fontSize: 14,
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+};
 
 function LegendItem({ color, label }: { color: string; label: string }) {
   return (
