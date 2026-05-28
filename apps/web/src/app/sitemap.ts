@@ -43,5 +43,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.5,
     },
+    // Personvernerklæringen — viktig for tillit + GDPR
+    {
+      url: `${base}/personvern`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
   ];
 }

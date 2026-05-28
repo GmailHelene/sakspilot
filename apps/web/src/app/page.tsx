@@ -338,7 +338,12 @@ export default function LandingPage() {
             fontSize: 13,
           }}
         >
-          © 2026 Sakspilot · Helene Åsheim Grønberg · helene.cloud
+          © 2026 Sakspilot · Helene Åsheim Grønberg ·{' '}
+          <a href="https://helene.cloud" style={{ color: 'inherit' }}>helene.cloud</a>
+          <br />
+          <Link href="/personvern" style={{ color: tokens.color.navy, fontWeight: 500, marginTop: 6, display: 'inline-block' }}>
+            Personvernerklæring
+          </Link>
         </footer>
       </main>
 
