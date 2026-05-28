@@ -15,6 +15,7 @@ import { Zap, Plus, Trash2, Play, Power, CheckCircle2, Clock } from 'lucide-reac
 import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
 import { api } from '@/lib/api';
+import { events } from '@/lib/analytics';
 
 type TriggerType =
   | 'sak_status_changed'
@@ -114,6 +115,7 @@ export default function AgenterPage() {
         },
       });
       setAutomations((prev) => (prev ? [created, ...prev] : [created]));
+      events.agentActivated(tpl.id);
       setToast(`«${tpl.name}» aktivert`);
       setShowGallery(false);
     } catch (err) {
@@ -147,6 +149,7 @@ export default function AgenterPage() {
         `/automations/${a.id}/test`,
         { method: 'POST' }
       );
+      events.agentTested();
       setToast(res.message || 'Test-kjøring ferdig');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Test-kjøring feilet');

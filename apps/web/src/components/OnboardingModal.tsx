@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { tokens } from '@/lib/tokens';
 import { isTokenValid } from '@/lib/api';
+import { events } from '@/lib/analytics';
 
 const STORAGE_KEY = 'sakspilot_onboarded';
 const PROFESSION_KEY = 'sakspilot_profession';
@@ -62,6 +63,7 @@ export default function OnboardingModal() {
       localStorage.setItem(STORAGE_KEY, String(Date.now()));
       if (profession) localStorage.setItem(PROFESSION_KEY, profession);
     }
+    events.onboardingCompleted(profession || undefined);
     setOpen(false);
   }
 

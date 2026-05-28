@@ -12,6 +12,7 @@ import { Mail, CheckCircle2, AlertCircle, RefreshCw, Unlink } from 'lucide-react
 import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
 import { api } from '@/lib/api';
+import { events } from '@/lib/analytics';
 
 interface MicrosoftStatus {
   configured: boolean;
@@ -48,6 +49,7 @@ export default function IntegrasjonerPage() {
   useEffect(() => {
     function handler(e: MessageEvent) {
       if (e.data?.type === 'oauth:microsoft:ok') {
+        events.outlookConnected();
         setMessage({ kind: 'ok', text: e.data.message || 'Outlook koblet til!' });
         load();
       } else if (e.data?.type === 'oauth:microsoft:error') {
@@ -95,6 +97,7 @@ export default function IntegrasjonerPage() {
       const r = await api<{ fetched: number; linked: number }>('/emails/sync', {
         method: 'POST',
       });
+      events.outlookSynced(r.linked);
       setMessage({
         kind: 'ok',
         text: `Synket: hentet ${r.fetched} e-poster, koblet ${r.linked} til saker.`,

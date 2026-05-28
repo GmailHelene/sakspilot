@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import { X, Smartphone } from 'lucide-react';
+import { events } from '@/lib/analytics';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -53,6 +54,7 @@ export default function PwaInit() {
     if (!installEvent) return;
     await installEvent.prompt();
     const { outcome } = await installEvent.userChoice;
+    if (outcome === 'accepted') events.pwaInstalled();
     if (outcome === 'accepted' || outcome === 'dismissed') {
       setShow(false);
       setInstallEvent(null);

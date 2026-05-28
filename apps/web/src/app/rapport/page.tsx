@@ -12,6 +12,7 @@ import { TrendingUp, Clock, Coins, FileDown, BarChart3 } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
 import { api, getToken } from '@/lib/api';
+import { events } from '@/lib/analytics';
 
 interface TopSak {
   id: string;
@@ -79,6 +80,7 @@ export default function RapportPage() {
         }
       );
       if (!res.ok) throw new Error(`Eksport feilet (${res.status})`);
+      events.csvDownloaded('month');
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');

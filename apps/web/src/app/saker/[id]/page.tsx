@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import { tokens } from '@/lib/tokens';
 import { api, isTokenValid, ApiError, getToken } from '@/lib/api';
+import { events } from '@/lib/analytics';
 
 // ── Typer ────────────────────────────────────────────────────────
 type SakStatus =
@@ -108,6 +109,7 @@ export default function SakDetailPage() {
 
   async function handleStatusChange(newStatus: SakStatus) {
     await api(`/saker/${sakId}`, { method: 'PATCH', body: { status: newStatus } });
+    events.sakStatusChanged(newStatus);
     refresh();
   }
 
@@ -1209,6 +1211,7 @@ function AiAssistantSection({ sakId }: { sakId: string }) {
     setError(null);
     try {
       const r = await api<{ summary: string }>(`/ai/sak/${sakId}/summary`, { method: 'POST' });
+      events.aiSummary();
       setSummary(r.summary);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'AI-tjenesten svarte ikke');
@@ -1243,6 +1246,7 @@ function AiAssistantSection({ sakId }: { sakId: string }) {
         `/ai/sak/${sakId}/draft-email`,
         { method: 'POST', body: { type } }
       );
+      events.aiEmail(type);
       setEmailDraft({ ...r, type });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'AI-tjenesten svarte ikke');
@@ -1524,6 +1528,7 @@ function TimeEntriesSection({ sakId, sakTitle }: { sakId: string; sakTitle: stri
         credentials: 'include',
       });
       if (!res.ok) throw new Error(`Eksport feilet (${res.status})`);
+      events.csvDownloaded('sak');
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -1713,6 +1718,7 @@ function ShareButton({ sakId }: { sakId: string }) {
         method: 'POST',
         body: { expiresInDays, showTimeEntries: showTime },
       });
+      events.sharedLinkCreated();
       setLink(r.link);
     } finally {
       setLoading(false);

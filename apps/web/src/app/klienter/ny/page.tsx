@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import { tokens } from '@/lib/tokens';
 import { api, isTokenValid, ApiError } from '@/lib/api';
+import { events } from '@/lib/analytics';
 
 export default function NyKlientPage() {
   const router = useRouter();
@@ -40,6 +41,7 @@ export default function NyKlientPage() {
           notes: notes.trim() || undefined,
         },
       });
+      events.klientCreated();
       router.push('/klienter');
     } catch (err) {
       if (err instanceof ApiError) {

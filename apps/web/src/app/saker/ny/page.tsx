@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import { tokens } from '@/lib/tokens';
 import { api, isTokenValid, ApiError } from '@/lib/api';
+import { events } from '@/lib/analytics';
 
 interface Client {
   id: string;
@@ -51,6 +52,7 @@ export default function NySakPage() {
           folderPath: folderPath.trim() || null,
         },
       });
+      events.sakCreated(clients.find((c) => c.id === clientId)?.name);
       router.push('/saker');
     } catch (err) {
       if (err instanceof ApiError) {
