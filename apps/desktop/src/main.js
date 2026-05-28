@@ -488,7 +488,14 @@ function openDashboardWindow() {
     title: 'Sakspilot — Dashbord',
     autoHideMenuBar: false,
     backgroundColor: '#1E3A5F', // unngå hvit-blink før innhold laster
-    webPreferences: { contextIsolation: true, nodeIntegration: false },
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      // Preload eksponerer window.sakspilot.isDesktop, openInWindow, openFolder,
+      // getStatus osv. — uten dette tror dashboardet det er i nettleser, og
+      // mappe-snarveier + tidsregistrerings-widget + Launcher-shortcuts feiler.
+      preload: path.join(__dirname, 'preload.js'),
+    },
     icon: path.join(__dirname, '..', 'assets', 'icon.png'),
   });
 
@@ -709,6 +716,10 @@ async function login(apiUrl, email, password) {
   initializeAgent();
   updateTrayMenu();
   notify('Sakspilot', `Logget inn som ${data.user.name}`);
+  // Lukk settings-vindu + åpne dashboard automatisk så bruker ikke må
+  // klikke gjennom tray-menyen manuelt
+  if (settingsWindow && !settingsWindow.isDestroyed()) settingsWindow.close();
+  setTimeout(() => openDashboardWindow(), 500);
   return data;
 }
 
