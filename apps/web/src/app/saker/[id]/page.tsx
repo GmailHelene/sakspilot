@@ -1029,7 +1029,7 @@ function MilestonesSection({ sak, onChange }: { sak: Sak; onChange: () => void }
                         · {Math.abs(daysUntil)} dager forsinket
                       </span>
                     ) : isSoon ? (
-                      <span style={{ color: tokens.color.gold, fontWeight: 600 }}>
+                      <span style={{ color: '#D4A017', fontWeight: 600 }}>
                         {' '}
                         · om {daysUntil} dager
                       </span>

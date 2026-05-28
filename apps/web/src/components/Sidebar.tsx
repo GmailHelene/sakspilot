@@ -395,7 +395,7 @@ export default function Sidebar() {
               style={{ ...itemStyle, paddingRight: 30, width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}
               title={f.path}
             >
-              <FolderOpen size={14} strokeWidth={2} style={{ color: tokens.color.gold, flexShrink: 0 }} />
+              <FolderOpen size={14} strokeWidth={2} style={{ color: '#D4A017', flexShrink: 0 }} />
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: tokens.color.text }}>
                 {f.label}
               </span>

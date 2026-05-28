@@ -34,13 +34,16 @@ export const THEMES: Record<ThemeId, Theme> = {
   },
   rose: {
     id: 'rose',
-    label: 'Rosa & Lilla',
+    label: 'Rosa & Hvit',
     emoji: '🌸',
     primary: '#C2185B',
     primaryDark: '#880E4F',
     primaryLight: '#E91E63',
-    accent: '#9C27B0',
-    accentLight: '#BA68C8',
+    // Hvit aksent gir hvite knapper på rosa header — bedre kontrast enn
+    // lilla-på-rosa (som ble vasket ut). accentLight er soft kremrosa for
+    // pastell-bakgrunner og hover-states.
+    accent: '#FFFFFF',
+    accentLight: '#FFE4EC',
   },
   forest: {
     id: 'forest',

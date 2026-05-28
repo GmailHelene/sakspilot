@@ -193,7 +193,7 @@ export default function AgenterPage() {
                 gap: 10,
               }}
             >
-              <Zap size={26} strokeWidth={2.5} style={{ color: tokens.color.gold }} />
+              <Zap size={26} strokeWidth={2.5} style={{ color: '#D4A017' }} />
               Agenter
             </h1>
             <p style={{ color: tokens.color.textMuted, fontSize: 14, marginTop: 4 }}>
@@ -294,7 +294,7 @@ export default function AgenterPage() {
             <Zap
               size={48}
               strokeWidth={1.5}
-              style={{ color: tokens.color.gold, marginBottom: 12 }}
+              style={{ color: '#D4A017', marginBottom: 12 }}
             />
             <h2 style={{ color: tokens.color.navy, marginBottom: 8 }}>Ingen agenter enda</h2>
             <p style={{ color: tokens.color.textMuted, marginBottom: 20, maxWidth: 420, margin: '0 auto 20px' }}>

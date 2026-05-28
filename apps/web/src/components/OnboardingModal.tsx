@@ -172,7 +172,7 @@ export default function OnboardingModal() {
                 marginBottom: 16,
               }}
             >
-              <Sparkles size={28} style={{ color: tokens.color.gold }} />
+              <Sparkles size={28} style={{ color: '#D4A017' }} />
               <h2 style={{ fontSize: 24, color: tokens.color.navy }}>
                 Velkommen til Sakspilot!
               </h2>

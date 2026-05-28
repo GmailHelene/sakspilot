@@ -467,10 +467,47 @@ function openSettingsWindow() {
 let dashboardWindow = null;
 let dashboardLoadTimer = null;
 
+/**
+ * Daily auto-reload — sikrer at brukeren får siste web-build uten å måtte
+ * trykke Ctrl+R selv. Triggrer reload + cache-clear ved første åpning av
+ * dashbordet hver kalenderdag (lokal tid).
+ *
+ * Logikk: lagre siste reload-dato i electron-store. Ved openDashboardWindow()
+ * sammenlign med dagens dato — hvis forskjellig, reload etter at vinduet er
+ * vist. Mid-day work avbrytes ikke (samme dato = ingen reload).
+ */
+function maybeDailyReload() {
+  try {
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const lastReloadDate = store.get('lastDashboardReloadDate');
+    if (lastReloadDate === today) return false; // allerede gjort i dag
+
+    store.set('lastDashboardReloadDate', today);
+    if (!dashboardWindow || dashboardWindow.isDestroyed()) return false;
+
+    console.log(`[Dashbord] Daglig auto-reload (forrige: ${lastReloadDate || 'aldri'})`);
+    Promise.all([
+      dashboardWindow.webContents.session.clearCache(),
+      dashboardWindow.webContents.session.clearStorageData({
+        storages: ['serviceworkers', 'cachestorage'],
+      }),
+    ])
+      .catch(() => {})
+      .finally(() => {
+        if (!dashboardWindow.isDestroyed()) dashboardWindow.reload();
+      });
+    return true;
+  } catch (err) {
+    console.warn('[Dashbord] Daily reload feilet:', err);
+    return false;
+  }
+}
+
 function openDashboardWindow() {
   if (dashboardWindow) {
     dashboardWindow.show();
     dashboardWindow.focus();
+    maybeDailyReload();
     return;
   }
 
@@ -607,6 +644,12 @@ function openDashboardWindow() {
     dashboardWindow.loadURL(webUrl).catch((err) => {
       loadErrorPage('LOAD_FAILED', err.message, webUrl);
     });
+    // Marker dagens dato som "reloaded" så maybeDailyReload ikke trigger
+    // igjen samme dag (initial load HAR allerede hentet ferskt innhold).
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      store.set('lastDashboardReloadDate', today);
+    } catch {}
   }
 
   function loadErrorPage(code, desc, url) {
