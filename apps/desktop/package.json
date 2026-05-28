@@ -2,7 +2,9 @@
   "name": "@sakspilot/desktop",
   "version": "0.0.1",
   "private": true,
-  "os": ["win32"],
+  "os": [
+    "win32"
+  ],
   "description": "Sakspilot desktop-agent — tray-app for Windows som logger aktivt vindu og kobler til sak",
   "author": {
     "name": "Helene Åsheim Grønberg",
@@ -31,7 +33,8 @@
   "devDependencies": {
     "@electron/packager": "^18.3.6",
     "electron": "^30.5.1",
-    "electron-builder": "^25.0.5"
+    "electron-builder": "^25.0.5",
+    "png-to-ico": "^3.0.1"
   },
   "build": {
     "appId": "no.helene.sakspilot",

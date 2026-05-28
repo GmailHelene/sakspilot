@@ -108,7 +108,12 @@ async function main() {
     asar: true,
     appVersion: pkg.version,
     appCopyright: `Copyright (c) ${new Date().getFullYear()} ${pkg.author?.name || 'Sakspilot'}`,
-    icon: path.join(TEMP_DIR, 'assets', 'icon.png'),
+    // Windows: bruker .ico (multi-resolution) som blir embedded i .exe-binaryen.
+    // Uten dette blir taskbar-ikonet Electron-default (atom-symbol).
+    // Faller tilbake til .png hvis .ico mangler (Linux/Mac-builds eller første build).
+    icon: fs.existsSync(path.join(TEMP_DIR, 'assets', 'icon.ico'))
+      ? path.join(TEMP_DIR, 'assets', 'icon.ico')
+      : path.join(TEMP_DIR, 'assets', 'icon.png'),
     win32metadata: {
       CompanyName: pkg.author?.name || 'Sakspilot',
       ProductName: 'Sakspilot',

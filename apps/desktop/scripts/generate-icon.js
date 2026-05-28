@@ -145,3 +145,23 @@ for (const size of sizes) {
 const main256 = createSakspilotIconPNG(256);
 fs.writeFileSync(path.join(outDir, 'icon.png'), main256);
 console.log('✓ icon.png (256x256 hovedikon)');
+
+// Generer Windows .ico (multi-resolution) for taskbar/explorer-visning av .exe.
+// electron-packager pakker denne inn i .exe-binaryen ved build.
+// Uten denne får .exe-en Electron-default-ikon (atom-symbolet).
+(async () => {
+  try {
+    // png-to-ico bruker ESM-style default-export
+    const pngToIcoMod = require('png-to-ico');
+    const pngToIco = pngToIcoMod.default || pngToIcoMod;
+    // Multi-res ico: 16, 32, 48, 64, 128, 256 — dekker alle Windows-bruksområder
+    const icoSizes = [16, 32, 48, 64, 128, 256];
+    const pngBuffers = icoSizes.map((s) => createSakspilotIconPNG(s));
+    const icoBuffer = await pngToIco(pngBuffers);
+    fs.writeFileSync(path.join(outDir, 'icon.ico'), icoBuffer);
+    console.log(`✓ icon.ico (multi-res: ${icoSizes.join(',')} → ${icoBuffer.length} bytes)`);
+  } catch (err) {
+    console.warn('⚠  Kunne ikke generere icon.ico:', err.message);
+    console.warn('   .exe vil falle tilbake til Electron-default-ikon i taskbar.');
+  }
+})();
