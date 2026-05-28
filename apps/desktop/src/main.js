@@ -165,6 +165,17 @@ function updateTrayMenu() {
       click: () => openDashboardWindow(),
     });
     items.push({
+      label: '🔁 Last dashbord på nytt (Ctrl+Shift+R)',
+      enabled: !!(dashboardWindow && !dashboardWindow.isDestroyed()),
+      click: () => {
+        if (dashboardWindow && !dashboardWindow.isDestroyed()) {
+          dashboardWindow.webContents.session.clearCache().finally(() => {
+            if (!dashboardWindow.isDestroyed()) dashboardWindow.reload();
+          });
+        }
+      },
+    });
+    items.push({
       label: '🌐 Åpne i nettleser',
       click: () => {
         const apiUrl = store.get('apiUrl') || 'https://api.sakspilot.no';
@@ -444,6 +455,41 @@ function openDashboardWindow() {
     backgroundColor: '#1E3A5F', // unngå hvit-blink før innhold laster
     webPreferences: { contextIsolation: true, nodeIntegration: false },
     icon: path.join(__dirname, '..', 'assets', 'icon.png'),
+  });
+
+  // Tøm HTTP-cache for å unngå webpack chunk-hash-mismatch etter deploy.
+  // Vercel ruller ut nye chunks med nye hashes; gammel cachet HTML refererer
+  // til chunks som ikke lenger eksisterer → «Cannot read properties of undefined (reading 'call')».
+  dashboardWindow.webContents.session.clearCache().catch(() => {});
+
+  // Auto-recovery: hvis renderer crasher (typisk webpack chunk-feil), reload.
+  dashboardWindow.webContents.on('render-process-gone', (_e, details) => {
+    console.warn('[Dashbord] Renderer crashet:', details.reason);
+    if (details.reason !== 'clean-exit' && !dashboardWindow.isDestroyed()) {
+      dashboardWindow.webContents.session.clearCache().finally(() => {
+        if (!dashboardWindow.isDestroyed()) dashboardWindow.reload();
+      });
+    }
+  });
+
+  // Tastatursnarveier: Ctrl+R = reload, Ctrl+Shift+R = hard reload (tøm cache)
+  dashboardWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown') return;
+    if (input.control && input.key.toLowerCase() === 'r') {
+      event.preventDefault();
+      if (input.shift) {
+        dashboardWindow.webContents.session.clearCache().finally(() => {
+          if (!dashboardWindow.isDestroyed()) dashboardWindow.reload();
+        });
+      } else {
+        dashboardWindow.reload();
+      }
+    }
+    // Ctrl+Shift+I = DevTools (for feilsøking)
+    if (input.control && input.shift && input.key.toLowerCase() === 'i') {
+      event.preventDefault();
+      dashboardWindow.webContents.toggleDevTools();
+    }
   });
 
   // Splash som ALLTID vises først (også hvis web-laster henger)
