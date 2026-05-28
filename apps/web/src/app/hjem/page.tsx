@@ -150,6 +150,32 @@ export default function HjemPage() {
           />
         </div>
 
+        {/* Sekundære KPIer */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: 12,
+            marginBottom: 24,
+          }}
+        >
+          <MiniKpi
+            label="Omsetning denne uka"
+            value={stats ? `${stats.weekRevenue.toLocaleString('nb-NO')} kr` : '—'}
+            color={tokens.color.gold}
+          />
+          <MiniKpi
+            label="Aktive agenter"
+            value={stats?.activeAutomations ?? '—'}
+            color={tokens.color.purple}
+          />
+          <MiniKpi
+            label="E-poster denne uka"
+            value={stats?.emailsThisWeek ?? '—'}
+            color={tokens.color.blue}
+          />
+        </div>
+
         {/* Hoved-widgets */}
         <div
           style={{
@@ -295,6 +321,27 @@ function KPICard({ icon, label, value, href, color }: {
       </div>
       <div style={{ fontSize: 28, fontWeight: 700, color: tokens.color.navy }}>{value}</div>
     </Link>
+  );
+}
+
+function MiniKpi({ label, value, color }: { label: string; value: React.ReactNode; color: string }) {
+  return (
+    <div
+      style={{
+        background: tokens.color.white,
+        border: `1px solid ${tokens.color.border}`,
+        borderRadius: tokens.radius.md,
+        padding: 14,
+        borderLeft: `4px solid ${color}`,
+      }}
+    >
+      <div style={{ fontSize: 11, color: tokens.color.textMuted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: tokens.color.navy, fontVariantNumeric: 'tabular-nums' }}>
+        {value}
+      </div>
+    </div>
   );
 }
 
