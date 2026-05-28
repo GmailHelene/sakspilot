@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Home, LayoutGrid, Users, Calendar, GanttChartSquare, Plus, X,
-  ExternalLink, Trash2, StickyNote, FolderOpen, Folder, Shield, Zap, BarChart3, Plug,
+  ExternalLink, Trash2, StickyNote, FolderOpen, Folder, Shield, Zap, BarChart3, Plug, Palette,
   type LucideIcon,
 } from 'lucide-react';
 import { tokens } from '@/lib/tokens';
@@ -35,6 +35,13 @@ interface FolderShortcut {
 }
 
 const FOLDER_STORAGE = 'sakspilot_folder_shortcuts';
+const SITES_STORAGE = 'sakspilot_my_sites';
+
+interface MySite {
+  id: string;
+  label: string;
+  url: string;
+}
 
 // Sjekk om vi kjører i Sakspilot Desktop (Electron) — gir tilgang til
 // shell.openFolder og openInWindow via preload-bridge
@@ -64,6 +71,10 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [shortcuts, setShortcuts] = useState<Shortcut[]>(DEFAULT_SHORTCUTS);
   const [folders, setFolders] = useState<FolderShortcut[]>([]);
+  const [mySites, setMySites] = useState<MySite[]>([]);
+  const [addSiteOpen, setAddSiteOpen] = useState(false);
+  const [newSiteLabel, setNewSiteLabel] = useState('');
+  const [newSiteUrl, setNewSiteUrl] = useState('');
   const [addOpen, setAddOpen] = useState(false);
   const [addFolderOpen, setAddFolderOpen] = useState(false);
   const [newLabel, setNewLabel] = useState('');
@@ -81,8 +92,42 @@ export default function Sidebar() {
       if (stored) setShortcuts(JSON.parse(stored));
       const storedFolders = localStorage.getItem(FOLDER_STORAGE);
       if (storedFolders) setFolders(JSON.parse(storedFolders));
+      const storedSites = localStorage.getItem(SITES_STORAGE);
+      if (storedSites) setMySites(JSON.parse(storedSites));
     } catch {}
   }, []);
+
+  function persistSites(next: MySite[]) {
+    setMySites(next);
+    try {
+      localStorage.setItem(SITES_STORAGE, JSON.stringify(next));
+    } catch {}
+  }
+  function addSite() {
+    if (!newSiteUrl.trim()) return;
+    const url = /^https?:\/\//.test(newSiteUrl) ? newSiteUrl : `https://${newSiteUrl}`;
+    let label = newSiteLabel.trim();
+    if (!label) {
+      try {
+        label = new URL(url).hostname.replace(/^www\./, '');
+      } catch {
+        label = url;
+      }
+    }
+    persistSites([...mySites, { id: 's-' + Date.now(), label, url }]);
+    setNewSiteLabel('');
+    setNewSiteUrl('');
+    setAddSiteOpen(false);
+  }
+  function removeSite(id: string) {
+    persistSites(mySites.filter((s) => s.id !== id));
+  }
+  async function openSite(e: React.MouseEvent, s: MySite) {
+    if (desktop.isDesktop && desktop.openInWindow) {
+      e.preventDefault();
+      await desktop.openInWindow(s.url, s.label);
+    }
+  }
 
   function persist(next: Shortcut[]) {
     setShortcuts(next);
@@ -153,18 +198,32 @@ export default function Sidebar() {
     persist(shortcuts.filter((s) => s.id !== id));
   }
 
-  const navLinks: { href: string; label: string; Icon: LucideIcon }[] = [
-    { href: '/hjem', label: 'Hjem', Icon: Home },
-    { href: '/saker', label: 'Saker', Icon: LayoutGrid },
-    { href: '/klienter', label: 'Klienter', Icon: Users },
-    { href: '/kalender', label: 'Kalender', Icon: Calendar },
-    { href: '/gantt', label: 'Tidslinje', Icon: GanttChartSquare },
-    { href: '/rapport', label: 'Rapport', Icon: BarChart3 },
-    { href: '/klistrelapper', label: 'Klistrelapper', Icon: StickyNote },
-    { href: '/agenter', label: 'Agenter', Icon: Zap },
-    { href: '/innstillinger/integrasjoner', label: 'Integrasjoner', Icon: Plug },
-    { href: '/innstillinger/sikkerhet', label: 'Sikkerhet', Icon: Shield },
+  // Nav-elementer kan skjules per bruker via localStorage.
+  // Default: alle synlige. Hver bruker kan toggle via Sidebar-settings (kommer).
+  const ALL_NAV: { id: string; href: string; label: string; Icon: LucideIcon }[] = [
+    { id: 'hjem', href: '/hjem', label: 'Hjem', Icon: Home },
+    { id: 'prosjekter', href: '/saker', label: 'Prosjekter', Icon: LayoutGrid },
+    { id: 'klienter', href: '/klienter', label: 'Klienter', Icon: Users },
+    { id: 'kalender', href: '/kalender', label: 'Kalender', Icon: Calendar },
+    { id: 'tidslinje', href: '/gantt', label: 'Tidslinje', Icon: GanttChartSquare },
+    { id: 'rapport', href: '/rapport', label: 'Rapport', Icon: BarChart3 },
+    { id: 'klistrelapper', href: '/klistrelapper', label: 'Klistrelapper', Icon: StickyNote },
+    { id: 'agenter', href: '/agenter', label: 'Agenter', Icon: Zap },
+    { id: 'integrasjoner', href: '/innstillinger/integrasjoner', label: 'Integrasjoner', Icon: Plug },
+    { id: 'sikkerhet', href: '/innstillinger/sikkerhet', label: 'Sikkerhet', Icon: Shield },
+    { id: 'utseende', href: '/innstillinger/utseende', label: 'Utseende', Icon: Palette },
   ];
+  const HIDDEN_NAV_KEY = 'sakspilot_hidden_nav';
+  const navLinks = mounted
+    ? (() => {
+        try {
+          const hidden = new Set(JSON.parse(localStorage.getItem(HIDDEN_NAV_KEY) || '[]') as string[]);
+          return ALL_NAV.filter((n) => !hidden.has(n.id));
+        } catch {
+          return ALL_NAV;
+        }
+      })()
+    : ALL_NAV;
 
   return (
     <aside style={sidebarStyle}>
@@ -339,6 +398,123 @@ export default function Sidebar() {
             </button>
           </div>
         ))}
+      </SidebarSection>
+
+      {/* My Sites — egne live-prosjekter/nettsider som PWA-ikoner-grid */}
+      <SidebarSection
+        title="Mine sites"
+        action={
+          mounted && (
+            <button
+              onClick={() => setAddSiteOpen(!addSiteOpen)}
+              style={addButtonStyle}
+              title="Legg til site"
+            >
+              {addSiteOpen ? <X size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
+            </button>
+          )
+        }
+      >
+        {addSiteOpen && (
+          <div style={addFormStyle}>
+            <input
+              type="text"
+              value={newSiteUrl}
+              onChange={(e) => setNewSiteUrl(e.target.value)}
+              placeholder="luxushair.com"
+              style={inputStyle}
+              onKeyDown={(e) => e.key === 'Enter' && addSite()}
+              autoFocus
+            />
+            <input
+              type="text"
+              value={newSiteLabel}
+              onChange={(e) => setNewSiteLabel(e.target.value)}
+              placeholder="Navn (valgfritt)"
+              style={{ ...inputStyle, marginTop: 6 }}
+            />
+            <button onClick={addSite} style={saveButtonStyle}>Lagre site</button>
+          </div>
+        )}
+
+        {mounted && mySites.length === 0 && !addSiteOpen && (
+          <div style={{ padding: '4px 12px', fontSize: 11, color: tokens.color.textSubtle }}>
+            Klikk + for å legge til
+          </div>
+        )}
+
+        {mounted && mySites.length > 0 && (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: 6,
+              padding: '4px 8px',
+            }}
+          >
+            {mySites.map((s) => (
+              <div key={s.id} style={{ position: 'relative' }} className="my-site-tile">
+                <a
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => openSite(e, s)}
+                  title={s.label}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    aspectRatio: '1',
+                    borderRadius: 10,
+                    background: tokens.color.white,
+                    border: `1px solid ${tokens.color.border}`,
+                    boxShadow: tokens.shadow.sm,
+                    overflow: 'hidden',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <img
+                    src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(
+                      (() => {
+                        try { return new URL(s.url).hostname; } catch { return s.url; }
+                      })()
+                    )}&sz=64`}
+                    alt=""
+                    width={20}
+                    height={20}
+                    style={{ display: 'block' }}
+                  />
+                </a>
+                <button
+                  onClick={() => removeSite(s.id)}
+                  style={{
+                    position: 'absolute',
+                    top: -4,
+                    right: -4,
+                    width: 16,
+                    height: 16,
+                    borderRadius: 8,
+                    background: tokens.color.red,
+                    color: 'white',
+                    border: 'none',
+                    fontSize: 10,
+                    cursor: 'pointer',
+                    opacity: 0,
+                    transition: 'opacity 0.1s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  className="site-delete-btn"
+                  title="Fjern"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </SidebarSection>
 
       <div style={footerStyle}>

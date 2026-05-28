@@ -86,7 +86,7 @@ export default function SakerPage() {
           }}
         >
           <div>
-            <h1 style={{ fontSize: 26, color: tokens.color.navy }}>Saker</h1>
+            <h1 style={{ fontSize: 26, color: tokens.color.navy }}>Prosjekter</h1>
             <p style={{ color: tokens.color.textMuted, fontSize: 14, marginTop: 4 }}>
               {saker ? `${saker.length} ${saker.length === 1 ? 'aktiv sak' : 'aktive saker'}` : 'Henter…'}
             </p>

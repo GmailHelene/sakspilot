@@ -4,6 +4,7 @@ import PwaInit from '@/components/PwaInit';
 import DesktopShortcutOverlay from '@/components/DesktopShortcutOverlay';
 import DesktopAgentControls from '@/components/DesktopAgentControls';
 import OnboardingModal from '@/components/OnboardingModal';
+import ThemeInit from '@/components/ThemeInit';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sakspilot.no'),
@@ -112,6 +113,7 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <ThemeInit />
         <DesktopShortcutOverlay />
         {children}
         <DesktopAgentControls />

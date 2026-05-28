@@ -24,6 +24,7 @@ import { tokens } from '@/lib/tokens';
 import { api, isTokenValid } from '@/lib/api';
 import { events } from '@/lib/analytics';
 import { getDefaultLaunchersFor, type Profession } from '@/lib/professionLaunchers';
+import ThemePicker from '@/components/ThemePicker';
 
 const STORAGE_KEY = 'sakspilot_onboarded';
 const PROFESSION_KEY = 'sakspilot_profession';
@@ -302,6 +303,16 @@ export default function OnboardingModal() {
                 desc="E-poster knyttes automatisk til saker"
                 onClick={finish}
               />
+            </div>
+            <div
+              style={{
+                padding: 14,
+                background: tokens.color.bgAlt,
+                borderRadius: tokens.radius.md,
+                marginBottom: 16,
+              }}
+            >
+              <ThemePicker />
             </div>
             <button onClick={finish} style={{ ...primaryBtn, width: '100%' }}>
               Start uten å klikke videre →
