@@ -62,6 +62,16 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
   },
+  // Site-verifisering for Search Console + Bing Webmaster Tools.
+  // Settes via env-vars i Vercel:
+  //   NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION (fra Search Console → HTML-tag-metoden)
+  //   NEXT_PUBLIC_BING_SITE_VERIFICATION (fra Bing Webmaster)
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+      ? { 'msvalidate.01': process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+      : undefined,
+  },
   icons: {
     icon: '/favicon.svg',
     apple: '/icon-192.svg',

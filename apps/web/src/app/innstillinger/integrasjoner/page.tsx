@@ -231,35 +231,55 @@ export default function IntegrasjonerPage() {
           </div>
         </div>
 
-        {/* ── Kommer senere ── */}
-        <div style={{ ...cardStyle, opacity: 0.6 }}>
+        {/* ── Tripletex / Fiken (CSV-tips for nå) ── */}
+        <a
+          href="/innstillinger/tripletex"
+          style={{
+            ...cardStyle,
+            display: 'block',
+            textDecoration: 'none',
+            color: 'inherit',
+            transition: 'transform 0.1s, border-color 0.1s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = tokens.color.navy;
+            e.currentTarget.style.transform = 'translateY(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = tokens.color.border;
+            e.currentTarget.style.transform = '';
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div
               style={{
                 width: 48,
                 height: 48,
                 borderRadius: tokens.radius.md,
-                background: tokens.color.bgAlt,
-                color: tokens.color.textMuted,
+                background: '#1B73B8',
+                color: 'white',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: 22,
+                fontWeight: 700,
+                boxShadow: tokens.shadow.colored('#1B73B8'),
               }}
             >
-              📊
+              T
             </div>
             <div style={{ flex: 1 }}>
               <h2 style={{ fontSize: 18, color: tokens.color.navy }}>Tripletex / Fiken</h2>
-              <p style={{ fontSize: 13, color: tokens.color.textMuted }}>
-                Send fakturagrunnlag rett til regnskapssystemet. Kommer snart.
+              <p style={{ fontSize: 13, color: tokens.color.textMuted, marginTop: 4 }}>
+                CSV-eksport fungerer i begge systemer i dag. Direkte API-tilkobling
+                er under utvikling. Klikk for trinn-for-trinn-veiledning →
               </p>
             </div>
-            <span style={{ fontSize: 11, color: tokens.color.textSubtle, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              Snart
+            <span style={{ fontSize: 11, color: tokens.color.blue, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              Veiledning
             </span>
           </div>
-        </div>
+        </a>
       </div>
     </AppLayout>
   );
