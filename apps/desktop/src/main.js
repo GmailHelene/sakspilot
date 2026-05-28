@@ -909,7 +909,13 @@ ipcMain.handle('shell:open-in-window', async (_e, url, label) => {
   };
   dashboardWindow.on('resize', resizeHandler);
   view.webContents.once('destroyed', () => {
-    dashboardWindow.removeListener('resize', resizeHandler);
+    // dashboardWindow kan være null hvis hele appen lukkes før BrowserView
+    // destrueres (typisk app-quit) — null-check hindrer crash
+    if (dashboardWindow && !dashboardWindow.isDestroyed()) {
+      try {
+        dashboardWindow.removeListener('resize', resizeHandler);
+      } catch {}
+    }
   });
 
   view.webContents.loadURL(url).catch((err) => {
