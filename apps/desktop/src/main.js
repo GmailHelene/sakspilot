@@ -392,6 +392,20 @@ async function syncSessions() {
     console.error('[Sync] feilet:', err.message);
     // Legg dem tilbake — neste sync-tick prøver igjen
     pendingSessions.unshift(...batch);
+    // Vis synlig notification (max én per time, så vi ikke spammer)
+    const lastNotif = store.get('lastSyncErrorNotif') || 0;
+    if (Notification.isSupported() && Date.now() - lastNotif > 3600_000) {
+      const apiUrl = store.get('apiUrl') || 'https://api.sakspilot.no';
+      const isLocalhost = apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1');
+      new Notification({
+        title: 'Sakspilot — sync feilet',
+        body: isLocalhost
+          ? `Kan ikke nå API på ${apiUrl}. Endre i Innstillinger → API URL til https://api.sakspilot.no`
+          : `Kan ikke nå ${apiUrl}: ${err.message}. Sessions beholdes — prøver igjen om 5 min.`,
+        urgency: 'normal',
+      }).show();
+      store.set('lastSyncErrorNotif', Date.now());
+    }
   }
   updateTrayMenu();
 }
