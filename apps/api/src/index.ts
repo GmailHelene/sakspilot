@@ -98,13 +98,26 @@ app.use(morgan(process.env.NODE_ENV === "production" ? "tiny" : "dev"));
 // ── Auth (leser JWT hvis tilstede, setter req.session) ──────────
 app.use(authMiddleware);
 
-// ── Rate-limit på /auth (mot brute-force) ───────────────────────
-const authLimiter = rateLimit({
+// ── Rate-limit på /auth ─────────────────────────────────────────
+// Splittet i 'write' (login/register/forgot/reset — streng, mot brute-force)
+// og 'read' (me/logout — løs, kalles automatisk på hver page-load).
+// Tidligere brukte begge typer samme 30/15min-limit, som lett ble brukt opp
+// av normal navigasjon (Helene rapporterte: 'For mange forsøk' uten å ha
+// gjort noe spesielt). Skill nå tydelig på sikkerhetsbehov.
+const authWriteLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30,                     // 30 forsøk per 15 min per IP
+  max: 30,                     // 30 login/register/forgot/reset per 15 min per IP
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "For mange forsøk — prøv igjen om 15 minutter." },
+  message: { error: "For mange påloggings-forsøk — prøv igjen om 15 minutter." },
+});
+
+const authReadLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 120,                    // 120 /auth/me + /auth/logout per minutt per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "For mange sesjons-sjekker — vent et minutt." },
 });
 
 // AI er dyrt — strammere limit per IP (forhindrer "API-tyveri" ved
@@ -135,7 +148,18 @@ const publicLimiter = rateLimit({
 
 // ── Ruter ───────────────────────────────────────────────────────
 app.use("/health", healthRouter);
-app.use("/auth", authLimiter, authRouter);
+// Auth-routes må appliseres med riktig limiter avhengig av handling.
+// Vi monter routeren med en wrapper-handler som velger limiter basert på path.
+app.use("/auth", (req, res, next) => {
+  // Skrive-handlinger (bruteforce-utsatt): login, register, forgot, reset, change-password, logout-all
+  const writePaths = ['/login', '/register', '/forgot-password', '/reset-password', '/change-password', '/logout-all'];
+  const isWrite = writePaths.some((p) => req.path === p);
+  if (isWrite) {
+    return authWriteLimiter(req, res, () => authRouter(req, res, next));
+  }
+  // /auth/me, /auth/logout og andre lese-handlinger: løs limit
+  return authReadLimiter(req, res, () => authRouter(req, res, next));
+});
 app.use("/saker", sakerRouter);
 app.use("/klienter", klienterRouter);
 app.use("/agent", agentRouter);
