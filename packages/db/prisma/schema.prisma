@@ -220,9 +220,26 @@ model User {
   graphAccount GraphAccount?
   stickyNotes  StickyNote[]
   sharedLinks  SharedSakLink[]
+  preferences  UserPreferences?
 
   @@index([organizationId])
   @@map("users")
+}
+
+/// Cloud-synket UI-preferanser per bruker.
+/// Frontend lagrer det samme som localStorage (snarveier, sites, mapper,
+/// tema, hidden-nav osv) — men her i DB så det overlever ny .exe-installasjon,
+/// nettleser-bytte, browser-cache-wipe, etc. Frontend skriver hver 5. sek
+/// hvis noe har endret seg (debounced), og leser ved app-mount.
+model UserPreferences {
+  userId      String   @id @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Hele preferanse-blobben som JSON. Strukturen er { sakspilot_*: string }
+  /// — verdiene matcher det som tidligere bare lå i localStorage.
+  preferences Json
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("user_preferences")
 }
 
 model Client {

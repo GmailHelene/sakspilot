@@ -7,6 +7,7 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import Launcher from './Launcher';
 import { isTokenValid } from '@/lib/api';
+import { initPreferenceSync } from '@/lib/preferenceSync';
 import { tokens } from '@/lib/tokens';
 
 /**
@@ -29,6 +30,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       return;
     }
     setAuthed(true);
+    // Start cloud-sync av UI-preferanser (snarveier, sites, mapper, tema osv)
+    // — sørger for at data overlever ny .exe-install / browser-bytte.
+    initPreferenceSync().catch(() => {});
   }, [router]);
 
   // Når brukeren navigerer i Sakspilot (klikker Prosjekter, Klienter osv) mens

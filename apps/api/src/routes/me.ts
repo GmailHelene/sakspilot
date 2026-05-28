@@ -239,4 +239,63 @@ router.get("/audit", async (req: Request, res: Response) => {
   return res.json({ logs, count: logs.length });
 });
 
+// ──────────────────────────────────────────────────────────────
+// UI-preferanser — cloud-synket localStorage-erstatning
+// Lagrer snarveier, sites, mapper, tema, hidden-nav osv per bruker
+// så data overlever ny .exe-installasjon, browser-bytte, cache-wipe.
+// ──────────────────────────────────────────────────────────────
+
+/**
+ * GET /me/preferences
+ * Returnerer bruker-preferanser som JSON-objekt.
+ * Format: { "sakspilot_my_sites": "[...]", "sakspilot_shortcuts": "[...]", ... }
+ * Tom respons hvis bruker ikke har noen preferanser ennå.
+ */
+router.get("/preferences", async (req: Request, res: Response) => {
+  const { userId } = req.session!;
+  const row = await prisma.userPreferences.findUnique({
+    where: { userId },
+    select: { preferences: true, updatedAt: true },
+  });
+  if (!row) return res.json({});
+  return res.json(row.preferences || {});
+});
+
+/**
+ * PUT /me/preferences
+ * Erstatter hele preferanse-blobben. Frontend sender alle sakspilot_*-verdier
+ * fra localStorage hver gang noe endres (debounced 5s).
+ *
+ * Body: { sakspilot_my_sites: "[...]", sakspilot_shortcuts: "[...]", ... }
+ *       — alle verdier må være strings (matcher localStorage-format).
+ */
+router.put("/preferences", async (req: Request, res: Response) => {
+  const { userId } = req.session!;
+  const body = req.body;
+
+  // Validér: må være et flat objekt med string-verdier, max 100 KB totalt
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return res.status(400).json({ error: "Body må være et objekt" });
+  }
+  const json = JSON.stringify(body);
+  if (json.length > 100_000) {
+    return res.status(413).json({ error: "Preferanser for store (max 100 KB)" });
+  }
+  for (const [k, v] of Object.entries(body)) {
+    if (!k.startsWith("sakspilot_")) {
+      return res.status(400).json({ error: `Ugyldig nøkkel: ${k} (må starte med sakspilot_)` });
+    }
+    if (typeof v !== "string") {
+      return res.status(400).json({ error: `Verdi for ${k} må være string` });
+    }
+  }
+
+  await prisma.userPreferences.upsert({
+    where: { userId },
+    update: { preferences: body },
+    create: { userId, preferences: body },
+  });
+  return res.json({ ok: true });
+});
+
 export default router;
