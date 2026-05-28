@@ -27,6 +27,9 @@ interface LauncherApp {
   kind?: 'web' | 'local';
   /// Sti til .exe / .lnk / .bat når kind='local'. Brukes i stedet for url.
   exePath?: string;
+  /// Egendefinert ikon som data-URL (base64). Hvis satt, brukes denne i stedet
+  /// for brand-SVG/favicon/initialer. Sparer plass: hold under 50 KB per ikon.
+  iconDataUrl?: string;
 }
 
 // brandSlug = simple-icons.org sin slug for offisielt brand-ikon i hvit farge
@@ -78,6 +81,8 @@ export default function Launcher() {
   // Lokal-app-modus i add-modal: 'web' (default URL) eller 'local' (.exe-fil)
   const [newKind, setNewKind] = useState<'web' | 'local'>('web');
   const [newExePath, setNewExePath] = useState('');
+  const [newIconDataUrl, setNewIconDataUrl] = useState<string | null>(null);
+  const [iconErr, setIconErr] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   // Drag-and-drop reordering
@@ -157,6 +162,7 @@ export default function Launcher() {
           brandSlug: null,
           kind: 'local',
           exePath: newExePath.trim(),
+          iconDataUrl: newIconDataUrl || undefined,
         },
       ]);
     } else {
@@ -181,6 +187,7 @@ export default function Launcher() {
           emoji: newEmoji || '🔗',
           brandSlug,
           kind: 'web',
+          iconDataUrl: newIconDataUrl || undefined,
         },
       ]);
     }
@@ -189,7 +196,36 @@ export default function Launcher() {
     setNewEmoji('🔗');
     setNewExePath('');
     setNewKind('web');
+    setNewIconDataUrl(null);
+    setIconErr(null);
     setAdding(false);
+  }
+
+  // Egendefinert ikon-opplasting. Aksepterer PNG/JPG/SVG, maks 200KB (1024 base64).
+  // Lagres som data-URL så det kan synes på tvers av enheter via cloud-sync.
+  async function onIconFile(e: React.ChangeEvent<HTMLInputElement>) {
+    setIconErr(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!/^image\/(png|jpe?g|svg\+xml|webp|gif)$/i.test(file.type)) {
+      setIconErr('Bare PNG, JPG, SVG, WebP og GIF er støttet.');
+      return;
+    }
+    if (file.size > 200 * 1024) {
+      setIconErr('Bildet er for stort (maks 200 KB). Kompresser det først.');
+      return;
+    }
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+      setNewIconDataUrl(dataUrl);
+    } catch (err) {
+      setIconErr('Kunne ikke lese bildet: ' + (err instanceof Error ? err.message : 'ukjent feil'));
+    }
   }
 
   async function pickExe() {
@@ -308,10 +344,25 @@ export default function Launcher() {
               title=""
               aria-label={app.label}
             >
-              {/* Foretrekker simple-icons (offisielt brand-SVG i hvit) — faller
-                  tilbake til INITIALER (ikke 🔗-emoji) for tjenester uten
-                  brand-slug eller hvis CDN feiler. */}
-              {app.brandSlug ? (
+              {/* Prioritetsrekkefølge:
+                  1. Egendefinert opplastet ikon (iconDataUrl)
+                  2. simple-icons brand-SVG (cdn.simpleicons.org)
+                  3. Initialer fra label (fallback) */}
+              {app.iconDataUrl ? (
+                <img
+                  src={app.iconDataUrl}
+                  alt=""
+                  width={26}
+                  height={26}
+                  style={{
+                    display: 'block',
+                    borderRadius: 6,
+                    objectFit: 'cover',
+                    pointerEvents: 'none',
+                  }}
+                  draggable={false}
+                />
+              ) : app.brandSlug ? (
                 <img
                   src={`https://cdn.simpleicons.org/${app.brandSlug}/ffffff`}
                   alt=""
@@ -558,6 +609,86 @@ export default function Launcher() {
                 </div>
               </div>
             )}
+
+            {/* Ikon-opplasting (valgfritt) — vises som launcher-ikonet */}
+            <div style={{ marginBottom: 20 }}>
+              <label style={modalLabel}>Eget ikon (valgfritt)</label>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                {/* Forhåndsvisning */}
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 10,
+                    background: '#F1F3F7',
+                    border: `1px dashed ${tokens.color.border}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    overflow: 'hidden',
+                  }}
+                >
+                  {newIconDataUrl ? (
+                    <img
+                      src={newIconDataUrl}
+                      alt="forhåndsvisning"
+                      width={44}
+                      height={44}
+                      style={{ display: 'block', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: 20, opacity: 0.4 }}>?</span>
+                  )}
+                </div>
+                <label
+                  style={{
+                    padding: '8px 14px',
+                    background: 'white',
+                    color: tokens.color.navy,
+                    border: `1px solid ${tokens.color.border}`,
+                    borderRadius: 8,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {newIconDataUrl ? 'Bytt ikon' : 'Last opp ikon'}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif"
+                    onChange={onIconFile}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+                {newIconDataUrl && (
+                  <button
+                    onClick={() => setNewIconDataUrl(null)}
+                    style={{
+                      padding: '8px 12px',
+                      background: 'transparent',
+                      color: tokens.color.red,
+                      border: 'none',
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    Fjern
+                  </button>
+                )}
+              </div>
+              {iconErr && (
+                <div style={{ fontSize: 11, color: tokens.color.red, marginTop: 6 }}>
+                  {iconErr}
+                </div>
+              )}
+              <div style={{ fontSize: 11, color: tokens.color.textSubtle, marginTop: 6, lineHeight: 1.4 }}>
+                PNG, JPG, SVG eller WebP. Maks 200 KB. Hvis ikke lastet opp, brukes automatisk
+                brand-ikon eller initialer fra navnet.
+              </div>
+            </div>
 
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button
