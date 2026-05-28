@@ -470,17 +470,9 @@ export default function Launcher() {
               ))}
             </div>
 
-            <div style={{ marginBottom: 14 }}>
-              <label style={modalLabel}>Ikon (emoji)</label>
-              <input
-                type="text"
-                value={newEmoji}
-                onChange={(e) => setNewEmoji(e.target.value.slice(0, 4))}
-                placeholder={newKind === 'local' ? '⚙️' : '🔗'}
-                style={{ ...modalInput, width: 60, fontSize: 22, textAlign: 'center' }}
-                maxLength={4}
-              />
-            </div>
+            {/* Emoji-input fjernet — for web-snarveier hentes ikonet automatisk
+                fra favicon (DuckDuckGo/Google), for lokale .exe brukes default
+                ⚙️ fallback. Holder formen enkel. */}
 
             <div style={{ marginBottom: 14 }}>
               <label style={modalLabel}>Navn</label>
