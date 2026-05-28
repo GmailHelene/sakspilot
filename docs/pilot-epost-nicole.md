@@ -1,106 +1,81 @@
 # Pilot-invitasjon — Nicole Torgersen
 
 **Mottaker:** Nicole Torgersen (ansvarlig søker)
-**Status:** Klar til å sende
+**Status:** Klar til å sende — alle nevnte funksjoner er ferdig
 **Send fra:** helene@helene.cloud
+**Vedlegg:** `docs/nicole-bruksanvisning-byggesak.md` (eller print-PDF av den)
 
 ---
 
-## Versjon A — kort og personlig (anbefalt)
+## Versjon A — kort og personlig (anbefalt — send først)
 
 **Emne:** Du var inspirasjonen — vil du teste verktøyet jeg har bygget?
 
 Hei Nicole,
 
-Jeg har bygget Sakspilot — et arbeidsbord for selvstendig næringsdrivende som er lei av å hoppe mellom Excel, Outlook, klistrelapper og 3 forskjellige timeregistreringer. Du var faktisk en av personene jeg tenkte på da jeg startet — det å håndtere byggesaker, frister, klient-eposter og fakturering på samme tid er en kjernebrukshistorie.
+Du husker kanskje at vi snakket om hvor irriterende det er å hoppe mellom Outlook, Holte, Excel-timeføring, klistrelapper og e-post-tråder for hver byggesak. Jeg ble så provosert at jeg bygde noe.
 
-**Hva det gjør:**
-- 📋 Sak-CRM i kanban-stil (pågår, venter på kunde, ferdig)
-- ⏱ Automatisk tidsregistrering via en liten Windows-app — ingen start/stopp
-- 🤖 «Agenter» som lager faktura-påminnelser når en sak er ferdig
-- 🔗 Del klient-status via en lenke — uten at klienten må logge inn
-- 📤 Månedlig faktura-CSV rett inn i Tripletex/Fiken
-- ✨ AI-assistent (Claude) som skriver utkast til klient-eposter
+Det heter **Sakspilot** — et arbeidsbord for selvstendig næringsdrivende. Du var faktisk en av personene jeg tenkte på da jeg startet, fordi ansvarlig-søker-rollen er en av de mest "splittet-mellom-mange-systemer"-yrkene jeg vet om.
+
+**Hva det gjør for deg som ansvarlig søker:**
+- 📋 Hver byggesak som et kanban-kort — pågår, venter på kommune, ferdig
+- 🏗️ Sidebaren får automatisk snarveier til Holte, eByggeSøk og Kartverket (du velger «Ansvarlig søker» i oppstartsveilederen)
+- ⏱ Automatisk tidsregistrering — en liten Windows-app ser at du jobber i Holte og kobler timer til riktig sak
+- 📧 Outlook-integrasjon — eposter fra byggherre/kommune havner automatisk på riktig sak
+- 🤖 Agenter som lager påminnelse om faktura når sak er ferdig
+- 🔗 Del status med byggherre via lenke (uten at de må logge inn)
+- 💰 Send faktura rett til Fiken med ett klikk (eller CSV-eksport til Tripletex)
+- ✨ AI-assistent som skriver utkast til kommune-eposter / klient-statusoppdateringer
 
 **Hva jeg trenger fra deg:**
-- Bruk det i 2-4 uker (på 1-3 reelle saker)
-- 20 min Zoom etter første uke — jeg vil høre hva som funker og hva som ikke gjør det
+- Bruke det i 2-4 uker på 1-3 reelle saker
+- 20 min videocall etter første uke — jeg vil høre hva som funker og hva som ikke gjør det
 
 **Hva du får:**
-- Full tilgang gratis hele pilotperioden (frem til 2026-12-31)
-- 1-til-1 onboarding (jeg setter opp dine matching-regler for byggesaker)
-- All din feedback styrer hva som bygges videre
+- Full tilgang **gratis ut hele 2026** (pilotperiode)
+- Direkte linje til meg på alt som ikke funker — jeg fikser samme dag
+- Etter pilotperioden: 50% pilot-rabatt på første år hvis du vil fortsette
 
-Komme i gang tar 5 minutter:
-👉 https://sakspilot.no/registrer
+Sakspilot er på https://sakspilot.no. Jeg har lagd en kort bruksanvisning som er skreddersydd byggesakshåndtering — ligger som vedlegg.
 
-Hvis det ikke passer akkurat nå, ingen problem. Si fra hvis du har andre kollegaer i bransjen som kunne hatt nytte av det — jeg tar gjerne en intro.
+Skal vi prøve? Bare svar «ja» så får du innloggings-info + en lenke til installasjonsfilen for Windows-appen.
 
 Klem,
 Helene
 
-PS: For ansvarlige søkere har jeg laget en spesifikk «Byggesak»-mal i agentene — automatisk frist-varsel ved 7/3/1 dag før kommunens svarfrist. Den vil du like.
-
 ---
 
-## Versjon B — lengre, hvis dere ikke har snakket på en stund
+## Versjon B — kort oppfølger hvis hun ikke svarer på 5-7 dager
 
-**Emne:** Hei Nicole — nytt prosjekt jeg vil at du skal se på
+**Emne:** RE: Du var inspirasjonen — vil du teste verktøyet jeg har bygget?
 
-Hei!
+Hei igjen Nicole,
 
-Lenge siden sist! Håper alt er bra på din side.
+Skjønner hvis du er midt i noe — sender bare en kort bump i tilfelle e-posten min druknet 🌊
 
-Siden vi sist snakket har jeg jobbet med et nytt prosjekt: **Sakspilot** — et arbeidsbord for selvstendig næringsdrivende som håndterer flere klienter samtidig. Jeg vil ærlig si at flere av tankene mine om hvordan det skulle fungere kom fra hvordan du har beskrevet din arbeidsdag som ansvarlig søker.
+Sakspilot står klar til at du registrerer deg når som helst — sakspilot.no. Gratis ut hele 2026, du forplikter deg ikke til noe.
 
-Konkret problem jeg løser:
-> «Jeg har 6 saker pågående hos 4 forskjellige kunder. Det er umulig å huske hvor jeg er i hver, hvilke eposter som hører til hva, og hva jeg har brukt tid på når faktura skal sendes.»
+Si fra hvis du vil ha en 5-min walkthrough på Zoom isteden — kan også ta det.
 
-Sakspilot er én app der:
-- Alle saker er i en kanban-tavle (pågår, venter på kunde, ferdig)
-- En liten desktop-app logger automatisk tiden jeg bruker per sak (basert på hva som er åpent i Word/Outlook/PDF)
-- Eposter fra Outlook kobles automatisk til riktig sak
-- AI-en kan skrive utkast til klient-eposter (status, utsettelse, etc.) som jeg redigerer før jeg sender
-- Når en sak går til Ferdig, lager en «agent» automatisk en klistrelapp som minner meg om å sende faktura
-- Månedlig fakturagrunnlag eksporteres til Tripletex/Fiken i ett klikk
-
-**Jeg trenger 3-5 pilotbrukere** som kan teste det i 2-4 uker mot reelle saker. Du er nummer én på lista, men kun hvis det passer i din arbeidsdag akkurat nå.
-
-**Hva jeg konkret ber om:**
-1. Du registrerer deg på https://sakspilot.no/registrer (5 min)
-2. Vi har en 30-min Zoom hvor jeg setter opp dine matching-regler for ansvarlig-søker-arbeidsflyt
-3. Du bruker det i 2-4 uker på 1-3 reelle saker
-4. 20-min oppfølging hvor du forteller hva som funker og hva som ikke gjør det
-
-**Hva du får:**
-- Gratis tilgang hele pilotperioden (frem til 2026-12-31, deretter ca. 199 kr/mnd hvis du vil fortsette)
-- Du former produktet — jeg bygger basert på din feedback
-- Tidligbruker-rabatt forever (50% av kommende prisplan)
-
-Si fra om det er aktuelt — eller om du har andre i bransjen jeg burde snakke med.
-
-Klem,
 Helene
-helene@helene.cloud
-+47 [DITT TLF]
 
 ---
 
-## Tips for sending
+## Versjon C — etter første uke med pilot
 
-- **Send fra Gmail/Outlook med din vanlige signatur** — ikke fra noreply@sakspilot.no
-- **Bruk fornavn i hilsen** ("Klem, Helene") — ikke fullt navn
-- **Sjekk om hun er på LinkedIn** og lik et innlegg dagen før eposten — varmer opp
-- **Følg opp etter 4 dager** hvis ingen svar: "Hei Nicole, så bare at jeg sendte deg en epost om Sakspilot i forrige uke. Vet at det er travelt — ingen press, bare ville sikre meg at den ikke gikk i spam :)"
+**Emne:** Hvordan går det med Sakspilot?
 
-## Etter at hun har sagt ja
+Hei Nicole,
 
-Send en kalender-invitasjon med:
-- **Calendly-link** for 30 min onboarding
-- Forberedelse: «Ta gjerne med 2-3 reelle saker du har pågående, så setter vi opp matching-regler sammen»
+Bare en kort sjekk — hvordan har første uken gått?
 
-## Hvis hun sier nei
+3 raske spørsmål så jeg vet hva jeg skal fokusere på fremover:
+1. Hva har vært **best** så langt?
+2. Hva har vært **mest frustrerende**?
+3. Er det noe du **savner** som du forventet skulle være der?
 
-«Helt OK! Hvis du kommer på noen i din bransje som kunne hatt nytte av dette, tar jeg gjerne en intro. Ha en fin uke.»
+Hvis du har 20 min ledig denne uka, gjerne tar jeg en Zoom — kan også sende et lite svar i mailen om det er enklere.
 
-Aldri be om grunn — det stresser bare folk og du får ikke ærlig svar uansett.
+PS: Husk at det å huke av «Anmeld helene.cloud på Google» 🙏 hadde vært gull — men ingen press.
+
+Helene
