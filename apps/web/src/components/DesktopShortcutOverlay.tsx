@@ -31,9 +31,9 @@ interface DesktopApi {
 }
 
 // MÅ matche konstantene i apps/desktop/src/main.js
-const SAKSPILOT_HEADER_HEIGHT = 60;
+const SAKSPILOT_HEADER_HEIGHT = 72; // bumpet fra 60 — to-linjes logo gjør den ~68px høy
 const SIDEBAR_WIDTH = 220;
-const LAUNCHER_WIDTH = 64;
+const LAUNCHER_WIDTH = 60; // matchet til faktisk launcherStyle.width
 const TAB_BAR_HEIGHT = 36;
 
 export default function DesktopShortcutOverlay() {
@@ -70,7 +70,23 @@ export default function DesktopShortcutOverlay() {
   if (!meta) return null;
 
   return (
-    <div
+    <>
+      {/* Solid backdrop som dekker hele main-content-området så React-page
+          (f.eks. /innstillinger/utseende) ikke bleder gjennom rundt
+          BrowserView-en. BrowserView er native og sitter alltid på toppen
+          av webContents, så vi trenger ikke z-index for å være OVER React. */}
+      <div
+        style={{
+          position: 'fixed',
+          top: SAKSPILOT_HEADER_HEIGHT,
+          left: SIDEBAR_WIDTH + LAUNCHER_WIDTH,
+          right: 0,
+          bottom: 0,
+          background: '#FFFFFF',
+          zIndex: 99998, // under tab-baren (99999)
+        }}
+      />
+      <div
       style={{
         position: 'fixed',
         top: SAKSPILOT_HEADER_HEIGHT,
@@ -184,5 +200,6 @@ export default function DesktopShortcutOverlay() {
         Åpne i nettleser
       </button>
     </div>
+    </>
   );
 }

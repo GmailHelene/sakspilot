@@ -901,10 +901,11 @@ ipcMain.handle('shell:open-folder', async (_e, folderPath) => {
 // + alle åpne snarveier som klikkbare faner.
 let activeShortcutView = null;
 let activeShortcutMeta = null; // { url, label }
-// Offsetter — må matche sakspilot.no sin layout
-const SAKSPILOT_HEADER_HEIGHT = 60; // global topp-header
+// Offsetter — må matche sakspilot.no sin layout (DesktopShortcutOverlay.tsx
+// har samme konstanter — hold synkronisert!)
+const SAKSPILOT_HEADER_HEIGHT = 72; // global topp-header (to-linjes logo gjør den ~68px)
 const SIDEBAR_WIDTH = 220;          // venstre nav
-const LAUNCHER_WIDTH = 64;          // ytre launcher-stripe
+const LAUNCHER_WIDTH = 60;          // ytre launcher-stripe (matcher launcherStyle.width)
 const TAB_BAR_HEIGHT = 36;          // tab-bar over BrowserView
 
 function getShortcutBounds(win) {
