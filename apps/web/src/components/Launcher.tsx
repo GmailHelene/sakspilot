@@ -22,6 +22,11 @@ interface LauncherApp {
   /// Brand-slug for simple-icons.org. Null for tjenester uten kjent brand-ikon
   /// (f.eks. norske SaaS) — da brukes emoji som fallback.
   brandSlug?: string | null;
+  /// 'web' (default) = åpnes som webside (BrowserView i Electron, ny fane i browser).
+  /// 'local' = åpner et lokalt Windows-program via shell.openPath. Kun Electron.
+  kind?: 'web' | 'local';
+  /// Sti til .exe / .lnk / .bat når kind='local'. Brukes i stedet for url.
+  exePath?: string;
 }
 
 // brandSlug = simple-icons.org sin slug for offisielt brand-ikon i hvit farge
@@ -55,6 +60,14 @@ interface MySite {
   url: string;
 }
 
+interface TooltipState {
+  id: string;
+  label: string;
+  // Fixed-coord posisjon (forhindrer clipping av overflow:auto-container)
+  top: number;
+  left: number;
+}
+
 export default function Launcher() {
   const [apps, setApps] = useState<LauncherApp[]>(DEFAULT_APPS);
   const [mySites, setMySites] = useState<MySite[]>([]);
@@ -62,8 +75,30 @@ export default function Launcher() {
   const [newLabel, setNewLabel] = useState('');
   const [newUrl, setNewUrl] = useState('');
   const [newEmoji, setNewEmoji] = useState('🔗');
+  // Lokal-app-modus i add-modal: 'web' (default URL) eller 'local' (.exe-fil)
+  const [newKind, setNewKind] = useState<'web' | 'local'>('web');
+  const [newExePath, setNewExePath] = useState('');
   const [mounted, setMounted] = useState(false);
-  const [tooltipId, setTooltipId] = useState<string | null>(null);
+  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  // Drag-and-drop reordering
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  function showTooltip(e: React.MouseEvent, id: string, label: string) {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setTooltip({ id, label, top: rect.top + rect.height / 2, left: rect.right + 8 });
+  }
+  function hideTooltip() {
+    setTooltip(null);
+  }
+
+  function reorder(from: number, to: number) {
+    if (from === to || from < 0 || to < 0) return;
+    const next = [...apps];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    persist(next);
+  }
 
   useEffect(() => {
     setMounted(true);
@@ -106,33 +141,91 @@ export default function Launcher() {
   }
 
   function addApp() {
-    if (!newLabel.trim() || !newUrl.trim()) return;
-    const url = /^https?:\/\//.test(newUrl) ? newUrl : `https://${newUrl}`;
-    // Forsøk å auto-utlede brandSlug fra hostname (f.eks. notion.so → notion)
-    let brandSlug: string | null = null;
-    try {
-      const hostname = new URL(url).hostname.replace(/^www\./, '');
-      const firstSegment = hostname.split('.')[0];
-      // Bare bruk hvis det er en kjent simple-icons brand (vi gjetter)
-      if (/^[a-z0-9]+$/.test(firstSegment) && firstSegment.length > 2) {
-        brandSlug = firstSegment;
-      }
-    } catch {}
-    persist([
-      ...apps,
-      {
-        id: 'u-' + Date.now(),
-        label: newLabel.trim(),
-        url,
-        color: '#1E3A5F',
-        emoji: newEmoji || '🔗',
-        brandSlug,
-      },
-    ]);
+    const label = newLabel.trim();
+    if (!label) return;
+
+    if (newKind === 'local') {
+      if (!newExePath.trim()) return;
+      persist([
+        ...apps,
+        {
+          id: 'u-' + Date.now(),
+          label,
+          url: '', // ikke brukt for lokale
+          color: '#374151',
+          emoji: newEmoji || '⚙️',
+          brandSlug: null,
+          kind: 'local',
+          exePath: newExePath.trim(),
+        },
+      ]);
+    } else {
+      if (!newUrl.trim()) return;
+      const url = /^https?:\/\//.test(newUrl) ? newUrl : `https://${newUrl}`;
+      // Forsøk å auto-utlede brandSlug fra hostname (f.eks. notion.so → notion)
+      let brandSlug: string | null = null;
+      try {
+        const hostname = new URL(url).hostname.replace(/^www\./, '');
+        const firstSegment = hostname.split('.')[0];
+        if (/^[a-z0-9]+$/.test(firstSegment) && firstSegment.length > 2) {
+          brandSlug = firstSegment;
+        }
+      } catch {}
+      persist([
+        ...apps,
+        {
+          id: 'u-' + Date.now(),
+          label,
+          url,
+          color: '#1E3A5F',
+          emoji: newEmoji || '🔗',
+          brandSlug,
+          kind: 'web',
+        },
+      ]);
+    }
     setNewLabel('');
     setNewUrl('');
     setNewEmoji('🔗');
+    setNewExePath('');
+    setNewKind('web');
     setAdding(false);
+  }
+
+  async function pickExe() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const api = (typeof window !== 'undefined' ? (window as any).sakspilot : null);
+    if (!api?.isDesktop || !api.pickExeFile) {
+      alert('Krever Sakspilot Desktop (.exe-versjonen). I nettleseren kan vi ikke åpne lokale programmer.');
+      return;
+    }
+    const r = await api.pickExeFile();
+    if (r?.ok) {
+      setNewExePath(r.filePath);
+      if (!newLabel.trim() && r.suggestedLabel) setNewLabel(r.suggestedLabel);
+    }
+  }
+
+  async function openApp(app: LauncherApp) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const api = (typeof window !== 'undefined' ? (window as any).sakspilot : null);
+    if (app.kind === 'local') {
+      if (!api?.isDesktop || !api.openLocalPath) {
+        alert(`«${app.label}» er et lokalt program og krever Sakspilot Desktop.`);
+        return;
+      }
+      const r = await api.openLocalPath(app.exePath || '');
+      if (!r?.ok) {
+        alert(`Kunne ikke åpne ${app.label}: ${r?.error || 'ukjent feil'}`);
+      }
+      return;
+    }
+    // Web — som før
+    if (api?.isDesktop && api.openInWindow) {
+      await api.openInWindow(app.url, app.label);
+    } else {
+      window.open(app.url, '_blank', 'noopener,noreferrer');
+    }
   }
 
   function removeApp(id: string) {
@@ -148,42 +241,72 @@ export default function Launcher() {
   return (
     <aside style={launcherStyle}>
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'visible', padding: '8px 0' }}>
-        {mounted && apps.map((app) => (
+        {mounted && apps.map((app, i) => {
+          const isDragging = dragIndex === i;
+          const isOver = dragOverIndex === i && dragIndex !== i;
+          return (
           <div
             key={app.id}
-            style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}
-            onMouseEnter={() => setTooltipId(app.id)}
-            onMouseLeave={() => setTooltipId(null)}
+            draggable
+            onDragStart={(e) => {
+              setDragIndex(i);
+              e.dataTransfer.effectAllowed = 'move';
+              // Skjul default-drag-bilde litt så det ikke ser stygt ut
+              try { e.dataTransfer.setData('text/plain', app.id); } catch {}
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'move';
+              if (dragOverIndex !== i) setDragOverIndex(i);
+            }}
+            onDragLeave={() => {
+              if (dragOverIndex === i) setDragOverIndex(null);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (dragIndex !== null && dragIndex !== i) reorder(dragIndex, i);
+              setDragIndex(null);
+              setDragOverIndex(null);
+            }}
+            onDragEnd={() => {
+              setDragIndex(null);
+              setDragOverIndex(null);
+            }}
+            style={{
+              position: 'relative',
+              display: 'flex',
+              justifyContent: 'center',
+              opacity: isDragging ? 0.35 : 1,
+              // Visuelle drop-indikatorer: tykk gull-strek over hover-targetet
+              boxShadow: isOver ? 'inset 0 3px 0 0 #D4A017' : 'none',
+              transition: 'opacity 0.15s',
+            }}
+            onMouseEnter={(e) => showTooltip(e, app.id, app.kind === 'local' ? `${app.label} (lokalt program)` : app.label)}
+            onMouseLeave={hideTooltip}
           >
-            <a
-              href={app.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={async (e) => {
-                // I Electron: åpne INNE i dashbordet via BrowserView, ikke ny tab
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const api = (typeof window !== 'undefined' ? (window as any).sakspilot : null);
-                if (api?.isDesktop && api.openInWindow) {
-                  e.preventDefault();
-                  await api.openInWindow(app.url, app.label);
-                }
-              }}
-              style={{
-                ...iconButtonStyle,
-                background: app.color,
-                color: '#FFFFFF',
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1.08)';
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.transform = '';
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                openApp(app);
               }}
               onContextMenu={(e) => {
                 e.preventDefault();
                 removeApp(app.id);
               }}
+              style={{
+                ...iconButtonStyle,
+                background: app.color,
+                color: '#FFFFFF',
+                cursor: 'grab',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.transform = 'scale(1.08)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.transform = '';
+              }}
               title=""
+              aria-label={app.label}
             >
               {/* Foretrekker simple-icons (offisielt brand-SVG i hvit) — faller
                   tilbake til emoji for tjenester uten brand-slug eller hvis
@@ -194,7 +317,8 @@ export default function Launcher() {
                   alt=""
                   width={22}
                   height={22}
-                  style={{ display: 'block' }}
+                  style={{ display: 'block', pointerEvents: 'none' }}
+                  draggable={false}
                   onError={(e) => {
                     const target = e.currentTarget as HTMLImageElement;
                     target.style.display = 'none';
@@ -209,22 +333,14 @@ export default function Launcher() {
                   }}
                 />
               ) : (
-                <span style={{ fontSize: 20, fontWeight: 700 }}>
+                <span style={{ fontSize: 20, fontWeight: 700, pointerEvents: 'none' }}>
                   {app.emoji}
                 </span>
               )}
-            </a>
-
-            {tooltipId === app.id && (
-              <div style={tooltipStyle}>
-                {app.label}
-                <div style={{ fontSize: 10, opacity: 0.7, marginTop: 2 }}>
-                  Høyreklikk for å fjerne
-                </div>
-              </div>
-            )}
+            </button>
           </div>
-        ))}
+        );
+        })}
 
         {/* Mine sites — favicon-knapper, vises rett under apps */}
         {mounted && mySites.length > 0 && (
@@ -241,8 +357,8 @@ export default function Launcher() {
               <div
                 key={s.id}
                 style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}
-                onMouseEnter={() => setTooltipId('site-' + s.id)}
-                onMouseLeave={() => setTooltipId(null)}
+                onMouseEnter={(e) => showTooltip(e, 'site-' + s.id, s.label)}
+                onMouseLeave={hideTooltip}
               >
                 <a
                   href={s.url}
@@ -270,9 +386,6 @@ export default function Launcher() {
                 >
                   <LauncherSiteFavicon url={s.url} label={s.label} />
                 </a>
-                {tooltipId === 'site-' + s.id && (
-                  <div style={tooltipStyle}>{s.label}</div>
-                )}
               </div>
             ))}
           </>
@@ -328,9 +441,34 @@ export default function Launcher() {
             <h2 style={{ fontSize: 18, fontWeight: 600, color: tokens.color.navy, marginBottom: 6 }}>
               Legg til snarvei
             </h2>
-            <p style={{ fontSize: 13, color: tokens.color.textMuted, marginBottom: 20 }}>
-              Legg til en webapp som åpnes inne i Sakspilot-vinduet.
+            <p style={{ fontSize: 13, color: tokens.color.textMuted, marginBottom: 16 }}>
+              Velg om snarveien skal åpne en webside eller et lokalt program på PC-en.
             </p>
+
+            {/* Tabs: Webside vs Lokal app */}
+            <div style={{ display: 'flex', gap: 4, marginBottom: 18, background: '#F1F3F7', padding: 4, borderRadius: 10 }}>
+              {(['web', 'local'] as const).map((k) => (
+                <button
+                  key={k}
+                  onClick={() => setNewKind(k)}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    background: newKind === k ? 'white' : 'transparent',
+                    color: newKind === k ? tokens.color.navy : tokens.color.textMuted,
+                    border: 'none',
+                    borderRadius: 7,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    boxShadow: newKind === k ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  }}
+                >
+                  {k === 'web' ? '🌐 Webside' : '🖥️ Lokalt program'}
+                </button>
+              ))}
+            </div>
 
             <div style={{ marginBottom: 14 }}>
               <label style={modalLabel}>Ikon (emoji)</label>
@@ -338,7 +476,7 @@ export default function Launcher() {
                 type="text"
                 value={newEmoji}
                 onChange={(e) => setNewEmoji(e.target.value.slice(0, 4))}
-                placeholder="🔗"
+                placeholder={newKind === 'local' ? '⚙️' : '🔗'}
                 style={{ ...modalInput, width: 60, fontSize: 22, textAlign: 'center' }}
                 maxLength={4}
               />
@@ -350,23 +488,58 @@ export default function Launcher() {
                 type="text"
                 value={newLabel}
                 onChange={(e) => setNewLabel(e.target.value)}
-                placeholder="F.eks. Notion"
+                placeholder={newKind === 'local' ? 'F.eks. Cyberduck' : 'F.eks. Notion'}
                 style={modalInput}
                 autoFocus
               />
             </div>
 
-            <div style={{ marginBottom: 20 }}>
-              <label style={modalLabel}>URL</label>
-              <input
-                type="text"
-                value={newUrl}
-                onChange={(e) => setNewUrl(e.target.value)}
-                placeholder="https://notion.so"
-                style={modalInput}
-                onKeyDown={(e) => e.key === 'Enter' && addApp()}
-              />
-            </div>
+            {newKind === 'web' ? (
+              <div style={{ marginBottom: 20 }}>
+                <label style={modalLabel}>URL</label>
+                <input
+                  type="text"
+                  value={newUrl}
+                  onChange={(e) => setNewUrl(e.target.value)}
+                  placeholder="https://notion.so"
+                  style={modalInput}
+                  onKeyDown={(e) => e.key === 'Enter' && addApp()}
+                />
+              </div>
+            ) : (
+              <div style={{ marginBottom: 20 }}>
+                <label style={modalLabel}>Sti til program</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    type="text"
+                    value={newExePath}
+                    onChange={(e) => setNewExePath(e.target.value)}
+                    placeholder="C:\Program Files\Cyberduck\Cyberduck.exe"
+                    style={{ ...modalInput, fontFamily: tokens.font.mono, fontSize: 12 }}
+                  />
+                  <button
+                    onClick={pickExe}
+                    style={{
+                      padding: '10px 14px',
+                      background: tokens.color.navy,
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 8,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Velg fil…
+                  </button>
+                </div>
+                <div style={{ fontSize: 11, color: tokens.color.textSubtle, marginTop: 6, lineHeight: 1.4 }}>
+                  Aksepterer .exe, .lnk, .bat, .cmd. Krever Sakspilot Desktop (.exe-versjonen) for å fungere.
+                </div>
+              </div>
+            )}
 
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button
@@ -413,6 +586,31 @@ export default function Launcher() {
       >
         ↻
       </button>
+
+      {/* Fixed-position tooltip — rendres utenfor scroll-container så den
+          ikke clippes av overflow:auto i app-listen */}
+      {tooltip && (
+        <div
+          style={{
+            position: 'fixed',
+            top: tooltip.top,
+            left: tooltip.left,
+            transform: 'translateY(-50%)',
+            background: '#1A1A1A',
+            color: '#FFFFFF',
+            padding: '6px 12px',
+            borderRadius: 6,
+            fontSize: 12,
+            fontWeight: 500,
+            whiteSpace: 'nowrap',
+            zIndex: 99999,
+            pointerEvents: 'none',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.35)',
+          }}
+        >
+          {tooltip.label}
+        </div>
+      )}
     </aside>
   );
 }

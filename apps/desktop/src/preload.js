@@ -33,6 +33,10 @@ contextBridge.exposeInMainWorld('sakspilot', {
   // for "Opprett konto"-lenken som skal åpnes utenfor Sakspilot)
   openExternal: (url) => ipcRenderer.invoke('shell:open-external', url),
 
+  // Lokal-app-snarveier i Launcher: file-picker + åpne .exe
+  pickExeFile: () => ipcRenderer.invoke('shell:pick-exe'),
+  openLocalPath: (filePath) => ipcRenderer.invoke('shell:open-local', filePath),
+
   // Lytt etter shortcut-events fra main-prosessen
   onShortcutOpened: (callback) => {
     const listener = (_e, meta) => callback(meta);

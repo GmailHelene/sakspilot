@@ -828,6 +828,45 @@ ipcMain.handle('agent:stop-work-session', () => { stopWorkSession(); return true
 ipcMain.handle('agent:toggle-pause', () => { togglePause(); return true; });
 ipcMain.handle('agent:sync-now', async () => { await syncSessions(); return true; });
 
+// Velg en lokal .exe-fil (eller annen kjørbar). Brukes fra Launcher når
+// brukeren vil legge til snarvei til et lokalt Windows-program.
+ipcMain.handle('shell:pick-exe', async () => {
+  const result = await dialog.showOpenDialog({
+    title: 'Velg program (.exe)',
+    properties: ['openFile'],
+    filters: [
+      { name: 'Kjørbare filer', extensions: ['exe', 'lnk', 'bat', 'cmd'] },
+      { name: 'Alle filer', extensions: ['*'] },
+    ],
+  });
+  if (result.canceled || !result.filePaths.length) {
+    return { ok: false, canceled: true };
+  }
+  const filePath = result.filePaths[0];
+  // Utled et fornuftig label fra filnavnet (uten ext)
+  const path = require('path');
+  const base = path.basename(filePath, path.extname(filePath));
+  return { ok: true, filePath, suggestedLabel: base };
+});
+
+// Åpne en lokal fil/.exe i Windows. shell.openPath håndterer både filer
+// og kataloger og kjører riktig program for filtypen.
+ipcMain.handle('shell:open-local', async (_e, filePath) => {
+  if (!filePath || typeof filePath !== 'string') {
+    return { ok: false, error: 'Ingen sti oppgitt' };
+  }
+  try {
+    const result = await shell.openPath(filePath);
+    if (result) {
+      // openPath returnerer feilmelding-string hvis den feilet
+      return { ok: false, error: result };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
 // Åpne ekstern URL i default-nettleser. Brukes f.eks. fra settings.html
 // "Opprett konto"-lenken som skal åpne sakspilot.no/registrer i Chrome/Edge
 // (ikke i Sakspilot-vinduet).
