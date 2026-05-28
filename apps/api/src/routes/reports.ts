@@ -16,6 +16,120 @@ const router = Router();
 router.use(requireAuth);
 
 /**
+ * GET /reports/home
+ * Optimalisert for hjem-siden — returnerer ALT i ett kall i stedet for at
+ * frontend itererer over saker og kaller time-summary per sak (N+1 problem).
+ */
+router.get("/home", async (req: Request, res: Response) => {
+  const { organizationId, userId } = req.session!;
+  const now = new Date();
+  const weekStart = new Date(now);
+  const day = weekStart.getDay();
+  weekStart.setDate(weekStart.getDate() + (day === 0 ? -6 : 1 - day));
+  weekStart.setHours(0, 0, 0, 0);
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date(todayStart.getTime() + 86400000);
+  const week7d = new Date(now.getTime() + 7 * 86400000);
+
+  const [
+    activeSakerCount,
+    todayMilestones,
+    overdueMilestones,
+    upcomingMilestones,
+    recentSaker,
+    weekEntries,
+    automationsCount,
+    pendingEmailLinks,
+  ] = await Promise.all([
+    prisma.sak.count({
+      where: { organizationId, archived: false, status: { notIn: ["ferdig", "arkivert"] } },
+    }),
+    prisma.milestone.findMany({
+      where: {
+        completedAt: null,
+        dueDate: { gte: todayStart, lt: todayEnd },
+        sak: { organizationId, archived: false },
+      },
+      include: { sak: { select: { id: true, title: true } } },
+      orderBy: { dueDate: "asc" },
+    }),
+    prisma.milestone.findMany({
+      where: {
+        completedAt: null,
+        dueDate: { lt: todayStart },
+        sak: { organizationId, archived: false },
+      },
+      include: { sak: { select: { id: true, title: true } } },
+      orderBy: { dueDate: "asc" },
+      take: 20,
+    }),
+    prisma.milestone.findMany({
+      where: {
+        completedAt: null,
+        dueDate: { gte: todayEnd, lte: week7d },
+        sak: { organizationId, archived: false },
+      },
+      include: { sak: { select: { id: true, title: true } } },
+      orderBy: { dueDate: "asc" },
+      take: 10,
+    }),
+    prisma.sak.findMany({
+      where: { organizationId, archived: false },
+      orderBy: { updatedAt: "desc" },
+      take: 5,
+      include: { client: { select: { id: true, name: true } } },
+    }),
+    prisma.timeEntry.findMany({
+      where: { userId, startedAt: { gte: weekStart }, sak: { organizationId } },
+      select: { durationSec: true, billable: true, hourlyRate: true },
+    }),
+    prisma.automation.count({ where: { organizationId, enabled: true } }),
+    prisma.emailLink.count({
+      where: {
+        sak: { organizationId },
+        receivedAt: { gte: weekStart },
+      },
+    }),
+  ]);
+
+  const totalSec = weekEntries.reduce((s, e) => s + e.durationSec, 0);
+  const billableAmount = weekEntries
+    .filter((e) => e.billable && e.hourlyRate)
+    .reduce((s, e) => s + (e.durationSec / 3600) * (e.hourlyRate ?? 0), 0);
+
+  return res.json({
+    activeSaker: activeSakerCount,
+    weekHours: Math.round((totalSec / 3600) * 10) / 10,
+    weekRevenue: Math.round(billableAmount),
+    todayMilestones: todayMilestones.map((m) => ({
+      id: m.id,
+      title: m.title,
+      dueDate: m.dueDate,
+      sakId: m.sak.id,
+      sakTitle: m.sak.title,
+    })),
+    overdueMilestones: overdueMilestones.map((m) => ({
+      id: m.id,
+      title: m.title,
+      dueDate: m.dueDate,
+      sakId: m.sak.id,
+      sakTitle: m.sak.title,
+    })),
+    upcomingMilestones: upcomingMilestones.map((m) => ({
+      id: m.id,
+      title: m.title,
+      dueDate: m.dueDate,
+      sakId: m.sak.id,
+      sakTitle: m.sak.title,
+    })),
+    recentSaker,
+    activeAutomations: automationsCount,
+    emailsThisWeek: pendingEmailLinks,
+  });
+});
+
+/**
  * GET /reports/dashboard
  * Ett endepunkt → ett DB-treff (i stedet for å iterere alle saker fra frontend).
  */

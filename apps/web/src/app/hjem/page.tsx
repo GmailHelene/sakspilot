@@ -42,6 +42,9 @@ interface Stats {
   overdueMilestones: MilestoneWithSak[];
   recentSaker: Sak[];
   totalHoursThisWeek: number;
+  weekRevenue: number;
+  activeAutomations: number;
+  emailsThisWeek: number;
 }
 
 export default function HjemPage() {
@@ -55,56 +58,32 @@ export default function HjemPage() {
 
   async function loadDashboard() {
     try {
-      const [meRes, { saker }] = await Promise.all([
+      // ÉN aggregert API-kall i stedet for 60+ (eliminerer N+1)
+      const [meRes, home] = await Promise.all([
         api<Me>('/auth/me'),
-        api<{ saker: Sak[] }>('/saker'),
+        api<{
+          activeSaker: number;
+          weekHours: number;
+          weekRevenue: number;
+          todayMilestones: MilestoneWithSak[];
+          overdueMilestones: MilestoneWithSak[];
+          upcomingMilestones: MilestoneWithSak[];
+          recentSaker: Sak[];
+          activeAutomations: number;
+          emailsThisWeek: number;
+        }>('/reports/home'),
       ]);
       setMe(meRes);
-
-      // Hent detaljer for å få milestones
-      const details = await Promise.all(
-        saker.slice(0, 30).map((s) => api<Sak & { milestones: Milestone[] }>(`/saker/${s.id}`))
-      );
-
-      const allMilestones: (Milestone & { sakId: string; sakTitle: string })[] = [];
-      let weekHours = 0;
-      for (const sak of details) {
-        for (const m of sak.milestones ?? []) {
-          allMilestones.push({ ...m, sakId: sak.id, sakTitle: sak.title });
-        }
-        // Hent tidssammendrag for hver sak (kunne vært ett samle-endepunkt)
-        try {
-          const sum = await api<{ totalHours: number; lastEntryAt: string | null }>(`/saker/${sak.id}/time-summary`);
-          if (sum.lastEntryAt) {
-            const lastDate = new Date(sum.lastEntryAt);
-            const oneWeekAgo = new Date(Date.now() - 7 * 86400000);
-            if (lastDate > oneWeekAgo) weekHours += sum.totalHours;
-          }
-        } catch {}
-      }
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today.getTime() + 86400000);
-      const oneWeek = new Date(today.getTime() + 7 * 86400000);
-
-      const overdue = allMilestones.filter(
-        (m) => !m.completedAt && new Date(m.dueDate) < today
-      );
-      const todayMilestones = allMilestones.filter(
-        (m) => !m.completedAt && new Date(m.dueDate) >= today && new Date(m.dueDate) < tomorrow
-      );
-      const upcoming = allMilestones
-        .filter((m) => !m.completedAt && new Date(m.dueDate) >= tomorrow && new Date(m.dueDate) <= oneWeek)
-        .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-
       setStats({
-        activeSaker: saker.filter((s) => s.status !== 'arkivert' && s.status !== 'ferdig').length,
-        upcomingMilestones: upcoming,
-        todayMilestones,
-        overdueMilestones: overdue,
-        recentSaker: saker.slice(0, 6),
-        totalHoursThisWeek: Math.round(weekHours * 10) / 10,
+        activeSaker: home.activeSaker,
+        upcomingMilestones: home.upcomingMilestones,
+        todayMilestones: home.todayMilestones,
+        overdueMilestones: home.overdueMilestones,
+        recentSaker: home.recentSaker,
+        totalHoursThisWeek: home.weekHours,
+        weekRevenue: home.weekRevenue,
+        activeAutomations: home.activeAutomations,
+        emailsThisWeek: home.emailsThisWeek,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ukjent feil');
