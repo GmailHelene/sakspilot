@@ -68,6 +68,10 @@ app.use(
       if (/^https:\/\/sakspilot.*\.onrender\.com$/.test(origin)) {
         return callback(null, true);
       }
+      // Custom domain (apex + www)
+      if (/^https:\/\/(www\.)?sakspilot\.no$/.test(origin)) {
+        return callback(null, true);
+      }
 
       return callback(new Error(`CORS: origin ikke tillatt: ${origin}`));
     },
