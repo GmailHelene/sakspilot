@@ -19,8 +19,13 @@ Dette tar 1-3 uker per leverandør.
 3. Last opp:
    - Logo (har — `apps/web/public/icon-512.svg`)
    - Skjermbilder av Sakspilot (ta fra prod via Claude Browser)
-   - Personvernerklæring (TODO: lag sakspilot.no/personvern)
-   - DPA-mal (TODO: bruk Tripletex-malen eller egen)
+   - Personvernerklæring: **https://sakspilot.no/personvern** (live)
+   - DPA-mal: **`docs/dpa-mal.md`** — eksporter til PDF og legg ved.
+     Fyll inn `{HELENE_ORG_NR}`, `{HELENE_ADRESSE}`, `{HELENE_TELEFON}`
+     i Sakspilot-feltene før innsending. Kunde-feltene (`{KUNDE_NAVN}`
+     osv) kan stå tomme — Tripletex bruker dokumentet som bevis på at
+     vi har formell databehandleravtale på plass overfor egne kunder,
+     ikke som signert kontrakt.
 
 ### Steg 2: Svar fra Tripletex (3-10 dager)
 
