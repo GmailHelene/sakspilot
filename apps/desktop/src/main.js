@@ -457,19 +457,35 @@ function openDashboardWindow() {
     icon: path.join(__dirname, '..', 'assets', 'icon.png'),
   });
 
-  // Tøm HTTP-cache for å unngå webpack chunk-hash-mismatch etter deploy.
-  // Vercel ruller ut nye chunks med nye hashes; gammel cachet HTML refererer
-  // til chunks som ikke lenger eksisterer → «Cannot read properties of undefined (reading 'call')».
-  dashboardWindow.webContents.session.clearCache().catch(() => {});
+  // Tøm HTTP-cache OG service-worker-cache for å unngå webpack chunk-hash-
+  // mismatch etter deploy. Vercel ruller ut nye chunks med nye hashes;
+  // gammel cachet HTML refererer til chunks som ikke lenger eksisterer →
+  // «Cannot read properties of undefined (reading 'call')».
+  // Disse er fire-and-forget — vil ikke blokkere oppstart, men bruker
+  // session.clearStorageData som tar alt for sakspilot.no.
+  Promise.all([
+    dashboardWindow.webContents.session.clearCache(),
+    dashboardWindow.webContents.session.clearStorageData({
+      storages: ['serviceworkers', 'cachestorage'],
+      origin: 'https://sakspilot.no',
+    }),
+  ]).catch(() => {});
 
   // Auto-recovery: hvis renderer crasher (typisk webpack chunk-feil), reload.
-  dashboardWindow.webContents.on('render-process-gone', (_e, details) => {
+  // Tøm BÅDE cache og service-worker så vi ikke får samme feil i loop.
+  dashboardWindow.webContents.on('render-process-gone', async (_e, details) => {
     console.warn('[Dashbord] Renderer crashet:', details.reason);
-    if (details.reason !== 'clean-exit' && !dashboardWindow.isDestroyed()) {
-      dashboardWindow.webContents.session.clearCache().finally(() => {
-        if (!dashboardWindow.isDestroyed()) dashboardWindow.reload();
-      });
-    }
+    if (details.reason === 'clean-exit' || dashboardWindow.isDestroyed()) return;
+    try {
+      await Promise.all([
+        dashboardWindow.webContents.session.clearCache(),
+        dashboardWindow.webContents.session.clearStorageData({
+          storages: ['serviceworkers', 'cachestorage'],
+          origin: 'https://sakspilot.no',
+        }),
+      ]);
+    } catch {}
+    if (!dashboardWindow.isDestroyed()) dashboardWindow.reload();
   });
 
   // Tastatursnarveier: Ctrl+R = reload, Ctrl+Shift+R = hard reload (tøm cache)
