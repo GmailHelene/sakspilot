@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  typecheck:
+    name: TypeScript + lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci --workspaces --include-workspace-root
+
+      - name: Generate Prisma client
+        run: npx prisma generate --schema=packages/db/prisma/schema.prisma
+
+      - name: Typecheck API
+        run: cd apps/api && npm run typecheck
+
+      - name: Typecheck Web
+        run: cd apps/web && npx tsc --noEmit
+
+  test:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    # Krever sekretene DATABASE_URL_TEST + JWT_SECRET satt i GitHub repo settings.
+    # Bruk en dedikert Neon-test-branch — IKKE prod-DB.
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
+      DIRECT_URL: ${{ secrets.DATABASE_URL_TEST }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci --workspaces --include-workspace-root
+
+      - name: Generate Prisma client
+        run: npx prisma generate --schema=packages/db/prisma/schema.prisma
+
+      - name: Push schema to test DB
+        run: npx prisma db push --schema=packages/db/prisma/schema.prisma --skip-generate
+        if: env.DATABASE_URL != ''
+
+      - name: Run integration tests
+        run: cd apps/api && npm test
+        if: env.DATABASE_URL != ''
