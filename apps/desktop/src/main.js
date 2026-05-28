@@ -798,11 +798,29 @@ ipcMain.handle('shell:open-folder', async (_e, folderPath) => {
 });
 
 // Åpne URL INNE I dashboard-vinduet via BrowserView.
-// Vi reserverer 44px topp-bar (renderes av React i dashboard) der det vises
-// en "← Lukk Tripletex"-knapp som kaller shell:close-shortcut-view.
+// Vi posisjonerer BrowserView slik at den dekker KUN main content area —
+// sidebar + launcher + sakspilot-header forblir synlig og klikkbar.
+// React rendrer en 36px tab-bar i toppen av main content med "← Tilbake"
+// + alle åpne snarveier som klikkbare faner.
 let activeShortcutView = null;
 let activeShortcutMeta = null; // { url, label }
-const TOP_BAR_HEIGHT = 44;
+// Offsetter — må matche sakspilot.no sin layout
+const SAKSPILOT_HEADER_HEIGHT = 60; // global topp-header
+const SIDEBAR_WIDTH = 220;          // venstre nav
+const LAUNCHER_WIDTH = 64;          // ytre launcher-stripe
+const TAB_BAR_HEIGHT = 36;          // tab-bar over BrowserView
+
+function getShortcutBounds(win) {
+  const bounds = win.getContentBounds();
+  const xOffset = SIDEBAR_WIDTH + LAUNCHER_WIDTH;
+  const yOffset = SAKSPILOT_HEADER_HEIGHT + TAB_BAR_HEIGHT;
+  return {
+    x: xOffset,
+    y: yOffset,
+    width: Math.max(0, bounds.width - xOffset),
+    height: Math.max(0, bounds.height - yOffset),
+  };
+}
 
 function closeShortcutView() {
   if (activeShortcutView && dashboardWindow && !dashboardWindow.isDestroyed()) {
@@ -838,14 +856,18 @@ ipcMain.handle('shell:open-in-window', async (_e, url, label) => {
   activeShortcutView = view;
   activeShortcutMeta = { url, label };
 
-  const bounds = dashboardWindow.getContentBounds();
-  view.setBounds({
-    x: 0,
-    y: TOP_BAR_HEIGHT,
-    width: bounds.width,
-    height: Math.max(0, bounds.height - TOP_BAR_HEIGHT),
+  view.setBounds(getShortcutBounds(dashboardWindow));
+  // Custom auto-resize: ved window-resize må vi rekalkulere bounds
+  // siden setAutoResize bare scaler, ikke flytter origin.
+  const resizeHandler = () => {
+    if (!view.webContents.isDestroyed()) {
+      view.setBounds(getShortcutBounds(dashboardWindow));
+    }
+  };
+  dashboardWindow.on('resize', resizeHandler);
+  view.webContents.once('destroyed', () => {
+    dashboardWindow.removeListener('resize', resizeHandler);
   });
-  view.setAutoResize({ width: true, height: true });
 
   view.webContents.loadURL(url).catch((err) => {
     console.error('[open-in-window] loadURL feilet:', err);

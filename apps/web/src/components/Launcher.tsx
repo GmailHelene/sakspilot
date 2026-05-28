@@ -179,36 +179,115 @@ export default function Launcher() {
           </button>
         </div>
 
-        {adding && (
-          <div style={addFormStyle}>
-            <input
-              type="text"
-              value={newEmoji}
-              onChange={(e) => setNewEmoji(e.target.value.slice(0, 2))}
-              placeholder="🔗"
-              style={{ ...inputStyle, textAlign: 'center', marginBottom: 4 }}
-            />
-            <input
-              type="text"
-              value={newLabel}
-              onChange={(e) => setNewLabel(e.target.value)}
-              placeholder="Navn"
-              style={inputStyle}
-            />
-            <input
-              type="text"
-              value={newUrl}
-              onChange={(e) => setNewUrl(e.target.value)}
-              placeholder="URL"
-              style={{ ...inputStyle, marginTop: 4 }}
-              onKeyDown={(e) => e.key === 'Enter' && addApp()}
-            />
-            <button onClick={addApp} style={saveButtonStyle}>
-              ✓
-            </button>
-          </div>
-        )}
       </div>
+
+      {/* Add-modal — sentral popup i stedet for inline form i den smale stripa */}
+      {adding && (
+        <div
+          onClick={() => setAdding(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(23, 43, 77, 0.55)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+            fontFamily: tokens.font.sans,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              padding: 28,
+              borderRadius: 16,
+              maxWidth: 420,
+              width: '100%',
+              boxShadow: tokens.shadow.xl,
+            }}
+          >
+            <h2 style={{ fontSize: 18, fontWeight: 600, color: tokens.color.navy, marginBottom: 6 }}>
+              Legg til snarvei
+            </h2>
+            <p style={{ fontSize: 13, color: tokens.color.textMuted, marginBottom: 20 }}>
+              Legg til en webapp som åpnes inne i Sakspilot-vinduet.
+            </p>
+
+            <div style={{ marginBottom: 14 }}>
+              <label style={modalLabel}>Ikon (emoji)</label>
+              <input
+                type="text"
+                value={newEmoji}
+                onChange={(e) => setNewEmoji(e.target.value.slice(0, 4))}
+                placeholder="🔗"
+                style={{ ...modalInput, width: 60, fontSize: 22, textAlign: 'center' }}
+                maxLength={4}
+              />
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
+              <label style={modalLabel}>Navn</label>
+              <input
+                type="text"
+                value={newLabel}
+                onChange={(e) => setNewLabel(e.target.value)}
+                placeholder="F.eks. Notion"
+                style={modalInput}
+                autoFocus
+              />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={modalLabel}>URL</label>
+              <input
+                type="text"
+                value={newUrl}
+                onChange={(e) => setNewUrl(e.target.value)}
+                placeholder="https://notion.so"
+                style={modalInput}
+                onKeyDown={(e) => e.key === 'Enter' && addApp()}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setAdding(false)}
+                style={{
+                  padding: '10px 18px',
+                  background: 'transparent',
+                  color: tokens.color.text,
+                  border: `1px solid ${tokens.color.border}`,
+                  borderRadius: 8,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Avbryt
+              </button>
+              <button
+                onClick={addApp}
+                style={{
+                  padding: '10px 22px',
+                  background: tokens.gradient.navy,
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Legg til
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Reset-knapp nederst */}
       <button
@@ -264,35 +343,25 @@ const tooltipStyle: React.CSSProperties = {
   boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
 };
 
-const addFormStyle: React.CSSProperties = {
-  padding: 6,
-  background: tokens.color.navy,
-  borderRadius: 6,
-  margin: '4px',
+const modalLabel: React.CSSProperties = {
+  display: 'block',
+  fontSize: 12,
+  fontWeight: 600,
+  color: tokens.color.textMuted,
+  marginBottom: 6,
+  textTransform: 'uppercase',
+  letterSpacing: 0.5,
 };
 
-const inputStyle: React.CSSProperties = {
+const modalInput: React.CSSProperties = {
   width: '100%',
-  padding: '4px 6px',
-  borderRadius: 4,
-  border: 'none',
-  fontSize: 11,
+  padding: '10px 12px',
+  borderRadius: 8,
+  border: `1px solid ${tokens.color.border}`,
+  fontSize: 14,
   fontFamily: 'inherit',
   background: tokens.color.white,
   color: tokens.color.text,
-};
-
-const saveButtonStyle: React.CSSProperties = {
-  marginTop: 4,
-  width: '100%',
-  padding: '4px',
-  background: tokens.color.gold,
-  color: tokens.color.white,
-  border: 'none',
-  borderRadius: 4,
-  fontSize: 12,
-  fontWeight: 600,
-  cursor: 'pointer',
 };
 
 const resetButtonStyle: React.CSSProperties = {

@@ -9,7 +9,9 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import { Play, Square, Pause, RefreshCw, Clock } from 'lucide-react';
+import { Play, Square, Pause, RefreshCw, Clock, Minus } from 'lucide-react';
+
+const COLLAPSED_KEY = 'sakspilot_agent_widget_collapsed';
 
 interface AgentStatus {
   active: boolean;
@@ -47,7 +49,20 @@ function fmt(ms: number): string {
 export default function DesktopAgentControls() {
   const [status, setStatus] = useState<AgentStatus | null>(null);
   const [now, setNow] = useState(Date.now());
-  const [collapsed, setCollapsed] = useState(false);
+  // Husk minimerte-tilstand mellom reload — så brukeren slipper å klikke
+  // hver gang hun bytter side.
+  const [collapsed, setCollapsedState] = useState(false);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setCollapsedState(localStorage.getItem(COLLAPSED_KEY) === '1');
+    }
+  }, []);
+  function setCollapsed(v: boolean) {
+    setCollapsedState(v);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(COLLAPSED_KEY, v ? '1' : '0');
+    }
+  }
   const [busy, setBusy] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -188,17 +203,22 @@ export default function DesktopAgentControls() {
         </div>
         <button
           onClick={() => setCollapsed(true)}
-          title="Minimer"
+          title="Minimer (huskes neste gang)"
           style={{
-            background: 'transparent',
+            background: '#F1F3F7',
             border: 'none',
-            color: '#8A8A8A',
+            color: '#5E6C84',
             cursor: 'pointer',
-            padding: 2,
-            fontSize: 11,
+            padding: 4,
+            width: 22,
+            height: 22,
+            borderRadius: 11,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
-          ✕
+          <Minus size={12} strokeWidth={2.5} />
         </button>
       </div>
 
