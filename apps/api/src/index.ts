@@ -31,6 +31,8 @@ import automationsRouter from "./routes/automations";
 import reportsRouter from "./routes/reports";
 import { authRouter as shareAuthRouter, publicRouter as sharePublicRouter } from "./routes/share";
 import aiRouter from "./routes/ai";
+import oauthRouter from "./routes/oauth";
+import emailsRouter from "./routes/emails";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 8001;
@@ -114,6 +116,8 @@ app.use("/reports", reportsRouter);
 app.use("/saker", shareAuthRouter);   // /saker/:sakId/share (delt prefix med sakerRouter — fungerer)
 app.use("/public", sharePublicRouter); // /public/sak/:token
 app.use("/ai", aiRouter);
+app.use("/oauth", oauthRouter);
+app.use("/emails", emailsRouter);
 
 // ── Root ────────────────────────────────────────────────────────
 app.get("/", (_req: Request, res: Response) => {
