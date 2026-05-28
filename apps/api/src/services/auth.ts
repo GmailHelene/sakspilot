@@ -3,14 +3,16 @@
  *
  * Mønster portet fra ByggPilot:
  *   - bcrypt 12 rounds for passwordHash
- *   - JWT med 8t levetid (justérbar via JWT_EXPIRES_IN)
+ *   - JWT med 30d levetid (justérbar via JWT_EXPIRES_IN) — UX > strenghet
+ *     for et workspace-verktøy. Brukeren skal ikke bli kastet ut etter 8t.
+ *     Sett kortere via JWT_EXPIRES_IN på Render hvis ønskelig.
  *   - Konstant tidsbruk ved feilet innlogging (mot timing-angrep)
  */
 import bcrypt from "bcrypt";
 import jwt, { SignOptions } from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "8h";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "30d";
 
 if (!JWT_SECRET || JWT_SECRET.length < 32) {
   console.warn(

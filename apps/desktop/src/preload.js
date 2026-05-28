@@ -25,6 +25,19 @@ contextBridge.exposeInMainWorld('sakspilot', {
   // Filsystem (kun Electron — åpner mapper i Windows Explorer)
   openFolder: (path) => ipcRenderer.invoke('shell:open-folder', path),
 
-  // Åpne URL i embedded Sakspilot-vindu istedenfor browser
+  // Åpne URL i embedded BrowserView INNE i dashboard-vinduet
   openInWindow: (url, label) => ipcRenderer.invoke('shell:open-in-window', url, label),
+  closeShortcutView: () => ipcRenderer.invoke('shell:close-shortcut-view'),
+
+  // Lytt etter shortcut-events fra main-prosessen
+  onShortcutOpened: (callback) => {
+    const listener = (_e, meta) => callback(meta);
+    ipcRenderer.on('shortcut:opened', listener);
+    return () => ipcRenderer.removeListener('shortcut:opened', listener);
+  },
+  onShortcutClosed: (callback) => {
+    const listener = () => callback();
+    ipcRenderer.on('shortcut:closed', listener);
+    return () => ipcRenderer.removeListener('shortcut:closed', listener);
+  },
 });

@@ -16,7 +16,7 @@
  * privat-tlf osv.) uten å avslutte rapporten.
  */
 const {
-  app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain,
+  app, BrowserWindow, BrowserView, Tray, Menu, nativeImage, shell, ipcMain,
   Notification, dialog,
 } = require('electron');
 const path = require('node:path');
@@ -630,12 +630,22 @@ ipcMain.handle('auth:login', async (_e, apiUrl, email, password) => {
   }
 });
 ipcMain.handle('auth:logout', () => { logout(); return true; });
-ipcMain.handle('agent:status', () => ({
-  ...(poller?.getStatus() || {}),
-  workSessionActive,
-  workSessionStartedAt: workSessionStart,
-  workSessionSessionCount: workSessionSessions.length,
-}));
+ipcMain.handle('agent:status', () => {
+  const pollerStatus = poller?.getStatus() || {};
+  return {
+    // Eksisterende navn (beholdes for bakoverkompatibilitet)
+    ...pollerStatus,
+    workSessionActive,
+    workSessionStartedAt: workSessionStart,
+    workSessionSessionCount: workSessionSessions.length,
+    // Nye alias så web-widgeten kan bruke korte navn
+    active: workSessionActive,
+    paused: !!pollerStatus.paused,
+    startedAt: workSessionStart ? new Date(workSessionStart).getTime() : null,
+    sessionCount: workSessionSessions.length,
+    pendingCount: pendingSessions.length,
+  };
+});
 ipcMain.handle('agent:pending-count', () => pendingSessions.length);
 ipcMain.handle('agent:start-work-session', () => { startWorkSession(); return true; });
 ipcMain.handle('agent:stop-work-session', () => { stopWorkSession(); return true; });
@@ -654,42 +664,67 @@ ipcMain.handle('shell:open-folder', async (_e, folderPath) => {
   }
 });
 
-// Åpne URL i et eget Sakspilot-vindu (med vår chrome) istedenfor browser
-const externalWindows = new Map();
+// Åpne URL INNE I dashboard-vinduet via BrowserView.
+// Vi reserverer 44px topp-bar (renderes av React i dashboard) der det vises
+// en "← Lukk Tripletex"-knapp som kaller shell:close-shortcut-view.
+let activeShortcutView = null;
+let activeShortcutMeta = null; // { url, label }
+const TOP_BAR_HEIGHT = 44;
+
+function closeShortcutView() {
+  if (activeShortcutView && dashboardWindow && !dashboardWindow.isDestroyed()) {
+    try { dashboardWindow.removeBrowserView(activeShortcutView); } catch {}
+    try { activeShortcutView.webContents.destroy(); } catch {}
+  }
+  activeShortcutView = null;
+  activeShortcutMeta = null;
+  if (dashboardWindow && !dashboardWindow.isDestroyed()) {
+    dashboardWindow.webContents.send('shortcut:closed');
+  }
+}
+
 ipcMain.handle('shell:open-in-window', async (_e, url, label) => {
-  // Hvis allerede åpent med samme URL, bring til front
-  if (externalWindows.has(url)) {
-    const w = externalWindows.get(url);
-    if (!w.isDestroyed()) {
-      w.show();
-      w.focus();
-      return { ok: true };
-    }
-    externalWindows.delete(url);
+  if (!dashboardWindow || dashboardWindow.isDestroyed()) {
+    // Hvis dashboard ikke er åpen, fall tilbake til ekstern browser
+    shell.openExternal(url);
+    return { ok: true, fallback: 'external' };
   }
 
-  const win = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    title: `Sakspilot — ${label || url}`,
-    autoHideMenuBar: false,
-    icon: path.join(__dirname, '..', 'assets', 'icon.png'),
-    backgroundColor: '#FAFAF7',
+  // Hvis samme URL allerede er åpen → ingenting å gjøre
+  if (activeShortcutMeta && activeShortcutMeta.url === url) {
+    return { ok: true };
+  }
+
+  closeShortcutView();
+
+  const view = new BrowserView({
     webPreferences: { contextIsolation: true, nodeIntegration: false },
   });
 
-  win.loadURL(url).catch((err) => {
-    win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(`
-      <body style="font-family:system-ui;padding:40px;background:#FAFAF7;">
-        <h1 style="color:#9D0208">Kunne ikke åpne ${label || 'siden'}</h1>
-        <p>${err.message}</p>
-        <button onclick="window.location='${url}'">Prøv igjen</button>
-      </body>
-    `));
+  dashboardWindow.setBrowserView(view);
+  activeShortcutView = view;
+  activeShortcutMeta = { url, label };
+
+  const bounds = dashboardWindow.getContentBounds();
+  view.setBounds({
+    x: 0,
+    y: TOP_BAR_HEIGHT,
+    width: bounds.width,
+    height: Math.max(0, bounds.height - TOP_BAR_HEIGHT),
+  });
+  view.setAutoResize({ width: true, height: true });
+
+  view.webContents.loadURL(url).catch((err) => {
+    console.error('[open-in-window] loadURL feilet:', err);
   });
 
-  externalWindows.set(url, win);
-  win.on('closed', () => externalWindows.delete(url));
+  // Si fra til dashboard så React kan vise topp-bar med "Lukk"-knapp
+  dashboardWindow.webContents.send('shortcut:opened', { url, label });
+  return { ok: true };
+});
+
+ipcMain.handle('shell:close-shortcut-view', () => {
+  closeShortcutView();
   return { ok: true };
 });
 

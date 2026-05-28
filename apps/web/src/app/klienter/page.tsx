@@ -114,10 +114,17 @@ export default function KlienterPage() {
                       key={c.id}
                       style={{
                         borderTop: i > 0 ? `1px solid ${tokens.color.border}` : undefined,
+                        cursor: 'pointer',
+                        transition: 'background 0.1s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = tokens.color.bgAlt)}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                      onClick={() => {
+                        window.location.href = `/klienter/${c.id}`;
                       }}
                     >
                       <td style={tdStyle}>
-                        <span style={{ fontWeight: 600 }}>{c.name}</span>
+                        <span style={{ fontWeight: 600, color: tokens.color.navy }}>{c.name}</span>
                       </td>
                       <td style={tdStyle}>
                         <div style={{ fontSize: 13 }}>{c.contactEmail || '—'}</div>

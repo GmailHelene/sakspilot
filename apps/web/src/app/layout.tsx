@@ -1,6 +1,8 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import PwaInit from '@/components/PwaInit';
+import DesktopShortcutOverlay from '@/components/DesktopShortcutOverlay';
+import DesktopAgentControls from '@/components/DesktopAgentControls';
 
 export const metadata: Metadata = {
   title: 'Sakspilot — Workspace for selvstendig næringsdrivende',
@@ -42,7 +44,9 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <DesktopShortcutOverlay />
         {children}
+        <DesktopAgentControls />
         <PwaInit />
       </body>
     </html>
