@@ -1,28 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Background: navy rounded square -->
-  <rect width="512" height="512" rx="112" fill="#1E3A5F"/>
+  <!-- Charcoal rounded square — nøytral, profesjonell -->
+  <rect width="512" height="512" rx="112" fill="#1F1F1F"/>
 
-  <!-- Soft inner ring for depth -->
+  <!-- Subtil indre lys-ring for depth -->
   <rect x="32" y="32" width="448" height="448" rx="84"
-        fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2"/>
+        fill="none" stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="2"/>
 
-  <!-- Workspace cards stacked at bottom (kanban-hint) -->
-  <g opacity="0.22">
-    <rect x="116" y="378" width="280" height="18" rx="9" fill="#FFFFFF"/>
-    <rect x="116" y="406" width="232" height="18" rx="9" fill="#FFFFFF"/>
-    <rect x="116" y="434" width="168" height="18" rx="9" fill="#FFFFFF"/>
-  </g>
-
-  <!-- Pilot triangle: gold with crisp white outline -->
-  <path d="M256 84 L394 332 L118 332 Z"
-        fill="#D4A017"
+  <!-- Bold "S" formet som to sammenhengende Bezier-kurver,
+       fill ingen + tykk hvit stroke = clean geometrisk look -->
+  <path d="M 366 178
+           C 366 132, 322 122, 256 122
+           C 190 122, 146 132, 146 198
+           C 146 256, 190 268, 256 268
+           C 322 268, 366 280, 366 336
+           C 366 402, 322 412, 256 412
+           C 190 412, 146 402, 146 354"
+        fill="none"
         stroke="#FFFFFF"
-        stroke-width="8"
+        stroke-width="60"
+        stroke-linecap="round"
         stroke-linejoin="round"/>
-
-  <!-- Compass needle inside triangle: diamond shape -->
-  <path d="M256 142 L238 272 L256 260 L274 272 Z" fill="#FFFFFF"/>
-
-  <!-- Tip dot for compass needle -->
-  <circle cx="256" cy="132" r="10" fill="#FFFFFF"/>
 </svg>

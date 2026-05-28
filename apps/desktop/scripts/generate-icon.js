@@ -10,8 +10,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const zlib = require('node:zlib');
 
-const NAVY = { r: 30, g: 58, b: 95 };
-const GOLD = { r: 184, g: 134, b: 11 };
+// Nytt fargesett: charcoal-bg med hvit S. Mer nøytralt enn navy/gull.
+const NAVY = { r: 31, g: 31, b: 31 };   // charcoal bg (variabel-navn beholdt for kompatibilitet)
+const GOLD = { r: 255, g: 255, b: 255 }; // (ubrukt nå, S-bokstaven er hvit)
 const WHITE = { r: 255, g: 255, b: 255 };
 
 function createSakspilotIconPNG(size) {
@@ -42,42 +43,34 @@ function createSakspilotIconPNG(size) {
 }
 
 function pickColor(x, y, size) {
-  // Sakspilot-ikon: gull pilot-trekant med hvit kompassnål inni.
-  // Matcher web-PWA-ikonet i apps/web/public/icon-512.svg.
+  // Sakspilot-ikon: bold hvit "S" på charcoal bakgrunn.
+  // S-formen tegnes som to halvsirkler stablet — øverste vendt høyre,
+  // nederste vendt venstre. Sammen gir det en geometrisk S.
   const cx = size / 2;
-  const top = size * 0.16;
-  const bot = size * 0.78;
 
-  // Trekantens halvbredde øker lineært fra topp til bunn
-  const halfWidthAtY = ((y - top) / (bot - top)) * (size * 0.42);
+  // Sentrum + radier for de to halvsirklene
+  const topCy = size * 0.36;
+  const botCy = size * 0.64;
+  const outerR = size * 0.22;
+  const innerR = size * 0.115;
 
-  if (y >= top && y <= bot && Math.abs(x - cx) <= halfWidthAtY) {
-    // Hvit nål (diamond-form) i midten av trekanten
-    const needleTop = size * 0.27;
-    const needleBot = size * 0.66;
-    if (y >= needleTop && y <= needleBot) {
-      // Diamond: bredest på midten, smal i topp og bunn
-      const mid = (needleTop + needleBot) / 2;
-      const halfHeight = (needleBot - needleTop) / 2;
-      const needleHalfWidth =
-        (1 - Math.abs(y - mid) / halfHeight) * (size * 0.05);
-      if (Math.abs(x - cx) <= needleHalfWidth) {
-        return WHITE;
-      }
-    }
-    // Hvit tip-prikk over nålen
-    const dotY = size * 0.21;
-    const dotR = size * 0.03;
-    if (Math.hypot(x - cx, y - dotY) <= dotR) {
-      return WHITE;
-    }
-    // Hvit outline rundt trekanten (tynn)
-    const distFromEdge = halfWidthAtY - Math.abs(x - cx);
-    if (distFromEdge < size * 0.012 || y - top < size * 0.012 || bot - y < size * 0.012) {
-      return WHITE;
-    }
-    return GOLD;
-  }
+  // Avstand fra sentrum av topp-halvsirkel
+  const dTop = Math.hypot(x - cx, y - topCy);
+  const dBot = Math.hypot(x - cx, y - botCy);
+
+  // Topp-halvsirkel: åpen mot bunn-høyre (kvadrant 4 vendt mot oss)
+  // → ring (outerR > d > innerR) hvor IKKE (x > cx AND y > topCy)
+  const inTopRing = dTop <= outerR && dTop >= innerR;
+  const topOpening = x > cx && y > topCy;
+  if (inTopRing && !topOpening) return WHITE;
+
+  // Bunn-halvsirkel: åpen mot topp-venstre (kvadrant 2)
+  // → ring hvor IKKE (x < cx AND y < botCy)
+  const inBotRing = dBot <= outerR && dBot >= innerR;
+  const botOpening = x < cx && y < botCy;
+  if (inBotRing && !botOpening) return WHITE;
+
+  // Resten = bakgrunn
   return NAVY;
 }
 

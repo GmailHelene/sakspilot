@@ -64,10 +64,16 @@ export default function Header() {
         }}
       >
         <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
-          {/* Pilot-trekant med kompassnål — matcher PWA-ikonet */}
-          <path d="M16 5 L26 24 L6 24 Z" fill={tokens.color.gold} stroke="#FFFFFF" strokeWidth="0.9" strokeLinejoin="round" />
-          <path d="M16 11 L14 21 L16 19.5 L18 21 Z" fill="#FFFFFF" />
-          <circle cx="16" cy="9" r="1.3" fill="#FFFFFF" />
+          {/* Bold "S" på charcoal — matcher PWA-ikonet */}
+          <rect width="32" height="32" rx="7" fill="#1F1F1F" />
+          <path
+            d="M 23 11 C 23 8, 20 7, 16 7 C 12 7, 9 8, 9 12.5 C 9 16, 12 17, 16 17 C 20 17, 23 17.5, 23 21 C 23 24.5, 20 25, 16 25 C 12 25, 9 24.5, 9 22"
+            fill="none"
+            stroke="#FFFFFF"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
         <div>
           <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: 1 }}>
