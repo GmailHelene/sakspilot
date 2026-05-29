@@ -106,6 +106,12 @@ async function main() {
     arch: 'x64',
     overwrite: true,
     asar: true,
+    // prune=true: kjør npm prune --production i temp-dir før pakking så
+    // dev-deps (electron, @electron/packager, png-to-ico osv som vi måtte
+    // installere temporært for å KUNNE kjøre packager) ikke havner i
+    // .exe-binaryen. Uten dette blir .exe ~1 GB (forrige bygg: 1.3 GB).
+    // Med prune: ~115 MB.
+    prune: true,
     appVersion: pkg.version,
     appCopyright: `Copyright (c) ${new Date().getFullYear()} ${pkg.author?.name || 'Sakspilot'}`,
     // Windows: bruker .ico (multi-resolution) som blir embedded i .exe-binaryen.
