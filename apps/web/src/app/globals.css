@@ -58,10 +58,16 @@ a, button, [role="button"] {
   .sp-header > a > div > div:first-child {
     font-size: 13px !important;
   }
+  /* Skjul nav-lenker (Prosjekter/Klienter/Desktop/navn) på mobil.
+     Sidebaren (hamburger-menyen) inneholder samme navigasjon. Beholder
+     kun 'Logg ut' / 'Logg inn' / 'Kom i gang' i headeren. */
+  .sp-header-nav-hide-mobile {
+    display: none !important;
+  }
 }
 
 @media (max-width: 400px) {
-  /* På veldig små skjermer: hopp logo-tittel også, vis kun ikon */
+  /* På veldig små skjermer: skjul også 'SAKSPILOT'-teksten, vis bare S-ikon */
   .sp-header > a > div {
     display: none !important;
   }

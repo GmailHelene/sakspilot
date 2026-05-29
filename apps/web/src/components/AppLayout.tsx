@@ -82,19 +82,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
       <div style={{ flex: 1, display: 'flex', minHeight: 0, position: 'relative' }}>
-        {/* Mobil-hamburger — floating top-left over innholdet */}
+        {/* Mobil-hamburger — floating top-left, men under main-content
+            (innhold dyttes ned via paddingTop:60 så de ikke overlapper) */}
         {isMobile && (
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? 'Lukk meny' : 'Åpne meny'}
             style={{
               position: 'fixed',
-              top: 70,
-              left: 12,
+              top: 64,
+              left: 10,
               zIndex: 998,
-              width: 40,
-              height: 40,
-              borderRadius: 12,
+              width: 36,
+              height: 36,
+              borderRadius: 10,
               background: tokens.color.navy,
               color: 'white',
               border: 'none',
@@ -105,7 +106,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               boxShadow: tokens.shadow.md,
             }}
           >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         )}
 
@@ -154,7 +155,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             flex: 1,
             overflowY: 'auto',
             background: tokens.color.bg,
-            paddingTop: isMobile ? 8 : 0, // unngå at hamburger overlapper
+            // På mobil: 52px topp-padding rydder plass til floating hamburger
+            // (som ligger fast ved top:64, height:36). Uten dette overlapper
+            // hamburger med sidens H1.
+            paddingTop: isMobile ? 52 : 0,
           }}
         >
           {children}

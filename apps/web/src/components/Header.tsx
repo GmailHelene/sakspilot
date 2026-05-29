@@ -108,16 +108,16 @@ export default function Header() {
       >
         {mounted && me ? (
           <>
-            <Link href="/saker" style={navLinkStyle}>
+            <Link href="/saker" style={navLinkStyle} className="sp-header-nav-hide-mobile">
               Prosjekter
             </Link>
-            <Link href="/klienter" style={navLinkStyle}>
+            <Link href="/klienter" style={navLinkStyle} className="sp-header-nav-hide-mobile">
               Klienter
             </Link>
-            <Link href="/last-ned" style={navLinkStyle} title="Last ned Windows-appen">
+            <Link href="/last-ned" style={navLinkStyle} title="Last ned Windows-appen" className="sp-header-nav-hide-mobile">
               ⬇ Desktop
             </Link>
-            <span style={{ color: tokens.color.white, opacity: 0.85 }}>
+            <span style={{ color: tokens.color.white, opacity: 0.85, whiteSpace: 'nowrap' }} className="sp-header-nav-hide-mobile">
               {me.name}
             </span>
             <button
