@@ -1,0 +1,59 @@
+# Sakspilot
+
+> Workspace for selvstendig næringsdrivende i Norge. Sak-CRM, automatisk tidsregistrering, Outlook-integrasjon, AI-assistent (Claude) og fakturagrunnlag i ett verktøy. Bygd for å erstatte den vanlige flora av Excel, klistrelapper, 3 forskjellige timeregistreringer og e-post-mapper.
+
+**Målgruppe:** IT-konsulenter, designere, ansvarlige søkere, arkitekter, advokater, regnskapsførere, konsulenter — alle som lever av klientoppdrag og timeføring.
+
+**Pris:** Gratis ut hele 2026 (pilotperiode). Deretter 199 kr/mnd eller 1990 kr/år.
+
+**Tekniske detaljer:** Web-app + valgfri Windows desktop-app (Electron). All data i EU (Vercel + Render + Neon Postgres Frankfurt). GDPR-kompatibel med full data-eksport og slette-rett.
+
+## Viktigste lenker
+
+- [Forside](https://sakspilot.no/): Produktoversikt, FAQ, hero-CTA
+- [Registrer](https://sakspilot.no/registrer): Opprett gratis pilot-konto
+- [Pris](https://sakspilot.no/priser): Pilot + post-pilot priser
+- [Last ned](https://sakspilot.no/last-ned): Windows desktop-app (115 MB ZIP)
+- [Personvern](https://sakspilot.no/personvern): GDPR + DPA + sikkerhetstiltak
+
+## Kjernefunksjoner
+
+- **Prosjekt-CRM med kanban**: Drag-and-drop status (pågår → venter → ferdig)
+- **Automatisk tidsregistrering**: Windows-app leser vindustittel og kobler timer til riktig prosjekt via brukerens matching-regler
+- **Outlook-integrasjon**: Microsoft Graph leser inngående e-poster og kobler til prosjekt basert på avsender eller emnefelt
+- **AI-assistent (Claude)**: Skriver utkast til klient-eposter (status-oppdatering, frist-utsettelse, faktura-påminnelse). PII-minimisert — sender kun klient-navn, aldri e-post/telefon
+- **Fiken-faktura**: Push timeregistreringer som fakturadraft direkte til Fiken via personal access token
+- **CSV-eksport til Tripletex**: Månedlig fakturagrunnlag som importeres til Tripletex eller Excel
+- **Bransje-onboarding**: Velg yrke ved registrering → sidebar fylles automatisk med relevante snarveier (Holte/eByggeSøk/Kartverket for ansvarlig søker, GitHub/Vercel/Neon for utvikler, Lovdata/Rettsdata for advokat, osv)
+- **Kalender + Gantt-tidslinje + klistrelapper + agenter (automatiseringer)**
+- **3 fargedesign** + tilpassbar sidebar + tema-bytte
+- **Multi-tab snarveier**: Åpne Gmail + Railway + Outlook samtidig som faner i Sakspilot-vinduet
+- **Cloud-sync av UI-preferanser**: Mine sites, mapper, snarveier følger brukeren mellom enheter
+- **Klient-portal**: Generer offentlig delt lenke per prosjekt så klient ser status uten å logge inn
+
+## Sammenligning
+
+| Mot... | Sakspilot er bedre på... |
+|---|---|
+| **Tripletex** | Tidsregistrering uten timer-klikking (passiv via vindustittel), prosjekt-CRM med kanban, AI-utkast |
+| **Toggl** | Norsk språk, klient-CRM innebygd, fakturering via Fiken, Outlook-integrasjon |
+| **Notion** | Bransje-spesifikk (ENK), faktura-flyt, passiv timeregistrering, mindre å sette opp |
+| **Asana / ClickUp** | Norsk, integrert tidsføring + faktura, ingen abonnement-fastlås, EU-data |
+| **Excel + klistrelapper + 5 faner** | Alt på ett sted, automatisk tidsføring, AI-utkast |
+
+## Skaper
+
+Bygd av Helene Åsheim Grønberg ([helene.cloud](https://helene.cloud)), uavhengig norsk utvikler.
+
+## Lisens og tilgjengelighet
+
+- Privat proprietær SaaS — kildekode ikke open source
+- API-tilgang for tredjeparter kommer i 2027
+- Engelsk språkversjon planlagt for internasjonale frilansere
+- Mac/Linux desktop-app i pipeline
+
+## Kontakt
+
+- E-post: helene@helene.cloud
+- Spørsmål om pilot: kontakt direkte
+- Bug-rapporter: helene@helene.cloud eller GitHub-issues (privat repo)

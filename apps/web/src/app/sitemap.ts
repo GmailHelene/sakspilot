@@ -57,5 +57,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.9,
     },
+    // Last ned-side — Windows desktop-app
+    {
+      url: `${base}/last-ned`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    // Sammenligning — long-tail SEO ('Sakspilot vs Tripletex' osv)
+    {
+      url: `${base}/sammenligning`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    // Glemt passord (lav prioritet, men bør være kjent for Google)
+    {
+      url: `${base}/glemt-passord`,
+      lastModified: now,
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
   ];
 }

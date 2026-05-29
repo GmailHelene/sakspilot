@@ -37,6 +37,38 @@ const FAQ = [
     q: 'Kan jeg dele en sak med klienten min?',
     a: 'Ja — generer en offentlig delt lenke per sak. Klienten ser status, milepæler og fremdrift uten å logge inn. Sensitive data (notater, tidsregistreringer, beløp) deles ikke.',
   },
+  {
+    q: 'Hvordan er Sakspilot forskjellig fra Tripletex eller Toggl?',
+    a: 'Tripletex er et regnskapssystem — Sakspilot er et arbeids-workspace. Vi push timer TIL Tripletex via CSV/API, vi erstatter ikke det. Toggl er bare en stoppeklokke — Sakspilot har CRM, kalender, AI-utkast, e-postkobling og faktura-flyt innebygd. Stort sett bruker våre brukere både Sakspilot og Tripletex/Fiken sammen.',
+  },
+  {
+    q: 'Hva slags Windows-versjon trengs?',
+    a: 'Sakspilot Desktop kjører på Windows 10 og Windows 11 (64-bit). Ikke kodesignert ennå — Windows SmartScreen kan vise advarsel første gang. Mac- og Linux-versjon kommer senere.',
+  },
+  {
+    q: 'Hvilke språk støtter AI-assistenten?',
+    a: 'AI-en (Claude Sonnet 4.5) svarer på norsk bokmål som standard, men kan skrive på engelsk hvis du ber om det. Brukerflaten er foreløpig norsk-only — engelsk språkversjon planlagt 2026.',
+  },
+  {
+    q: 'Kan jeg invitere flere i organisasjonen?',
+    a: 'Solo-plan støtter én bruker per organisasjon. Team-plan (flere brukere, delte prosjekter, roller) lanseres Q2 2027. Hvis du er midlertidig flere som vil teste, kontakt helene@helene.cloud.',
+  },
+  {
+    q: 'Lagres data hos OpenAI eller Anthropic?',
+    a: 'AI-assistent bruker Anthropic Claude. Vi sender KUN klient-navn + prosjekt-metadata (titler, status, milepæler) — aldri klient-epost, telefon eller fritekst-notater. Anthropic har 30-dagers default retention. Zero Data Retention er tilgjengelig på Enterprise-avtale. For EU-residency kan vi rute via AWS Bedrock i Frankfurt (kunde-konfigurerbart).',
+  },
+  {
+    q: 'Hva skjer hvis Sakspilot legges ned?',
+    a: 'Du kan eksportere ALL din data som JSON via Innstillinger → Sikkerhet → Last ned mine data (GDPR-rettighet, alltid tilgjengelig). Hvis Sakspilot legges ned vil vi gi minst 90 dagers varsel + samme JSON-eksport.',
+  },
+  {
+    q: 'Kan jeg bruke Sakspilot mobilt?',
+    a: 'Ja — sakspilot.no fungerer i mobil-nettleser, og du kan "installere som app" via Chrome/Safari (PWA). Native iOS/Android-app er ikke prioritert ennå siden PWA dekker 95% av behovet.',
+  },
+  {
+    q: 'Hvor lang tid tar det å komme i gang?',
+    a: 'Registrering + bransje-onboarding tar ~3 min. Last ned Windows-app for tidsregistrering: ytterligere ~5 min. Outlook-kobling: 1 min. Totalt ~10 min før alt er på plass.',
+  },
 ];
 
 export default function LandingPage() {
