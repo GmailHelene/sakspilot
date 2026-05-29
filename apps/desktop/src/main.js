@@ -894,19 +894,28 @@ ipcMain.handle('shell:open-folder', async (_e, folderPath) => {
   }
 });
 
-// Åpne URL INNE I dashboard-vinduet via BrowserView.
-// Vi posisjonerer BrowserView slik at den dekker KUN main content area —
-// sidebar + launcher + sakspilot-header forblir synlig og klikkbar.
-// React rendrer en 36px tab-bar i toppen av main content med "← Tilbake"
-// + alle åpne snarveier som klikkbare faner.
-let activeShortcutView = null;
-let activeShortcutMeta = null; // { url, label }
-// Offsetter — må matche sakspilot.no sin layout (DesktopShortcutOverlay.tsx
+// ─────────────────────────────────────────────────────────────────
+// Multi-tab shortcut-system
+// ─────────────────────────────────────────────────────────────────
+// Hver åpnet snarvei (Gmail, Railway, osv) lever som en egen BrowserView.
+// Bare ÉN er synlig av gangen ("active"), men alle holdes i live så
+// brukeren kan switche mellom dem uten å miste sesjon/state.
+//
+// Datastruktur:
+//   openShortcuts: Map<url, { view, label, resizeHandler }>
+//   activeShortcutUrl: string | null
+//
+// React får komplett liste via 'shortcut:state'-events.
+//
+// Offsetter må matche sakspilot.no sin layout (DesktopShortcutOverlay.tsx
 // har samme konstanter — hold synkronisert!)
-const SAKSPILOT_HEADER_HEIGHT = 72; // global topp-header (to-linjes logo gjør den ~68px)
-const SIDEBAR_WIDTH = 220;          // venstre nav
-const LAUNCHER_WIDTH = 60;          // ytre launcher-stripe (matcher launcherStyle.width)
-const TAB_BAR_HEIGHT = 36;          // tab-bar over BrowserView
+const SAKSPILOT_HEADER_HEIGHT = 72;
+const SIDEBAR_WIDTH = 220;
+const LAUNCHER_WIDTH = 60;
+const TAB_BAR_HEIGHT = 36;
+
+const openShortcuts = new Map(); // url → { view, label, resizeHandler }
+let activeShortcutUrl = null;
 
 function getShortcutBounds(win) {
   const bounds = win.getContentBounds();
@@ -920,71 +929,128 @@ function getShortcutBounds(win) {
   };
 }
 
-function closeShortcutView() {
-  if (activeShortcutView && dashboardWindow && !dashboardWindow.isDestroyed()) {
-    try { dashboardWindow.removeBrowserView(activeShortcutView); } catch {}
-    try { activeShortcutView.webContents.destroy(); } catch {}
+function broadcastShortcutState() {
+  if (!dashboardWindow || dashboardWindow.isDestroyed()) return;
+  const tabs = Array.from(openShortcuts.entries()).map(([url, meta]) => ({
+    url,
+    label: meta.label,
+  }));
+  dashboardWindow.webContents.send('shortcut:state', {
+    tabs,
+    activeUrl: activeShortcutUrl,
+  });
+}
+
+function setActiveShortcut(url) {
+  if (!dashboardWindow || dashboardWindow.isDestroyed()) return;
+  const entry = openShortcuts.get(url);
+  if (!entry) return;
+
+  // Fjern alle andre views fra topplaget — bare den aktive vises
+  for (const [u, m] of openShortcuts.entries()) {
+    if (u !== url) {
+      try { dashboardWindow.removeBrowserView(m.view); } catch {}
+    }
   }
-  activeShortcutView = null;
-  activeShortcutMeta = null;
+  // Sett aktiv view
+  try { dashboardWindow.setBrowserView(entry.view); } catch {}
+  entry.view.setBounds(getShortcutBounds(dashboardWindow));
+  activeShortcutUrl = url;
+  broadcastShortcutState();
+}
+
+function destroyShortcut(url) {
+  const entry = openShortcuts.get(url);
+  if (!entry) return;
   if (dashboardWindow && !dashboardWindow.isDestroyed()) {
-    dashboardWindow.webContents.send('shortcut:closed');
+    try { dashboardWindow.removeBrowserView(entry.view); } catch {}
+    try { dashboardWindow.removeListener('resize', entry.resizeHandler); } catch {}
+  }
+  try { entry.view.webContents.destroy(); } catch {}
+  openShortcuts.delete(url);
+
+  // Hvis vi lukket aktiv tab → switch til neste tilgjengelige (eller null)
+  if (activeShortcutUrl === url) {
+    const remaining = Array.from(openShortcuts.keys());
+    if (remaining.length > 0) {
+      setActiveShortcut(remaining[remaining.length - 1]);
+    } else {
+      activeShortcutUrl = null;
+      broadcastShortcutState();
+    }
+  } else {
+    broadcastShortcutState();
+  }
+}
+
+function closeAllShortcuts() {
+  const urls = Array.from(openShortcuts.keys());
+  for (const url of urls) {
+    destroyShortcut(url);
   }
 }
 
 ipcMain.handle('shell:open-in-window', async (_e, url, label) => {
   if (!dashboardWindow || dashboardWindow.isDestroyed()) {
-    // Hvis dashboard ikke er åpen, fall tilbake til ekstern browser
     shell.openExternal(url);
     return { ok: true, fallback: 'external' };
   }
 
-  // Hvis samme URL allerede er åpen → ingenting å gjøre
-  if (activeShortcutMeta && activeShortcutMeta.url === url) {
-    return { ok: true };
+  // Hvis allerede åpen → bare switch til den
+  if (openShortcuts.has(url)) {
+    setActiveShortcut(url);
+    return { ok: true, alreadyOpen: true };
   }
 
-  closeShortcutView();
-
+  // Opprett ny BrowserView
   const view = new BrowserView({
     webPreferences: { contextIsolation: true, nodeIntegration: false },
   });
 
-  dashboardWindow.setBrowserView(view);
-  activeShortcutView = view;
-  activeShortcutMeta = { url, label };
-
-  view.setBounds(getShortcutBounds(dashboardWindow));
-  // Custom auto-resize: ved window-resize må vi rekalkulere bounds
-  // siden setAutoResize bare scaler, ikke flytter origin.
   const resizeHandler = () => {
-    if (!view.webContents.isDestroyed()) {
+    if (
+      dashboardWindow &&
+      !dashboardWindow.isDestroyed() &&
+      activeShortcutUrl === url &&
+      !view.webContents.isDestroyed()
+    ) {
       view.setBounds(getShortcutBounds(dashboardWindow));
     }
   };
   dashboardWindow.on('resize', resizeHandler);
-  view.webContents.once('destroyed', () => {
-    // dashboardWindow kan være null hvis hele appen lukkes før BrowserView
-    // destrueres (typisk app-quit) — null-check hindrer crash
-    if (dashboardWindow && !dashboardWindow.isDestroyed()) {
-      try {
-        dashboardWindow.removeListener('resize', resizeHandler);
-      } catch {}
-    }
-  });
+
+  openShortcuts.set(url, { view, label, resizeHandler });
+  setActiveShortcut(url);
 
   view.webContents.loadURL(url).catch((err) => {
     console.error('[open-in-window] loadURL feilet:', err);
   });
 
-  // Si fra til dashboard så React kan vise topp-bar med "Lukk"-knapp
-  dashboardWindow.webContents.send('shortcut:opened', { url, label });
   return { ok: true };
 });
 
-ipcMain.handle('shell:close-shortcut-view', () => {
-  closeShortcutView();
+ipcMain.handle('shell:switch-shortcut', (_e, url) => {
+  if (!openShortcuts.has(url)) return { ok: false, error: 'Ikke åpen' };
+  setActiveShortcut(url);
   return { ok: true };
+});
+
+ipcMain.handle('shell:close-shortcut-view', (_e, url) => {
+  // Hvis url ikke gitt = behold gammel adferd (lukk alle = tilbake til Sakspilot)
+  if (!url) {
+    closeAllShortcuts();
+    return { ok: true };
+  }
+  destroyShortcut(url);
+  return { ok: true };
+});
+
+ipcMain.handle('shell:get-shortcut-state', () => {
+  const tabs = Array.from(openShortcuts.entries()).map(([url, meta]) => ({
+    url,
+    label: meta.label,
+  }));
+  return { tabs, activeUrl: activeShortcutUrl };
 });
 
 // Oppdater tray-menyen hvert 15. sekund for å holde elapsed-tid fersk

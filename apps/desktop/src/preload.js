@@ -25,9 +25,11 @@ contextBridge.exposeInMainWorld('sakspilot', {
   // Filsystem (kun Electron — åpner mapper i Windows Explorer)
   openFolder: (path) => ipcRenderer.invoke('shell:open-folder', path),
 
-  // Åpne URL i embedded BrowserView INNE i dashboard-vinduet
+  // Multi-tab snarvei-system — flere BrowserViews samtidig
   openInWindow: (url, label) => ipcRenderer.invoke('shell:open-in-window', url, label),
-  closeShortcutView: () => ipcRenderer.invoke('shell:close-shortcut-view'),
+  switchShortcut: (url) => ipcRenderer.invoke('shell:switch-shortcut', url),
+  closeShortcutView: (url) => ipcRenderer.invoke('shell:close-shortcut-view', url),
+  getShortcutState: () => ipcRenderer.invoke('shell:get-shortcut-state'),
 
   // Åpne URL i brukerens default-nettleser (brukes f.eks. fra settings.html
   // for "Opprett konto"-lenken som skal åpnes utenfor Sakspilot)
@@ -37,15 +39,11 @@ contextBridge.exposeInMainWorld('sakspilot', {
   pickExeFile: () => ipcRenderer.invoke('shell:pick-exe'),
   openLocalPath: (filePath) => ipcRenderer.invoke('shell:open-local', filePath),
 
-  // Lytt etter shortcut-events fra main-prosessen
-  onShortcutOpened: (callback) => {
-    const listener = (_e, meta) => callback(meta);
-    ipcRenderer.on('shortcut:opened', listener);
-    return () => ipcRenderer.removeListener('shortcut:opened', listener);
-  },
-  onShortcutClosed: (callback) => {
-    const listener = () => callback();
-    ipcRenderer.on('shortcut:closed', listener);
-    return () => ipcRenderer.removeListener('shortcut:closed', listener);
+  // Lytt etter shortcut-state-events fra main-prosessen.
+  // Hver gang åpnede tabs eller aktiv tab endres, broadcastes hele state.
+  onShortcutState: (callback) => {
+    const listener = (_e, state) => callback(state);
+    ipcRenderer.on('shortcut:state', listener);
+    return () => ipcRenderer.removeListener('shortcut:state', listener);
   },
 });
