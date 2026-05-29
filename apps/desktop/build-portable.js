@@ -94,50 +94,12 @@ async function main() {
     throw new Error('npm install (dev) feilet i temp-mappe');
   }
 
-  // ── Steg 3.5: import packager FØR vi sletter dev-deps,
-  //              ellers kan vi ikke kjøre den.
-  const packager = require(path.join(TEMP_DIR, 'node_modules', '@electron', 'packager'));
-
-  // ── Steg 3.6: MANUELT slett dev-deps fra TEMP_DIR/node_modules ──
-  // npm v11 sin --omit=dev + packager sin prune:true fungerte ikke i
-  // workspace-kontekst. Vi sletter dev-deps eksplisitt så app.asar
-  // ikke vokser til 1 GB+.
-  console.log('       Sletter dev-deps manuelt før pakking...');
-  const devToRemove = [
-    'electron',
-    '@electron/packager',
-    'electron-builder',
-    'png-to-ico',
-    'pngjs',
-    '@develar',
-    '@malept',
-    '@electron/asar',
-    '@electron/get',
-    '@electron/notarize',
-    '@electron/osx-sign',
-    '@electron/universal',
-    '@electron/rebuild',
-    '7zip-bin',
-    'app-builder-bin',
-    'app-builder-lib',
-    'dmg-builder',
-    'dmg-license',
-    'builder-util',
-    'builder-util-runtime',
-  ];
-  for (const dep of devToRemove) {
-    const depPath = path.join(TEMP_DIR, 'node_modules', dep);
-    if (fs.existsSync(depPath)) {
-      try {
-        fs.rmSync(depPath, { recursive: true, force: true });
-      } catch (err) {
-        console.log(`         (kunne ikke slette ${dep}: ${err.message})`);
-      }
-    }
-  }
-
   // ── Steg 4: kjør electron-packager ────────────────────────
+  // Packager + dets dev-deps må forbli i node_modules (de trengs for å
+  // KJØRE packager). Dev-deps blir filtrert ut av app.asar via 'ignore'-
+  // mønstre under (se nedenfor).
   step(4, 6, 'Pakker Electron-app...');
+  const packager = require(path.join(TEMP_DIR, 'node_modules', '@electron', 'packager'));
   const fn = packager.packager || packager.default || packager;
   const appPaths = await fn({
     dir: TEMP_DIR,
