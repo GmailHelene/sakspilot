@@ -94,9 +94,50 @@ async function main() {
     throw new Error('npm install (dev) feilet i temp-mappe');
   }
 
+  // ── Steg 3.5: import packager FØR vi sletter dev-deps,
+  //              ellers kan vi ikke kjøre den.
+  const packager = require(path.join(TEMP_DIR, 'node_modules', '@electron', 'packager'));
+
+  // ── Steg 3.6: MANUELT slett dev-deps fra TEMP_DIR/node_modules ──
+  // npm v11 sin --omit=dev + packager sin prune:true fungerte ikke i
+  // workspace-kontekst. Vi sletter dev-deps eksplisitt så app.asar
+  // ikke vokser til 1 GB+.
+  console.log('       Sletter dev-deps manuelt før pakking...');
+  const devToRemove = [
+    'electron',
+    '@electron/packager',
+    'electron-builder',
+    'png-to-ico',
+    'pngjs',
+    '@develar',
+    '@malept',
+    '@electron/asar',
+    '@electron/get',
+    '@electron/notarize',
+    '@electron/osx-sign',
+    '@electron/universal',
+    '@electron/rebuild',
+    '7zip-bin',
+    'app-builder-bin',
+    'app-builder-lib',
+    'dmg-builder',
+    'dmg-license',
+    'builder-util',
+    'builder-util-runtime',
+  ];
+  for (const dep of devToRemove) {
+    const depPath = path.join(TEMP_DIR, 'node_modules', dep);
+    if (fs.existsSync(depPath)) {
+      try {
+        fs.rmSync(depPath, { recursive: true, force: true });
+      } catch (err) {
+        console.log(`         (kunne ikke slette ${dep}: ${err.message})`);
+      }
+    }
+  }
+
   // ── Steg 4: kjør electron-packager ────────────────────────
   step(4, 6, 'Pakker Electron-app...');
-  const packager = require(path.join(TEMP_DIR, 'node_modules', '@electron', 'packager'));
   const fn = packager.packager || packager.default || packager;
   const appPaths = await fn({
     dir: TEMP_DIR,
@@ -106,11 +147,10 @@ async function main() {
     arch: 'x64',
     overwrite: true,
     asar: true,
-    // prune=true: kjør npm prune --production i temp-dir før pakking så
-    // dev-deps (electron, @electron/packager, png-to-ico osv som vi måtte
-    // installere temporært for å KUNNE kjøre packager) ikke havner i
-    // .exe-binaryen. Uten dette blir .exe ~1 GB (forrige bygg: 1.3 GB).
-    // Med prune: ~115 MB.
+    // prune er TRUE by default — men i workspace-monorepo + npm v11 fungerte
+    // det ikke (electron + @electron/packager + transitives havnet i app.asar).
+    // Kjør manuell prune før packager (gjort under), pluss ignore-mønstre
+    // som backup.
     prune: true,
     appVersion: pkg.version,
     appCopyright: `Copyright (c) ${new Date().getFullYear()} ${pkg.author?.name || 'Sakspilot'}`,
@@ -133,6 +173,20 @@ async function main() {
       /^\/build-portable\.js$/,
       /^\/start-electron\.js$/,
       /\.md$/i,
+      // Dev-deps som ikke skal med i app.asar (backup hvis manuell sletting
+      // over har feilet). Belt + suspenders.
+      /^\/node_modules\/electron($|\/)/,
+      /^\/node_modules\/@electron($|\/)/,
+      /^\/node_modules\/@develar($|\/)/,
+      /^\/node_modules\/@malept($|\/)/,
+      /^\/node_modules\/electron-builder($|\/)/,
+      /^\/node_modules\/app-builder-(bin|lib)($|\/)/,
+      /^\/node_modules\/builder-util($|\/)/,
+      /^\/node_modules\/builder-util-runtime($|\/)/,
+      /^\/node_modules\/dmg-(builder|license)($|\/)/,
+      /^\/node_modules\/7zip-bin($|\/)/,
+      /^\/node_modules\/png-to-ico($|\/)/,
+      /^\/node_modules\/pngjs($|\/)/,
     ],
   });
 
