@@ -1,20 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { tokens } from '@/lib/tokens';
 import { Play, X } from 'lucide-react';
 
 /**
- * Klikk-til-spill demo-thumbnail.
+ * Klikk-til-spill demo-thumbnail som åpner modal med faktisk video.
  *
- * TODO (Helene): Når demo-videoen er ferdig screen-recorded
- * (advokat-flyt: opprett sak → tidsregistrering via desktop-agent →
- *  AI-utkast til e-post → faktura til Fiken), bytt placeholder-modalen
- *  under med <video>-tag eller <iframe> mot YouTube/Vimeo. Bytt også
- *  thumbnail-bakgrunnen til et reelt skjermbilde fra opptaket.
+ * Videoen ligger på `/demo-advokat.mp4` i public-folderen. Den serveres
+ * direkte fra Vercel og spiller av i nettleseren via HTML <video>-tag.
+ *
+ * Båndbredde-merknad: videoen er ~65 MB. Vercel-grensa er 100 GB/mnd på
+ * free tier. Hvis trafikken vokser betraktelig (>1500 visninger/mnd),
+ * vurder å bytte til YouTube unlisted eller Cloudflare Stream for å
+ * unngå å spise opp bandwidth-budsjettet.
  */
 export default function DemoVideoModal() {
   const [open, setOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Pause + reset videoen når modal lukkes så lyden ikke fortsetter
+  useEffect(() => {
+    if (!open && videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  }, [open]);
+
+  // Esc-tast for å lukke
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
 
   return (
     <>
@@ -91,7 +112,7 @@ export default function DemoVideoModal() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(15, 23, 42, 0.78)',
+            background: 'rgba(15, 23, 42, 0.88)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -102,68 +123,59 @@ export default function DemoVideoModal() {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: tokens.color.surface,
+              background: '#000',
               borderRadius: tokens.radius.lg,
-              padding: 32,
-              maxWidth: 520,
+              maxWidth: 1080,
               width: '100%',
               position: 'relative',
               boxShadow: tokens.shadow.xl,
+              overflow: 'hidden',
             }}
           >
             <button
               type="button"
               onClick={() => setOpen(false)}
-              aria-label="Lukk"
+              aria-label="Lukk video"
+              title="Lukk (Esc)"
               style={{
                 position: 'absolute',
                 top: 12,
                 right: 12,
-                background: 'transparent',
-                color: tokens.color.textMuted,
-                padding: 6,
+                background: 'rgba(0,0,0,0.6)',
+                color: '#fff',
+                padding: 8,
                 borderRadius: tokens.radius.sm,
+                zIndex: 2,
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
               <X size={20} />
             </button>
-            <h3 style={{ fontSize: 22, color: tokens.color.navy, marginBottom: 12, paddingRight: 24 }}>
-              Demo-video kommer snart
-            </h3>
-            <p style={{ color: tokens.color.textMuted, lineHeight: 1.6, marginBottom: 20 }}>
-              Vi er i ferd med å spille inn en 90-sekunders gjennomgang av Sakspilot —
-              fra første sak til ferdig faktura. Registrer deg gratis nå, så får du beskjed
-              på e-post når demoen er klar.
-            </p>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <a
-                href="/registrer"
-                style={{
-                  background: tokens.color.navy,
-                  color: tokens.color.white,
-                  padding: '10px 18px',
-                  borderRadius: tokens.radius.md,
-                  fontWeight: 600,
-                  fontSize: 14,
-                }}
-              >
-                Registrer meg gratis
+            <video
+              ref={videoRef}
+              src="/demo-advokat.mp4"
+              controls
+              autoPlay
+              playsInline
+              preload="metadata"
+              style={{
+                display: 'block',
+                width: '100%',
+                height: 'auto',
+                maxHeight: '85vh',
+                background: '#000',
+              }}
+            >
+              Nettleseren din støtter ikke avspilling av video.
+              <a href="/demo-advokat.mp4" style={{ color: tokens.color.gold }}>
+                Last ned videoen istedenfor
               </a>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                style={{
-                  background: tokens.color.bgAlt,
-                  color: tokens.color.navy,
-                  padding: '10px 18px',
-                  borderRadius: tokens.radius.md,
-                  fontWeight: 600,
-                  fontSize: 14,
-                }}
-              >
-                Senere
-              </button>
-            </div>
+              .
+            </video>
           </div>
         </div>
       )}
