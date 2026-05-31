@@ -64,6 +64,7 @@ let settingsWindow = null;
 let poller = null;
 let syncTimer = null;
 let rulesRefreshTimer = null;
+let reminderTimer = null;
 
 // Arbeidsøkt-state (kun i minnet — ny etter restart)
 let workSessionActive = false;
@@ -71,6 +72,11 @@ let workSessionStart = null;
 let workSessionSessions = [];   // sessions samlet i pågående arbeidsøkt
 const pendingSessions = [];     // sessions klare for sync til backend
 let deviceId = null;            // stabil per installasjon
+
+// Pomodoro-state (kun i minnet — nullstilles ved restart)
+// null | { phase: 'work'|'break', startedAt: number, sessionNumber: number, timer: NodeJS.Timeout }
+let pomodoroState = null;
+let pomodoroCompletedCount = 0; // antall fullførte work-faser i denne sesjonen
 
 // ── Single-instance lock ────────────────────────────────────────
 const gotLock = app.requestSingleInstanceLock();
@@ -134,6 +140,14 @@ app.whenReady().then(async () => {
 
 app.on('window-all-closed', (e) => e.preventDefault());
 
+// Rydd pomodoro-timer ved app-quit så vi ikke etterlater zombie-setTimeout
+app.on('before-quit', () => {
+  if (pomodoroState && pomodoroState.timer) {
+    try { clearTimeout(pomodoroState.timer); } catch {}
+    pomodoroState = null;
+  }
+});
+
 function initializeAgent() {
   // Poller START seg selv, men VENTER på "Start arbeidsøkt" før den
   // faktisk logger noe (paused = true til man klikker Start)
@@ -175,7 +189,11 @@ function initializeAgent() {
 
   scheduleSync();
   scheduleRulesRefresh();
+  scheduleReminderCheck();
   refreshRules();
+  // Sjekk påminnelser én gang ved oppstart så bruker får etterslepne varsler
+  // umiddelbart (ikke etter første minutt).
+  checkStickyReminders();
 }
 
 // ── Tray ────────────────────────────────────────────────────────
@@ -216,6 +234,28 @@ function updateTrayMenu() {
       items.push({
         label: `   ↳ tilordnes: ${truncate(store.get('activeSakTitle'), 36)}`,
         enabled: false,
+      });
+    }
+    items.push({ type: 'separator' });
+
+    // Pomodoro-timer — egen seksjon mellom auto-spor og arbeidsøkt
+    if (pomodoroState) {
+      const remaining = pomodoroRemainingSec();
+      const phaseLabel = pomodoroState.phase === 'work'
+        ? `🟢 Arbeid ${formatDur(remaining)} igjen`
+        : `🟡 Pause ${formatDur(remaining)} igjen`;
+      items.push({
+        label: `🍅 Pomodoro #${pomodoroState.sessionNumber}: ${phaseLabel}`,
+        enabled: false,
+      });
+      items.push({ label: '■  Stopp pomodoro', click: () => stopPomodoro() });
+    } else {
+      const nextNum = pomodoroCompletedCount + 1;
+      items.push({
+        label: pomodoroCompletedCount > 0
+          ? `🍅 Start pomodoro #${nextNum} (25/5)`
+          : '🍅 Start pomodoro (25/5)',
+        click: () => startPomodoro(),
       });
     }
     items.push({ type: 'separator' });
@@ -301,6 +341,84 @@ function formatDur(sec) {
   if (h) return `${h}t ${m}m`;
   if (m) return `${m}m ${s}s`;
   return `${s}s`;
+}
+
+// ── Pomodoro-timer ──────────────────────────────────────────────
+// 25 min arbeid → 5 min pause → notif "Start ny?". Tellingen holdes
+// kun i minnet og resettes ved app-restart.
+const POMODORO_WORK_MS = 25 * 60 * 1000;
+const POMODORO_BREAK_MS = 5 * 60 * 1000;
+
+function pomodoroDurationMs(phase) {
+  return phase === 'break' ? POMODORO_BREAK_MS : POMODORO_WORK_MS;
+}
+
+function pomodoroRemainingSec() {
+  if (!pomodoroState) return 0;
+  const total = pomodoroDurationMs(pomodoroState.phase);
+  const elapsed = Date.now() - pomodoroState.startedAt;
+  return Math.max(0, Math.round((total - elapsed) / 1000));
+}
+
+function pomodoroNotify(title, body) {
+  if (!Notification.isSupported()) return;
+  try {
+    new Notification({ title, body, urgency: 'normal' }).show();
+  } catch (err) {
+    console.warn('[Pomodoro] notif feilet:', err.message);
+  }
+}
+
+function startPomodoro() {
+  // Hvis en pomodoro allerede kjører, ikke start på nytt — bare rapporter.
+  if (pomodoroState) return false;
+  const sessionNumber = pomodoroCompletedCount + 1;
+  pomodoroState = {
+    phase: 'work',
+    startedAt: Date.now(),
+    sessionNumber,
+    timer: setTimeout(onPomodoroPhaseEnd, POMODORO_WORK_MS),
+  };
+  pomodoroNotify('Sakspilot — pomodoro startet', `🍅 #${sessionNumber}: 25 min fokustid begynner nå`);
+  updateTrayMenu();
+  return true;
+}
+
+function stopPomodoro() {
+  if (!pomodoroState) return false;
+  try { clearTimeout(pomodoroState.timer); } catch {}
+  pomodoroState = null;
+  updateTrayMenu();
+  return true;
+}
+
+function onPomodoroPhaseEnd() {
+  if (!pomodoroState) return;
+  const { phase, sessionNumber } = pomodoroState;
+  try { clearTimeout(pomodoroState.timer); } catch {}
+
+  if (phase === 'work') {
+    // Work-fase ferdig → start break
+    pomodoroCompletedCount = sessionNumber;
+    pomodoroState = {
+      phase: 'break',
+      startedAt: Date.now(),
+      sessionNumber,
+      timer: setTimeout(onPomodoroPhaseEnd, POMODORO_BREAK_MS),
+    };
+    pomodoroNotify(
+      'Sakspilot — pomodoro',
+      `🍅 Pomodoro #${sessionNumber} ferdig — ta 5 min pause`
+    );
+  } else {
+    // Break-fase ferdig → tilbake til idle, varsle bruker
+    pomodoroState = null;
+    pomodoroNotify(
+      'Sakspilot — pomodoro',
+      `✅ Pause ferdig — start ny pomodoro #${sessionNumber + 1} når du er klar`
+    );
+  }
+  updateTrayMenu();
 }
 
 // ── Arbeidsøkt-håndtering ───────────────────────────────────────
@@ -550,6 +668,68 @@ function scheduleSync() {
 function scheduleRulesRefresh() {
   if (rulesRefreshTimer) clearInterval(rulesRefreshTimer);
   rulesRefreshTimer = setInterval(refreshRules, 10 * 60 * 1000);
+}
+
+// ── Klistrelapp-påminnelser ─────────────────────────────────────
+// Hvert minutt: spør backend om klistrelapper med remindAt <= now som
+// ennå ikke er varslet (notifiedAt = null). For hver: vis native
+// OS-notification og POST mark-notified så samme varsel ikke kommer igjen.
+//
+// Web-appen poller samme endpoint parallelt — backend er kilden til sannhet
+// (notifiedAt settes atomisk via mark-notified), så worst case er at samme
+// påminnelse vises BÅDE som OS-notif OG in-app toast hvis bruker har begge
+// åpne samtidig. Det er greit — bedre å varsle dobbelt enn å glemme.
+function scheduleReminderCheck() {
+  if (reminderTimer) clearInterval(reminderTimer);
+  reminderTimer = setInterval(checkStickyReminders, 60 * 1000);
+}
+
+async function checkStickyReminders() {
+  if (!store.get('token')) return;
+  let due;
+  try {
+    const res = await apiCall('/stickies/due-reminders');
+    due = res.notes || [];
+  } catch (err) {
+    // Stille feil — prøver igjen om 60 sek
+    console.warn('[Reminders] kunne ikke hente:', err.message);
+    return;
+  }
+  if (due.length === 0) return;
+
+  for (const note of due) {
+    showReminderNotification(note);
+    // Marker som varslet — uavhengig av om native-notif faktisk vises (kan
+    // feile på Linux uten libnotify, men da har dashbordet-toast tatt over)
+    try {
+      await apiCall(`/stickies/${note.id}/mark-notified`, { method: 'POST' });
+    } catch (err) {
+      console.warn(`[Reminders] mark-notified feilet for ${note.id}:`, err.message);
+    }
+  }
+}
+
+function showReminderNotification(note) {
+  if (!Notification.isSupported()) return;
+  try {
+    const body = note.content
+      ? truncate(note.content, 200)
+      : '(tom klistrelapp)';
+    const n = new Notification({
+      title: 'Sakspilot — påminnelse',
+      body,
+      urgency: 'normal',
+    });
+    // Klikk på native-notif → åpne dashbord på klistrelapp-siden
+    n.on('click', () => {
+      try {
+        openDashboardWindow();
+      } catch {}
+    });
+    n.show();
+  } catch (err) {
+    console.warn('[Reminders] notif feilet:', err.message);
+  }
 }
 
 // ── Innstillinger-vindu ─────────────────────────────────────────
@@ -900,6 +1080,7 @@ function logout() {
   if (poller) { poller.stop(); poller = null; }
   if (syncTimer) clearInterval(syncTimer);
   if (rulesRefreshTimer) clearInterval(rulesRefreshTimer);
+  if (reminderTimer) { clearInterval(reminderTimer); reminderTimer = null; }
   updateTrayMenu();
   notify('Sakspilot', 'Logget ut');
 }
@@ -949,6 +1130,23 @@ ipcMain.handle('agent:start-work-session', () => { startWorkSession(); return tr
 ipcMain.handle('agent:stop-work-session', () => { stopWorkSession(); return true; });
 ipcMain.handle('agent:toggle-pause', () => { togglePause(); return true; });
 ipcMain.handle('agent:sync-now', async () => { await syncSessions(); return true; });
+
+// Pomodoro-kontroll (kan brukes fra widget.html eller dashboard senere)
+ipcMain.handle('pomodoro:start', () => ({ ok: startPomodoro() }));
+ipcMain.handle('pomodoro:stop', () => ({ ok: stopPomodoro() }));
+ipcMain.handle('pomodoro:status', () => {
+  if (!pomodoroState) {
+    return { active: false, completedCount: pomodoroCompletedCount };
+  }
+  return {
+    active: true,
+    phase: pomodoroState.phase,
+    sessionNumber: pomodoroState.sessionNumber,
+    startedAt: pomodoroState.startedAt,
+    remainingSec: pomodoroRemainingSec(),
+    completedCount: pomodoroCompletedCount,
+  };
+});
 
 // Auto-track-toggle (én bryter for "track everything I open via Sakspilot")
 ipcMain.handle('agent:set-auto-track', (_e, enabled) => {
@@ -1353,5 +1551,6 @@ ipcMain.handle('shell:get-shortcut-state', () => {
   return { tabs, activeUrl: activeShortcutUrl };
 });
 
-// Oppdater tray-menyen hvert 15. sekund for å holde elapsed-tid fersk
-setInterval(() => updateTrayMenu(), 15000);
+// Oppdater tray-menyen hvert 5. sekund for å holde elapsed-tid + pomodoro-
+// nedtelling fersk (kortere intervall siden pomodoroen viser m:ss-igjen)
+setInterval(() => updateTrayMenu(), 5000);

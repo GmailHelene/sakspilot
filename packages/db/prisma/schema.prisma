@@ -230,6 +230,12 @@ model User {
   /// "billable" = teller kun fakturerbare timer, "total" = alle timer.
   /// Default billable — frilanseren bryr seg primært om inntektsgivende tid.
   goalType         String  @default("billable") @map("goal_type")
+  /// Siste onboarding-drip-e-post som er sendt til denne brukeren.
+  /// 0 = ingen sendt (welcome ikke registrert via drip), 3/7/14 = dag-N sendt.
+  /// Brukes av jobs/onboardingDrip.ts for å unngå at samme bruker får samme
+  /// e-post to ganger hvis cron-jobben kjører flere ganger eller hvis vinduet
+  /// glipper en dag.
+  lastOnboardingEmail Int? @default(0) @map("last_onboarding_email")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
@@ -371,6 +377,13 @@ model TimeEntry {
   hourlyRate    Int?             @map("hourly_rate")  // snapshot ved fakturering
   note          String?          @db.Text
   invoiceId     String?          @map("invoice_id")   // satt når entry er fakturert
+  // AI-triage — Claude foreslår sak når matching-regler ikke traff.
+  // aiSuggestedSakId settes av POST /ai-triage/suggest, tømmes ved accept
+  // (sakId settes da til foreslaget) eller hvis bruker rejecter.
+  // aiSuggestionRejected hindrer at vi spør Claude på nytt om samme entry.
+  aiSuggestedSakId      String?   @map("ai_suggested_sak_id")
+  aiSuggestedAt         DateTime? @map("ai_suggested_at")
+  aiSuggestionRejected  Boolean   @default(false) @map("ai_suggestion_rejected")
   createdAt     DateTime         @default(now()) @map("created_at")
   updatedAt     DateTime         @updatedAt @map("updated_at")
 
@@ -545,6 +558,13 @@ model StickyNote {
   color           String   @default("yellow")
   pinned          Boolean  @default(false)
   sortOrder       Int      @default(0) @map("sort_order")
+  /// Valgfri påminnelse-tid. Når satt og <= now() vises et varsel
+  /// (toast i web, native Notification i Electron). Null = ingen påminnelse.
+  remindAt        DateTime? @map("remind_at")
+  /// Dedupe-flagg — settes idet en påminnelse er vist for å hindre at
+  /// samme klistrelapp gir gjentatte varsler ved hver poll. Nullstilles
+  /// hvis brukeren setter en ny remindAt (f.eks. "Slumre 5 min").
+  notifiedAt      DateTime? @map("notified_at")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -554,6 +574,7 @@ model StickyNote {
 
   @@index([organizationId, pinned, updatedAt])
   @@index([sakId])
+  @@index([userId, remindAt, notifiedAt])
   @@map("sticky_notes")
 }
 

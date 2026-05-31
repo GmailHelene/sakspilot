@@ -53,6 +53,7 @@ export default function RapportPage() {
   const [exportYear, setExportYear] = useState(now.getFullYear());
   const [exportMonth, setExportMonth] = useState(now.getMonth() + 1);
   const [downloading, setDownloading] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   useEffect(() => {
     load(period);
@@ -94,6 +95,65 @@ export default function RapportPage() {
       setError(err instanceof Error ? err.message : 'Nedlasting feilet');
     } finally {
       setDownloading(false);
+    }
+  }
+
+  /**
+   * Last ned PDF-tidsrapport for valgt måned.
+   * Bruker samme dato-vindu som CSV-eksporten (1. → siste dag i måneden).
+   */
+  async function downloadMonthPdf() {
+    setDownloadingPdf(true);
+    setError(null);
+    try {
+      // [from, to] dekker hele valgt måned inkludert siste sekund
+      const from = new Date(exportYear, exportMonth - 1, 1, 0, 0, 0);
+      const to = new Date(exportYear, exportMonth, 0, 23, 59, 59);
+
+      const token = getToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const res = await fetch('/api/reports/pdf', {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+        body: JSON.stringify({
+          from: from.toISOString(),
+          to: to.toISOString(),
+        }),
+      });
+
+      if (!res.ok) {
+        let msg = `PDF-generering feilet (${res.status})`;
+        try {
+          const data = (await res.json()) as { error?: string };
+          if (data?.error) msg = data.error;
+        } catch {
+          // ignore — ikke JSON
+        }
+        throw new Error(msg);
+      }
+
+      const cd = res.headers.get('content-disposition') || '';
+      const match = /filename="([^"]+)"/.exec(cd);
+      const filename =
+        match?.[1] ??
+        `tidsrapport-${exportYear}-${String(exportMonth).padStart(2, '0')}.pdf`;
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'PDF-nedlasting feilet');
+    } finally {
+      setDownloadingPdf(false);
     }
   }
 
@@ -235,7 +295,8 @@ export default function RapportPage() {
               marginBottom: 16,
             }}
           >
-            CSV med en linje per tidsregistrering. UTF-8 + Excel-vennlig BOM. Importerbar i Tripletex, Fiken, Excel og Numbers.
+            CSV med en linje per tidsregistrering — UTF-8 + Excel-vennlig BOM, importerbar i Tripletex, Fiken, Excel og Numbers.
+            PDF gir et pent oppsummert dokument (per sak, per dag og per app) som kan sendes til klient eller arkiveres.
           </p>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, flexWrap: 'wrap' }}>
             <div>
@@ -268,7 +329,16 @@ export default function RapportPage() {
             </div>
             <button onClick={downloadMonth} disabled={downloading} style={downloadBtnStyle}>
               <FileDown size={16} strokeWidth={2.5} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-              {downloading ? 'Genererer…' : 'Last ned CSV'}
+              {downloading ? 'Genererer…' : 'Eksporter CSV'}
+            </button>
+            <button
+              onClick={downloadMonthPdf}
+              disabled={downloadingPdf}
+              style={downloadBtnStyle}
+              title="Pen PDF til klient eller arkiv — per sak, per dag og per app"
+            >
+              <FileDown size={16} strokeWidth={2.5} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              {downloadingPdf ? 'Genererer…' : 'Eksporter PDF'}
             </button>
           </div>
         </section>

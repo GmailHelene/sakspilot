@@ -105,6 +105,184 @@ function stripHtml(html: string): string {
 // Pre-bygde mal-funksjoner (gjenbrukes i auth.ts m.m.)
 // ──────────────────────────────────────────────────────────────
 
+// Felles wrapper for HTML-e-poster — navy/lyse-grå tema som matcher
+// passwordResetEmail. Brukes av onboarding-drip-templates nedenfor.
+function baseEmailLayout(innerHtml: string): string {
+  return `
+    <!DOCTYPE html>
+    <html lang="nb">
+    <body style="margin:0;padding:40px 20px;background:#F8F9FB;font-family:Inter,-apple-system,Segoe UI,Roboto,sans-serif;color:#172B4D;">
+      <table style="max-width:480px;margin:0 auto;background:white;border-radius:12px;padding:32px;box-shadow:0 4px 12px rgba(23,43,77,0.08);">
+        <tr><td>
+          ${innerHtml}
+          <hr style="border:none;border-top:1px solid #E6E9EF;margin:24px 0;" />
+          <p style="font-size:12px;color:#8993A4;line-height:1.5;margin:0;">
+            — Sakspilot · <a href="https://sakspilot.no" style="color:#1F1F1F;">sakspilot.no</a>
+          </p>
+        </td></tr>
+      </table>
+    </body></html>
+  `;
+}
+
+// Minimal user-shape onboarding-templates trenger. Holder typingen løs så vi
+// slipper sirkulær import fra prisma-klient-typer her.
+export interface OnboardingUser {
+  email: string;
+  name: string;
+}
+
+/**
+ * Dag 0 — velkomst-e-post, sendes umiddelbart etter vellykket registrering
+ * i POST /auth/register.
+ */
+export function welcomeEmail(user: OnboardingUser): EmailMessage {
+  const firstName = user.name.split(" ")[0] || user.name;
+  const inner = `
+    <h1 style="font-size:22px;color:#1F1F1F;margin:0 0 16px 0;">Velkommen til Sakspilot, ${firstName}!</h1>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
+      Hyggelig å ha deg med. Sakspilot er et arbeidsrom for deg som er selvstendig
+      næringsdrivende — saker, kanban, timer, kalender og automatiseringer på ett sted.
+    </p>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
+      <strong>Slik kommer du i gang:</strong>
+    </p>
+    <ol style="font-size:14px;line-height:1.7;color:#5E6C84;margin:0 0 20px 20px;padding:0;">
+      <li>Logg inn på <a href="https://sakspilot.no" style="color:#1F1F1F;">sakspilot.no</a> og opprett din første sak.</li>
+      <li>Last ned <strong>Windows-appen</strong> — den registrerer arbeidstid automatisk i bakgrunnen mens du jobber.</li>
+      <li>Sett opp en agent (f.eks. "Påminn meg 3 dager før frist") fra Agenter-menyen.</li>
+    </ol>
+    <p style="margin:0 0 24px 0;">
+      <a href="https://sakspilot.no/last-ned" style="display:inline-block;padding:12px 24px;background:#1F1F1F;color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">Last ned Windows-appen</a>
+    </p>
+    <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:0;">
+      Spørsmål? Bare svar på denne e-posten — den går rett til meg.
+    </p>
+    <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:8px 0 0 0;">
+      — Helene, Sakspilot
+    </p>
+  `;
+  return {
+    to: user.email,
+    subject: "Velkommen til Sakspilot — kom i gang på 3 minutter",
+    html: baseEmailLayout(inner),
+  };
+}
+
+/**
+ * Dag 3 — påminner om Windows-appen hvis brukeren ikke har installert
+ * (ingen AgentSession ennå).
+ */
+export function desktopAppReminderEmail(user: OnboardingUser): EmailMessage {
+  const firstName = user.name.split(" ")[0] || user.name;
+  const inner = `
+    <h1 style="font-size:22px;color:#1F1F1F;margin:0 0 16px 0;">Har du installert Windows-appen?</h1>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
+      Hei ${firstName}, jeg ser at du ikke har installert Sakspilot-appen for Windows ennå.
+    </p>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
+      <strong>Den gir deg ca 80% av verdien i Sakspilot:</strong> automatisk
+      tidsregistrering i bakgrunnen, kobling mellom dokumenter og saker, og
+      én-klikks-tilgang til alt fra systemkurven.
+    </p>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
+      Installasjonen tar under ett minutt og du trenger ikke å konfigurere noe — den logger
+      inn med samme konto som webappen.
+    </p>
+    <p style="margin:0 0 24px 0;">
+      <a href="https://sakspilot.no/last-ned" style="display:inline-block;padding:12px 24px;background:#1F1F1F;color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">Last ned nå</a>
+    </p>
+    <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:0;">
+      Bruker du Mac eller Linux? Svar på denne e-posten — jeg prioriterer å bygge
+      for de plattformene tidligere hvis det er etterspørsel.
+    </p>
+    <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:8px 0 0 0;">
+      — Helene
+    </p>
+  `;
+  return {
+    to: user.email,
+    subject: "Tips: Windows-appen tar 1 minutt å installere",
+    html: baseEmailLayout(inner),
+  };
+}
+
+/**
+ * Dag 7 — spør om første inntrykk. Oppfordrer til ett-ords-svar for lav friksjon.
+ */
+export function feedbackPromptEmail(user: OnboardingUser): EmailMessage {
+  const firstName = user.name.split(" ")[0] || user.name;
+  const inner = `
+    <h1 style="font-size:22px;color:#1F1F1F;margin:0 0 16px 0;">Hvordan går det med Sakspilot?</h1>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
+      Hei ${firstName}, du har brukt Sakspilot i en uke nå. Jeg er nysgjerrig:
+      hvordan har det gått?
+    </p>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
+      <strong>Svar på denne e-posten med ett ord:</strong>
+    </p>
+    <ul style="font-size:14px;line-height:1.7;color:#5E6C84;margin:0 0 20px 20px;padding:0;">
+      <li><strong>bra</strong> — du har funnet ut av det og bruker det</li>
+      <li><strong>dårlig</strong> — du har slitt eller ikke kommet i gang</li>
+      <li><strong>blandet</strong> — noe funker, annet ikke</li>
+    </ul>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
+      Vil du gi mer detaljert tilbakemelding? Da kan du fylle ut det fulle skjemaet:
+    </p>
+    <p style="margin:0 0 24px 0;">
+      <a href="https://sakspilot.no/feedback" style="display:inline-block;padding:12px 24px;background:#1F1F1F;color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">Gi tilbakemelding</a>
+    </p>
+    <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:0;">
+      All input — selv ett ord — hjelper meg å gjøre Sakspilot bedre for deg.
+    </p>
+    <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:8px 0 0 0;">
+      — Helene
+    </p>
+  `;
+  return {
+    to: user.email,
+    subject: "Hvordan går det med Sakspilot? (1 ord holder)",
+    html: baseEmailLayout(inner),
+  };
+}
+
+/**
+ * Dag 14 — tilbyr 20-min videocall til brukere som ikke har gitt feedback.
+ */
+export function videocallOfferEmail(user: OnboardingUser): EmailMessage {
+  const firstName = user.name.split(" ")[0] || user.name;
+  const inner = `
+    <h1 style="font-size:22px;color:#1F1F1F;margin:0 0 16px 0;">Vil du ha 20 minutter med meg?</h1>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
+      Hei ${firstName}, du har hatt Sakspilot i to uker nå.
+    </p>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
+      Jeg vil veldig gjerne høre hvordan du opplever det — spesielt hva som er tungvint
+      eller forvirrende. Det er den raskeste måten jeg kan forbedre produktet på.
+    </p>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
+      <strong>Har du 20 minutter til en videocall?</strong> Jeg deler skjerm med deg,
+      ser hvordan du jobber, og du forteller meg hva som irriterer. Helt uformelt — og
+      du får selvfølgelig hjelp med det du sliter med samtidig.
+    </p>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
+      <strong>Bare svar på denne e-posten</strong> med to-tre tidspunkter som passer,
+      så sender jeg en lenke.
+    </p>
+    <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:0;">
+      Passer ikke videocall? Skriv gjerne to setninger i stedet — alt hjelper.
+    </p>
+    <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:8px 0 0 0;">
+      — Helene, Sakspilot
+    </p>
+  `;
+  return {
+    to: user.email,
+    subject: "20 min videocall? Jeg vil høre hva som irriterer i Sakspilot",
+    html: baseEmailLayout(inner),
+  };
+}
+
 export function passwordResetEmail(
   recipientEmail: string,
   resetUrl: string

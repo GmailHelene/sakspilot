@@ -6,6 +6,7 @@ import { Menu, X } from 'lucide-react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import Launcher from './Launcher';
+import ReminderPoller from './ReminderPoller';
 import { isTokenValid } from '@/lib/api';
 import { initPreferenceSync } from '@/lib/preferenceSync';
 import { tokens } from '@/lib/tokens';
@@ -80,6 +81,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Global påminnelse-poller — sjekker klistrelapp-påminnelser hvert
+          60. sek og viser fixed toast øverst når noe forfaller. */}
+      <ReminderPoller />
       <Header />
       <div style={{ flex: 1, display: 'flex', minHeight: 0, position: 'relative' }}>
         {/* Mobil-hamburger — floating top-left, men under main-content

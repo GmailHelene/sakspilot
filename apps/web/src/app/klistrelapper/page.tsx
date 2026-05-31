@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Pin, PinOff, Trash2, Plus, Palette } from 'lucide-react';
+import { Pin, PinOff, Trash2, Plus, Palette, Bell, BellOff } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
 import { api } from '@/lib/api';
@@ -13,6 +13,7 @@ interface StickyNote {
   pinned: boolean;
   updatedAt: string;
   sakId: string | null;
+  remindAt: string | null;
 }
 
 const COLORS = [
@@ -131,10 +132,29 @@ function StickyCard({
   onDelete: () => void;
 }) {
   const [showColors, setShowColors] = useState(false);
+  const [showReminder, setShowReminder] = useState(false);
   const [draft, setDraft] = useState(note.content);
   const saveTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => { setDraft(note.content); }, [note.content]);
+
+  function handleReminderChange(localValue: string) {
+    // localValue er fra <input type="datetime-local"> i lokal tid (uten tz).
+    // Konverter til ISO (UTC) før vi sender til backend.
+    if (!localValue) {
+      onUpdate({ remindAt: null });
+      return;
+    }
+    const iso = new Date(localValue).toISOString();
+    onUpdate({ remindAt: iso });
+  }
+
+  // Backend lagrer UTC. <input type="datetime-local"> trenger lokal-format
+  // "YYYY-MM-DDTHH:mm" (uten tz). Vi konverterer her.
+  const reminderLocalValue = note.remindAt
+    ? toLocalDatetimeInputValue(new Date(note.remindAt))
+    : '';
+  const hasReminder = !!note.remindAt;
 
   function handleChange(value: string) {
     setDraft(value);
@@ -178,7 +198,66 @@ function StickyCard({
             ? <Pin size={14} strokeWidth={2.5} style={{ color: color.edge }} fill={color.edge} />
             : <PinOff size={14} strokeWidth={2} style={{ color: '#888' }} />}
         </button>
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', display: 'flex', gap: 4 }}>
+          <button
+            onClick={() => setShowReminder((v) => !v)}
+            style={iconBtn}
+            title={hasReminder ? `Påminnelse: ${new Date(note.remindAt!).toLocaleString('nb-NO')}` : 'Sett påminnelse'}
+          >
+            {hasReminder
+              ? <Bell size={14} strokeWidth={2.5} style={{ color: color.edge }} fill={color.edge} />
+              : <BellOff size={14} strokeWidth={2} style={{ color: '#888' }} />}
+          </button>
+          {showReminder && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 28,
+                right: 0,
+                background: 'white',
+                padding: 10,
+                borderRadius: tokens.radius.sm,
+                boxShadow: tokens.shadow.md,
+                zIndex: 10,
+                minWidth: 200,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+              }}
+            >
+              <label style={{ fontSize: 11, color: tokens.color.textMuted }}>
+                Påminn meg når
+              </label>
+              <input
+                type="datetime-local"
+                value={reminderLocalValue}
+                onChange={(e) => handleReminderChange(e.target.value)}
+                style={{
+                  fontSize: 13,
+                  padding: '6px 8px',
+                  borderRadius: tokens.radius.sm,
+                  border: `1px solid ${tokens.color.border}`,
+                  fontFamily: 'inherit',
+                }}
+              />
+              {hasReminder && (
+                <button
+                  onClick={() => { handleReminderChange(''); setShowReminder(false); }}
+                  style={{
+                    fontSize: 12,
+                    padding: '4px 8px',
+                    background: 'transparent',
+                    border: `1px solid ${tokens.color.border}`,
+                    borderRadius: tokens.radius.sm,
+                    cursor: 'pointer',
+                    color: tokens.color.textMuted,
+                  }}
+                >
+                  Fjern påminnelse
+                </button>
+              )}
+            </div>
+          )}
           <button onClick={() => setShowColors(!showColors)} style={iconBtn} title="Farge">
             <Palette size={14} strokeWidth={2} style={{ color: '#888' }} />
           </button>
@@ -236,19 +315,54 @@ function StickyCard({
         }}
       />
 
-      {/* Tidsstempel nederst */}
+      {/* Tidsstempel nederst — viser også påminnelse hvis satt */}
       <div
         style={{
           padding: '6px 12px',
           fontSize: 10,
           color: '#999',
-          textAlign: 'right',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 6,
         }}
       >
-        {formatRelative(note.updatedAt)}
+        {hasReminder ? (
+          <span style={{ color: color.edge, fontWeight: 600 }}>
+            <Bell size={10} strokeWidth={2.5} style={{ verticalAlign: 'middle', marginRight: 3 }} />
+            {formatReminder(note.remindAt!)}
+          </span>
+        ) : <span />}
+        <span>{formatRelative(note.updatedAt)}</span>
       </div>
     </div>
   );
+}
+
+function toLocalDatetimeInputValue(d: Date): string {
+  // <input type="datetime-local"> trenger "YYYY-MM-DDTHH:mm" i lokal tid.
+  // d.toISOString() gir UTC — vi må skifte til lokal og strippe sekunder/tz.
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return (
+    d.getFullYear() +
+    '-' + pad(d.getMonth() + 1) +
+    '-' + pad(d.getDate()) +
+    'T' + pad(d.getHours()) +
+    ':' + pad(d.getMinutes())
+  );
+}
+
+function formatReminder(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const isTomorrow = d.toDateString() === tomorrow.toDateString();
+  const time = d.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' });
+  if (sameDay) return `i dag ${time}`;
+  if (isTomorrow) return `i morgen ${time}`;
+  return d.toLocaleString('nb-NO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
 function formatRelative(iso: string): string {

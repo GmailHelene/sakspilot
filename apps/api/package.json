@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "job:daily-automations": "tsx src/jobs/dailyAutomationTrigger.ts",
-    "job:db-backup": "tsx src/jobs/dbBackup.ts"
+    "job:db-backup": "tsx src/jobs/dbBackup.ts",
+    "job:onboarding-drip": "tsx src/jobs/onboardingDrip.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.99.0",

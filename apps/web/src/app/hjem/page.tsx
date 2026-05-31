@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
 import GoalProgressWidget from '@/components/GoalProgressWidget';
+import AiTriageWidget from '@/components/AiTriageWidget';
 import { tokens } from '@/lib/tokens';
 import { api } from '@/lib/api';
 
@@ -50,7 +51,7 @@ interface Stats {
 
 // Hvilke widgets kan brukeren skjule? Lagres i localStorage.
 const WIDGET_HIDDEN_KEY = 'sakspilot_hjem_hidden_widgets';
-type WidgetId = 'frister' | 'recent' | 'quick' | 'tips' | 'minikpi' | 'tidsmal';
+type WidgetId = 'frister' | 'recent' | 'quick' | 'tips' | 'minikpi' | 'tidsmal' | 'aitriage';
 
 export default function HjemPage() {
   const [me, setMe] = useState<Me | null>(null);
@@ -224,6 +225,7 @@ export default function HjemPage() {
               {([
                 ['minikpi', 'Omsetning / Agenter / E-poster'],
                 ['tidsmal', 'Tidsmål'],
+                ['aitriage', 'AI-kategorisering'],
                 ['frister', 'Kommende frister'],
                 ['recent', 'Nylige prosjekter'],
                 ['quick', 'Hurtighandlinger'],
@@ -422,6 +424,9 @@ export default function HjemPage() {
 
           {/* Tidsmål — uke/mnd-progress */}
           {!hidden.has('tidsmal') && <GoalProgressWidget />}
+
+          {/* AI-kategorisering — forslag fra Claude på ukategoriserte entries */}
+          {!hidden.has('aitriage') && <AiTriageWidget />}
 
           {/* Tips for dagen */}
           {!hidden.has('tips') && (

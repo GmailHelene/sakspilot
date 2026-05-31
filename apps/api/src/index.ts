@@ -53,6 +53,7 @@ import automationsRouter from "./routes/automations";
 import reportsRouter from "./routes/reports";
 import { authRouter as shareAuthRouter, publicRouter as sharePublicRouter } from "./routes/share";
 import aiRouter from "./routes/ai";
+import aiTriageRouter from "./routes/aiTriage";
 import oauthRouter from "./routes/oauth";
 import emailsRouter from "./routes/emails";
 import accountingRouter from "./routes/accounting";
@@ -194,6 +195,7 @@ app.use("/reports", reportsRouter);
 app.use("/saker", shareAuthRouter);   // /saker/:sakId/share (delt prefix med sakerRouter — fungerer)
 app.use("/public", publicLimiter, sharePublicRouter); // /public/sak/:token
 app.use("/ai", aiLimiter, aiRouter);
+app.use("/ai-triage", aiLimiter, aiTriageRouter);
 app.use("/oauth", oauthLimiter, oauthRouter);
 app.use("/emails", emailsRouter);
 app.use("/accounting", accountingRouter);

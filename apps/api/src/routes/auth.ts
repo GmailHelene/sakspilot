@@ -18,7 +18,7 @@ import {
   SakspilotSession,
 } from "../services/auth";
 import { requireAuth } from "../middleware/auth";
-import { sendEmail, passwordResetEmail } from "../lib/email";
+import { sendEmail, passwordResetEmail, welcomeEmail } from "../lib/email";
 
 const router = Router();
 
@@ -128,6 +128,22 @@ router.post("/register", async (req: Request, res: Response) => {
   res.cookie("sakspilot_session", token, COOKIE_OPTIONS);
 
   console.log(`[Auth] Registrert: ${result.user.email} (${result.org.name})`);
+
+  // Velkomst-e-post (dag 0 i onboarding-drip). Skal IKKE blokkere registrering
+  // hvis SMTP feiler — try/catch + ingen await på respons.
+  // Cron-jobben jobs/onboardingDrip.ts håndterer dag 3/7/14.
+  try {
+    const emailResult = await sendEmail(
+      welcomeEmail({ email: result.user.email, name: result.user.name })
+    );
+    if (!emailResult.ok) {
+      console.warn(
+        `[Auth] Velkomst-e-post kunne ikke sendes til ${result.user.email}: ${emailResult.error}`
+      );
+    }
+  } catch (err) {
+    console.error("[Auth] Velkomst-e-post feilet (ignorert):", err);
+  }
 
   return res.status(201).json({
     ok: true,
