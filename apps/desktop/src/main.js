@@ -702,9 +702,15 @@ function openDashboardWindow() {
   // Floating widget — opprett etter at vinduet finnes så bounds er klare
   setTimeout(() => ensureWidgetView(), 800);
 
-  // Hold widget riktig posisjonert + på topp når dashbordet endrer størrelse
-  dashboardWindow.on('resize', () => positionWidgetView());
-  dashboardWindow.on('move', () => positionWidgetView());
+  // Hold widget riktig posisjonert + på topp når dashbordet endrer størrelse.
+  // Vi lytter på FLERE events fordi maximize/restore/full-screen ikke alltid
+  // trigger 'resize' før etter at bounds er ferdig oppdatert.
+  for (const ev of [
+    'resize', 'move', 'show', 'restore', 'maximize', 'unmaximize',
+    'enter-full-screen', 'leave-full-screen', 'focus',
+  ]) {
+    try { dashboardWindow.on(ev, () => positionWidgetView()); } catch {}
+  }
 
   // 'did-fail-load' fanger ERR_CONNECTION_REFUSED osv. som .catch() ikke gjør
   dashboardWindow.webContents.on('did-fail-load', (_e, errorCode, errorDescription, validatedURL) => {
@@ -1195,16 +1201,20 @@ function ensureWidgetView() {
 function positionWidgetView() {
   if (!widgetView || widgetView.webContents.isDestroyed()) return;
   if (!dashboardWindow || dashboardWindow.isDestroyed()) return;
+  // Bruk getBounds (klient-koordinater w/h er stabile selv under minimize)
   const b = dashboardWindow.getContentBounds();
+  // Hvis vinduet er minimisert eller har null/ulovlig størrelse, IKKE flytt
+  // widgeten — la den ligge der den var. Tidligere fikk vi x=0, y=0 →
+  // klokken hoppet til oppe-til-venstre når dashboard ble minimisert.
+  if (!b || b.width < 200 || b.height < 200) return;
   const w = widgetIsExpanded ? WIDGET_PANEL_W : WIDGET_ICON_SIZE;
   const h = widgetIsExpanded ? WIDGET_PANEL_H : WIDGET_ICON_SIZE;
+  // Hvis vinduet er for smalt for widget + margin, fall tilbake til hjørne
+  // uten å hoppe til (0,0)
+  const x = Math.max(WIDGET_MARGIN, b.width - w - WIDGET_MARGIN);
+  const y = Math.max(WIDGET_MARGIN, b.height - h - WIDGET_MARGIN);
   try {
-    widgetView.setBounds({
-      x: Math.max(0, b.width - w - WIDGET_MARGIN),
-      y: Math.max(0, b.height - h - WIDGET_MARGIN),
-      width: w,
-      height: h,
-    });
+    widgetView.setBounds({ x, y, width: w, height: h });
   } catch {}
 }
 
