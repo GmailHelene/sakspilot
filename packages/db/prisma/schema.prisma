@@ -112,6 +112,7 @@ model Organization {
   subscription Subscription?
   fikenIntegration FikenIntegration?
   feedbacks Feedback[]
+  teamInvites TeamInvite[]
 
   @@map("organizations")
 }
@@ -249,6 +250,7 @@ model User {
   preferences  UserPreferences?
   feedbacks    Feedback[]
   aiChatMessages AiChatMessage[]
+  sentInvites  TeamInvite[]    @relation("InvitesSent")
 
   @@index([organizationId])
   @@map("users")
@@ -281,14 +283,77 @@ model Client {
   defaultHourlyRate Int?     @map("default_hourly_rate") // overstyrer org-default for denne klienten
   notes             String?  @db.Text
   archived          Boolean  @default(false)
+  // ── Klient-portal (login for klient) ──────────────────────────
+  // null hvis klienten ikke har fått portal-tilgang (det vanlige).
+  // Settes når frilanseren inviterer klienten OG klienten aksepterer + setter passord.
+  // Uavhengig av User.email (forskjellige tabeller, ulikt scope i JWT).
+  email             String?  @unique
+  passwordHash      String?  @map("password_hash")
+  portalEnabled     Boolean  @default(false) @map("portal_enabled")
+  lastLoginAt       DateTime? @map("last_login_at")
+  // Bumpes ved passordbytte / revoke — JWT inneholder denne, middleware avviser
+  // tokens med utdatert versjon (samme mønster som User.tokenVersion).
+  tokenVersion      Int      @default(0) @map("token_version")
+  // Reset-passord-flow for klient. SHA-256-hash av tokenet i e-posten.
+  passwordResetTokenHash String?   @map("password_reset_token_hash")
+  passwordResetExpiresAt DateTime? @map("password_reset_expires_at")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   saker        Sak[]
+  portalInvite ClientPortalInvite?
 
   @@index([organizationId])
   @@map("clients")
+}
+
+/// Invitasjon fra frilanser til klient om å aktivere klient-portal-login.
+/// Tokenet sendes på e-post; vi lagrer bcrypt-hashen så DB-lekkasje ikke
+/// gir aksept-tilgang. Én aktiv invite per klient (clientId @unique). Hvis
+/// frilanseren inviterer på nytt, slettes/overskrives gammel rad.
+model ClientPortalInvite {
+  id          String   @id @default(uuid())
+  clientId    String   @unique @map("client_id")
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  tokenHash   String   @map("token_hash")   // bcrypt-hash av engangs-token
+  expiresAt   DateTime @map("expires_at")
+  acceptedAt  DateTime? @map("accepted_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("client_portal_invites")
+}
+
+/// Invitasjon fra org-owner til ny team-bruker (team-plan).
+/// Mottakeren får e-post med engangs-token → setter passord → blir User
+/// i samme Organization med valgt rolle (member eller admin).
+///
+/// Sikkerhet:
+///   - Tokenet sendes kun i e-posten — vi lagrer bcrypt-hashen (DB-lekkasje
+///     gir ikke aksept-tilgang). Samme mønster som ClientPortalInvite.
+///   - 7 dagers utløp (expiresAt). Pending invites filtreres på expiresAt > now
+///     i listings — utløpte ryddes av jobs/cleanup hvis vi legger til det.
+///   - acceptedAt + acceptedByUserId settes ved aksept → invite er da brukt
+///     opp og kan ikke aksepteres igjen (idempotent re-aksept feiler).
+///   - @@unique([organizationId, email]) hindrer dupliserte aktive invites
+///     mot samme epost i samme org. Re-invite må først DELETE den gamle.
+model TeamInvite {
+  id               String   @id @default(uuid())
+  organizationId   String   @map("organization_id")
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedByUserId  String   @map("invited_by_user_id")
+  invitedBy        User     @relation("InvitesSent", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+  email            String
+  role             UserRole @default(member)
+  tokenHash        String   @map("token_hash")
+  expiresAt        DateTime @map("expires_at")
+  acceptedAt       DateTime? @map("accepted_at")
+  acceptedByUserId String?  @map("accepted_by_user_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@unique([organizationId, email])
+  @@index([organizationId, acceptedAt])
+  @@map("team_invites")
 }
 
 model Sak {
@@ -565,6 +630,16 @@ model StickyNote {
   /// samme klistrelapp gir gjentatte varsler ved hver poll. Nullstilles
   /// hvis brukeren setter en ny remindAt (f.eks. "Slumre 5 min").
   notifiedAt      DateTime? @map("notified_at")
+  /// Voice note (stemmenotat) lagret som base64-encoded blob direkte i DB.
+  /// MVP-tilnærming — ingen S3 nødvendig. Max 60 sek innspilling håndheves
+  /// i frontend + via Zod-validering i API (ca 200 KB base64 = ~150 KB binary
+  /// for opus@32kbps). Slettes ved å nullstille alle 4 felter via
+  /// DELETE /stickies/:id/audio. Lagres KUN i bruker-organisasjonens DB,
+  /// sendes aldri til klient-portal eller eksterne AI-providere.
+  audioBase64     String?  @map("audio_base64") @db.Text
+  audioDurationSec Int?    @map("audio_duration_sec")
+  audioMimeType   String?  @map("audio_mime_type")
+  audioRecordedAt DateTime? @map("audio_recorded_at")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 

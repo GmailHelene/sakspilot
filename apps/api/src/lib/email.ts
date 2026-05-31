@@ -283,6 +283,156 @@ export function videocallOfferEmail(user: OnboardingUser): EmailMessage {
   };
 }
 
+// ──────────────────────────────────────────────────────────────
+// Klient-portal e-poster
+// ──────────────────────────────────────────────────────────────
+
+/**
+ * Sendes når frilanseren inviterer en klient til klient-portalen.
+ * Klienten klikker lenken → setter passord → får login-tilgang.
+ */
+export function clientPortalInviteEmail(opts: {
+  clientName: string;
+  freelancerName: string;
+  recipientEmail: string;
+  acceptUrl: string;
+  expiresAt: Date;
+}): EmailMessage {
+  const { clientName, freelancerName, recipientEmail, acceptUrl, expiresAt } = opts;
+  const expiresStr = expiresAt.toLocaleDateString("nb-NO", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const firstName = clientName.split(" ")[0] || clientName;
+  const inner = `
+    <h1 style="font-size:22px;color:#1F1F1F;margin:0 0 16px 0;">Tilgang til klient-portal</h1>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
+      Hei ${firstName},
+    </p>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
+      <strong>${freelancerName}</strong> har invitert deg til klient-portalen i Sakspilot.
+      Her kan du se status på prosjektene dine, milepæler og fakturahistorikk —
+      når det måtte passe deg, uten å måtte spørre.
+    </p>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
+      Klikk lenken nedenfor for å sette et passord og logge inn første gang.
+      Lenken er gyldig til <strong>${expiresStr}</strong>.
+    </p>
+    <p style="margin:0 0 24px 0;">
+      <a href="${acceptUrl}" style="display:inline-block;padding:12px 24px;background:#1F1F1F;color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">Aktiver tilgang</a>
+    </p>
+    <p style="font-size:12px;color:#8993A4;line-height:1.5;margin:0 0 8px 0;">
+      Lenken virker ikke? Kopier denne URL-en til nettleseren:
+    </p>
+    <p style="font-size:11px;color:#5E6C84;word-break:break-all;background:#F1F3F7;padding:8px 12px;border-radius:6px;margin:0 0 24px 0;font-family:monospace;">
+      ${acceptUrl}
+    </p>
+    <p style="font-size:12px;color:#8993A4;line-height:1.5;margin:0;">
+      Fikk du denne uten å forvente det? Da kan du trygt ignorere e-posten —
+      ingenting skjer før du selv aktiverer tilgangen.
+    </p>
+  `;
+  return {
+    to: recipientEmail,
+    subject: `${freelancerName} har invitert deg til klient-portalen`,
+    html: baseEmailLayout(inner),
+  };
+}
+
+/**
+ * Glemt-passord-flow for klient-portal (separat fra User-passwordResetEmail
+ * for å unngå at lenken sendes mot feil flow).
+ */
+export function clientPortalPasswordResetEmail(
+  recipientEmail: string,
+  resetUrl: string
+): EmailMessage {
+  const inner = `
+    <h1 style="font-size:22px;color:#1F1F1F;margin:0 0 16px 0;">Nullstill passord — klient-portal</h1>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
+      Vi mottok en forespørsel om å nullstille passordet for klient-portalen din i Sakspilot.
+      Klikk lenken nedenfor for å sette et nytt passord. Lenken er gyldig i 1 time.
+    </p>
+    <p style="margin:0 0 24px 0;">
+      <a href="${resetUrl}" style="display:inline-block;padding:12px 24px;background:#1F1F1F;color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">Sett nytt passord</a>
+    </p>
+    <p style="font-size:12px;color:#8993A4;line-height:1.5;margin:0 0 8px 0;">
+      Lenken virker ikke? Kopier denne URL-en til nettleseren:
+    </p>
+    <p style="font-size:11px;color:#5E6C84;word-break:break-all;background:#F1F3F7;padding:8px 12px;border-radius:6px;margin:0 0 24px 0;font-family:monospace;">
+      ${resetUrl}
+    </p>
+    <p style="font-size:12px;color:#8993A4;line-height:1.5;margin:0;">
+      Hvis du ikke ba om å nullstille passord, kan du trygt ignorere denne e-posten.
+    </p>
+  `;
+  return {
+    to: recipientEmail,
+    subject: "Nullstill passord — Sakspilot klient-portal",
+    html: baseEmailLayout(inner),
+  };
+}
+
+// ──────────────────────────────────────────────────────────────
+// Team-invite e-poster (org-owner inviterer team-medlem)
+// ──────────────────────────────────────────────────────────────
+
+/**
+ * Sendes når org-owner inviterer en ny bruker til samme organisasjon.
+ * Mottakeren klikker lenken → setter navn + passord → blir User i samme org
+ * med valgt rolle (member eller admin).
+ */
+export function teamInviteEmail(opts: {
+  inviterName: string;
+  organizationName: string;
+  recipientEmail: string;
+  role: "member" | "admin";
+  acceptUrl: string;
+  expiresAt: Date;
+}): EmailMessage {
+  const { inviterName, organizationName, recipientEmail, role, acceptUrl, expiresAt } = opts;
+  const expiresStr = expiresAt.toLocaleDateString("nb-NO", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const roleLabel = role === "admin" ? "administrator" : "team-medlem";
+  const inner = `
+    <h1 style="font-size:22px;color:#1F1F1F;margin:0 0 16px 0;">Invitasjon til ${organizationName}</h1>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
+      Hei,
+    </p>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
+      <strong>${inviterName}</strong> har invitert deg som <strong>${roleLabel}</strong>
+      i <strong>${organizationName}</strong> på Sakspilot — et arbeidsrom for
+      saker, klienter, timer og kalender.
+    </p>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
+      Klikk lenken for å sette navn + passord og logge inn første gang.
+      Lenken er gyldig til <strong>${expiresStr}</strong>.
+    </p>
+    <p style="margin:0 0 24px 0;">
+      <a href="${acceptUrl}" style="display:inline-block;padding:12px 24px;background:#1F1F1F;color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">Aktiver konto</a>
+    </p>
+    <p style="font-size:12px;color:#8993A4;line-height:1.5;margin:0 0 8px 0;">
+      Lenken virker ikke? Kopier denne URL-en til nettleseren:
+    </p>
+    <p style="font-size:11px;color:#5E6C84;word-break:break-all;background:#F1F3F7;padding:8px 12px;border-radius:6px;margin:0 0 24px 0;font-family:monospace;">
+      ${acceptUrl}
+    </p>
+    <p style="font-size:12px;color:#8993A4;line-height:1.5;margin:0;">
+      Fikk du denne uten å forvente det? Da kan du trygt ignorere e-posten —
+      ingenting skjer før du selv aktiverer kontoen.
+    </p>
+  `;
+  return {
+    to: recipientEmail,
+    subject: `${inviterName} har invitert deg til ${organizationName} på Sakspilot`,
+    html: baseEmailLayout(inner),
+  };
+}
+
 export function passwordResetEmail(
   recipientEmail: string,
   resetUrl: string

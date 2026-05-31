@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Pin, PinOff, Trash2, Plus, Palette, Bell, BellOff } from 'lucide-react';
+import { Pin, PinOff, Trash2, Plus, Palette, Bell, BellOff, Mic } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
+import VoiceNoteRecorder, { type VoiceNoteValue } from '@/components/VoiceNoteRecorder';
 import { tokens } from '@/lib/tokens';
 import { api } from '@/lib/api';
 
@@ -14,6 +15,10 @@ interface StickyNote {
   updatedAt: string;
   sakId: string | null;
   remindAt: string | null;
+  audioBase64: string | null;
+  audioDurationSec: number | null;
+  audioMimeType: string | null;
+  audioRecordedAt: string | null;
 }
 
 const COLORS = [
@@ -133,10 +138,40 @@ function StickyCard({
 }) {
   const [showColors, setShowColors] = useState(false);
   const [showReminder, setShowReminder] = useState(false);
+  const [showRecorder, setShowRecorder] = useState(false);
   const [draft, setDraft] = useState(note.content);
   const saveTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => { setDraft(note.content); }, [note.content]);
+
+  // Pakk audio-feltene fra notatet til format VoiceNoteRecorder forventer.
+  const audioValue: VoiceNoteValue | null =
+    note.audioBase64 && note.audioMimeType && note.audioDurationSec != null
+      ? {
+          audioBase64: note.audioBase64,
+          audioDurationSec: note.audioDurationSec,
+          audioMimeType: note.audioMimeType,
+        }
+      : null;
+
+  function handleAudioChange(v: VoiceNoteValue | null) {
+    if (v) {
+      // Nytt opptak — send alle 3 feltene; backend stempler recordedAt.
+      onUpdate({
+        audioBase64: v.audioBase64,
+        audioDurationSec: v.audioDurationSec,
+        audioMimeType: v.audioMimeType,
+      } as Partial<StickyNote>);
+    } else {
+      // Slett — null på audioBase64 trigger nullstilling av alle 4 felter
+      // i backend-handleren (se apps/api/src/routes/stickies.ts).
+      onUpdate({
+        audioBase64: null,
+        audioDurationSec: null,
+        audioMimeType: null,
+      } as Partial<StickyNote>);
+    }
+  }
 
   function handleReminderChange(localValue: string) {
     // localValue er fra <input type="datetime-local"> i lokal tid (uten tz).
@@ -258,6 +293,18 @@ function StickyCard({
               )}
             </div>
           )}
+          <button
+            onClick={() => setShowRecorder((v) => !v)}
+            style={iconBtn}
+            title={audioValue ? 'Stemmenotat' : 'Spill inn stemmenotat'}
+          >
+            <Mic
+              size={14}
+              strokeWidth={2.5}
+              style={{ color: audioValue ? color.edge : '#888' }}
+              fill={audioValue ? color.edge : 'none'}
+            />
+          </button>
           <button onClick={() => setShowColors(!showColors)} style={iconBtn} title="Farge">
             <Palette size={14} strokeWidth={2} style={{ color: '#888' }} />
           </button>
@@ -314,6 +361,15 @@ function StickyCard({
           minHeight: 120,
         }}
       />
+
+      {/* Stemmenotat — inline recorder, åpnes via mikrofon-knappen.
+          Auto-åpnes også når det allerede finnes audio så bruker kan
+          spille av uten ekstra klikk. */}
+      {(showRecorder || audioValue) && (
+        <div style={{ padding: '0 12px 8px' }}>
+          <VoiceNoteRecorder value={audioValue} onChange={handleAudioChange} />
+        </div>
+      )}
 
       {/* Tidsstempel nederst — viser også påminnelse hvis satt */}
       <div

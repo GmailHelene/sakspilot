@@ -35,6 +35,25 @@ export interface SakspilotSession {
   /// Bumpes ved logg-ut-alle-enheter / passordbytte. Middleware sjekker
   /// at JWT-versjonen er === User.tokenVersion i DB.
   tv: number;
+  /// "user" eller udefinert = vanlig User-sesjon. Klient-portal-sesjoner
+  /// bruker SakspilotClientSession med scope: "client" istedenfor — separat
+  /// type for å unngå at en klient-token noensinne kan brukes mot User-routes.
+  scope?: "user";
+}
+
+/// Klient-portal-sesjon. Helt separat scope fra User-sesjonen — en klient
+/// kan IKKE bruke sin token mot vanlige User-routes (requireAuth aksepterer
+/// kun JWTer uten scope eller med scope=user). Tilsvarende avviser
+/// requireClientAuth alt som ikke har scope=client.
+export interface SakspilotClientSession {
+  clientId: string;
+  organizationId: string;
+  email: string;
+  name: string;
+  scope: "client";
+  /// Bumpes ved passordbytte / revoke for klienten. Middleware sjekker
+  /// at JWT-versjonen er === Client.tokenVersion i DB.
+  tv: number;
 }
 
 export async function hashPassword(plain: string): Promise<string> {
@@ -54,7 +73,34 @@ export function createSessionToken(session: SakspilotSession): string {
 
 export function verifySessionToken(token: string): SakspilotSession | null {
   try {
-    const decoded = jwt.verify(token, EFFECTIVE_SECRET) as SakspilotSession;
+    const decoded = jwt.verify(token, EFFECTIVE_SECRET) as SakspilotSession & {
+      scope?: string;
+    };
+    // KRITISK: Klient-tokens (scope=client) skal IKKE kunne brukes mot
+    // User-routes. Avvis ALT som ikke er User-sesjon (scope udefinert eller "user").
+    if (decoded.scope && decoded.scope !== "user") return null;
+    return decoded as SakspilotSession;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Verifiserer JWT for klient-portalen. Aksepterer KUN tokens med scope=client.
+ * Brukt av requireClientAuth-middleware. En vanlig User-token vil returnere null.
+ */
+export function createClientSessionToken(session: SakspilotClientSession): string {
+  const options: SignOptions = { expiresIn: JWT_EXPIRES_IN as SignOptions["expiresIn"] };
+  return jwt.sign(session, EFFECTIVE_SECRET, options);
+}
+
+export function verifyClientSessionToken(token: string): SakspilotClientSession | null {
+  try {
+    const decoded = jwt.verify(token, EFFECTIVE_SECRET) as SakspilotClientSession & {
+      scope?: string;
+    };
+    if (decoded.scope !== "client") return null;
+    if (!decoded.clientId || !decoded.organizationId) return null;
     return decoded;
   } catch {
     return null;

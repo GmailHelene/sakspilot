@@ -26,6 +26,9 @@ interface Client {
   notes: string | null;
   archived: boolean;
   createdAt: string;
+  portalEnabled?: boolean;
+  email?: string | null;
+  lastLoginAt?: string | null;
 }
 
 interface ClientWithSaker extends Client {
@@ -42,6 +45,40 @@ export default function KlientDetailPage() {
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [invitingPortal, setInvitingPortal] = useState(false);
+  const [portalInviteResult, setPortalInviteResult] = useState<string | null>(null);
+
+  async function inviteToPortal() {
+    if (!client) return;
+    if (!client.contactEmail) {
+      alert('Klienten mangler kontakt-e-post. Fyll inn denne først og lagre.');
+      return;
+    }
+    const msg = client.portalEnabled
+      ? `Klienten har allerede portal-tilgang. Sende ny invitasjon? Dette overskriver den gamle.`
+      : `Sende invitasjon til klient-portalen til ${client.contactEmail}?`;
+    if (!confirm(msg)) return;
+    setInvitingPortal(true);
+    setPortalInviteResult(null);
+    try {
+      const res = await api<{
+        ok: boolean;
+        message: string;
+        _devInviteUrl?: string;
+      }>(`/klienter/${client.id}/invite-to-portal`, { method: 'POST' });
+      setPortalInviteResult(
+        res._devInviteUrl
+          ? `${res.message}\n\nLenke (kopier manuelt):\n${res._devInviteUrl}`
+          : res.message
+      );
+    } catch (err) {
+      setPortalInviteResult(
+        err instanceof ApiError ? `Feil: ${err.message}` : 'Invitasjon feilet'
+      );
+    } finally {
+      setInvitingPortal(false);
+    }
+  }
 
   const load = useCallback(async () => {
     try {
@@ -246,6 +283,60 @@ export default function KlientDetailPage() {
               <>Endringer lagres når du klikker ut av feltet</>
             )}
           </div>
+        </div>
+
+        {/* Klient-portal-invitasjon */}
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+            <div>
+              <h2 style={{ fontSize: 16, color: tokens.color.navy, margin: '0 0 6px 0' }}>
+                Klient-portal
+              </h2>
+              <p style={{ fontSize: 13, color: tokens.color.textMuted, margin: 0, lineHeight: 1.5, maxWidth: 540 }}>
+                {client.portalEnabled
+                  ? `Klienten har aktiv portal-tilgang${client.lastLoginAt ? ` (sist innlogget ${new Date(client.lastLoginAt).toLocaleDateString('nb-NO')})` : ''}. De kan logge inn på /portal og se egne saker, milepæler og fakturaer.`
+                  : 'Inviter klienten til klient-portalen så de kan logge inn og se egne saker, milepæler og fakturahistorikk.'}
+              </p>
+            </div>
+            <button
+              onClick={inviteToPortal}
+              disabled={invitingPortal}
+              style={{
+                padding: '8px 14px',
+                background: tokens.color.navy,
+                color: tokens.color.white,
+                border: 'none',
+                borderRadius: tokens.radius.sm,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: invitingPortal ? 'wait' : 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {invitingPortal
+                ? 'Sender…'
+                : client.portalEnabled
+                ? 'Send ny invitasjon'
+                : 'Inviter til klient-portal'}
+            </button>
+          </div>
+          {portalInviteResult && (
+            <pre
+              style={{
+                marginTop: 12,
+                padding: 10,
+                background: tokens.color.bgAlt,
+                borderRadius: tokens.radius.sm,
+                fontSize: 12,
+                color: tokens.color.text,
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-all',
+                fontFamily: 'inherit',
+              }}
+            >
+              {portalInviteResult}
+            </pre>
+          )}
         </div>
 
         {/* Saker for denne klienten */}

@@ -6,10 +6,11 @@ import { usePathname } from 'next/navigation';
 import {
   Home, LayoutGrid, Users, Calendar, GanttChartSquare, Plus, X,
   ExternalLink, Trash2, StickyNote, FolderOpen, Folder, Shield, Zap, BarChart3, Plug, Palette,
-  MessageSquare,
+  MessageSquare, UserCog,
   type LucideIcon,
 } from 'lucide-react';
 import { tokens } from '@/lib/tokens';
+import { api, isTokenValid } from '@/lib/api';
 
 /**
  * Persistent venstre-sidebar (Basaas/Linear-stil).
@@ -82,6 +83,7 @@ export default function Sidebar() {
   const desktop = getDesktopAPI();
 
   const [navTick, setNavTick] = useState(0);
+  const [userRole, setUserRole] = useState<string | null>(null);
   useEffect(() => {
     setMounted(true);
     try {
@@ -92,6 +94,13 @@ export default function Sidebar() {
       const storedSites = localStorage.getItem(SITES_STORAGE);
       if (storedSites) setMySites(JSON.parse(storedSites));
     } catch {}
+    // Hent brukerens rolle for å vise Team-link KUN for owners.
+    // Failer stille — sidebar fungerer uten dette.
+    if (isTokenValid()) {
+      api<{ role: string }>('/auth/me')
+        .then((me) => setUserRole(me.role))
+        .catch(() => {});
+    }
     // Lytt på nav-toggle fra /innstillinger/utseende
     function navHandler() {
       setNavTick((t) => t + 1);
@@ -216,6 +225,10 @@ export default function Sidebar() {
     { id: 'integrasjoner', href: '/innstillinger/integrasjoner', label: 'Integrasjoner', Icon: Plug },
     { id: 'sikkerhet', href: '/innstillinger/sikkerhet', label: 'Sikkerhet', Icon: Shield },
     { id: 'utseende', href: '/innstillinger/utseende', label: 'Utseende', Icon: Palette },
+    // Team-side er KUN for owners. userRole hentes via /auth/me i useEffect.
+    ...(userRole === 'owner'
+      ? [{ id: 'team', href: '/innstillinger/team', label: 'Team', Icon: UserCog }]
+      : []),
     { id: 'feedback', href: '/feedback', label: 'Tilbakemelding', Icon: MessageSquare },
   ];
   const HIDDEN_NAV_KEY = 'sakspilot_hidden_nav';

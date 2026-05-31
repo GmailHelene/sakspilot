@@ -60,6 +60,8 @@ import accountingRouter from "./routes/accounting";
 import billingRouter from "./routes/billing";
 import feedbackRouter from "./routes/feedback";
 import invoicePdfRouter from "./routes/invoicePdf";
+import clientPortalRouter from "./routes/clientPortal";
+import teamRouter, { acceptInviteRouter } from "./routes/team";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 8001;
@@ -202,6 +204,36 @@ app.use("/accounting", accountingRouter);
 app.use("/billing", billingRouter);
 app.use("/feedback", feedbackRouter);
 app.use("/invoice-pdf", invoicePdfRouter);
+// Team-routes — listing/invite/management av team-medlemmer.
+// POST /team/invites og DELETE /team/invites er bak requireAuth + requireRole(owner).
+// Rate-limit på write-paths som matcher auth-write (forhindrer at en kompromittert
+// owner-konto kan spam-invitere via brute-force).
+app.use("/team", (req, res, next) => {
+  const writePaths = ["/invites", "/members"];
+  // Match prefix: /invites, /invites/:id, /members/:id/role osv
+  const isWrite =
+    req.method !== "GET" && writePaths.some((p) => req.path.startsWith(p));
+  if (isWrite) {
+    return authWriteLimiter(req, res, () => teamRouter(req, res, next));
+  }
+  return teamRouter(req, res, next);
+});
+
+// Separat PUBLIC mount for accept-invite (ingen requireAuth). Bak samme
+// authWriteLimiter for å begrense token-brute-force.
+app.use("/team-invites", authWriteLimiter, acceptInviteRouter);
+
+// Klient-portal — egen JWT-scope (scope=client), separate cookies.
+// Rate-limit som auth-write for login/forgot/reset/accept-invite (brute-force-utsatt),
+// resten er authentisert via requireClientAuth-middleware i routeren selv.
+app.use("/client-portal", (req, res, next) => {
+  const writePaths = ["/login", "/forgot-password", "/reset-password", "/accept-invite"];
+  const isWrite = writePaths.some((p) => req.path === p);
+  if (isWrite) {
+    return authWriteLimiter(req, res, () => clientPortalRouter(req, res, next));
+  }
+  return clientPortalRouter(req, res, next);
+});
 
 // ── Root ────────────────────────────────────────────────────────
 app.get("/", (_req: Request, res: Response) => {

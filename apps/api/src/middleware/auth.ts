@@ -7,7 +7,12 @@
  *   requireRole     — krev spesifikk rolle
  */
 import { Request, Response, NextFunction } from "express";
-import { verifySessionToken, SakspilotSession } from "../services/auth";
+import {
+  verifySessionToken,
+  verifyClientSessionToken,
+  SakspilotSession,
+  SakspilotClientSession,
+} from "../services/auth";
 import prisma from "../lib/prisma";
 
 declare global {
@@ -15,6 +20,7 @@ declare global {
   namespace Express {
     interface Request {
       session?: SakspilotSession;
+      clientSession?: SakspilotClientSession;
     }
   }
 }
@@ -77,6 +83,70 @@ export function requireAuth(
     res.status(401).json({ error: "Ikke innlogget" });
     return;
   }
+  next();
+}
+
+// ─── Klient-portal-auth ───────────────────────────────────────────
+//
+// Klient-portal har EGNE tokens (scope=client). En vanlig User-token virker
+// ikke her, og omvendt. Vi bruker en separat cookie-nøkkel for å unngå
+// kollisjon dersom en frilanser og en klient deler nettleser.
+//
+// Token-versjons-sjekken er identisk i logikk som for User, men leser
+// Client.tokenVersion. Egen cache for å hindre at User-cache invalidering
+// påvirker klient-revokering og motsatt.
+
+const clientTokenVersionCache = new Map<string, { v: number; expires: number }>();
+
+async function isClientTokenStillValid(
+  session: SakspilotClientSession
+): Promise<boolean> {
+  if (typeof session.tv !== "number") return false; // alltid krev tv på klient — nyere felt
+  const cached = clientTokenVersionCache.get(session.clientId);
+  if (cached && cached.expires > Date.now()) {
+    return cached.v === session.tv;
+  }
+  const client = await prisma.client.findUnique({
+    where: { id: session.clientId },
+    select: { tokenVersion: true, portalEnabled: true },
+  });
+  if (!client || !client.portalEnabled) return false;
+  clientTokenVersionCache.set(session.clientId, {
+    v: client.tokenVersion,
+    expires: Date.now() + TV_CACHE_TTL,
+  });
+  return client.tokenVersion === session.tv;
+}
+
+export async function requireClientAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  // Klient-portalen sender token via Authorization-header (frontend lagrer i
+  // localStorage som 'sakspilot_portal_token') ELLER egen cookie. Vi støtter
+  // begge for fleksibilitet, men kollideres ikke med User-cookien.
+  const token =
+    req.cookies?.sakspilot_portal_session ||
+    req.headers.authorization?.replace("Bearer ", "");
+
+  if (!token) {
+    res.status(401).json({ error: "Ikke innlogget (klient-portal)" });
+    return;
+  }
+
+  const session = verifyClientSessionToken(token);
+  if (!session) {
+    res.status(401).json({ error: "Ugyldig eller utløpt klient-token" });
+    return;
+  }
+
+  if (!(await isClientTokenStillValid(session))) {
+    res.status(401).json({ error: "Klient-sesjonen er ikke lenger gyldig" });
+    return;
+  }
+
+  req.clientSession = session;
   next();
 }
 
