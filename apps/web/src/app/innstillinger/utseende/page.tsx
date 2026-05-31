@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Palette, RotateCcw, Eye, EyeOff } from 'lucide-react';
+import { Palette, RotateCcw, Eye, EyeOff, Moon, Sun } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
 import ThemePicker from '@/components/ThemePicker';
 import { tokens } from '@/lib/tokens';
+import { getDarkMode, setDarkMode } from '@/lib/themes';
 
 // Samme liste som i Sidebar.tsx — hold synkronisert
 const ALL_NAV: { id: string; label: string }[] = [
@@ -27,6 +28,7 @@ const HIDDEN_NAV_KEY = 'sakspilot_hidden_nav';
 export default function UtseendePage() {
   const router = useRouter();
   const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [darkMode, setDarkModeState] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -35,7 +37,18 @@ export default function UtseendePage() {
       const raw = localStorage.getItem(HIDDEN_NAV_KEY);
       if (raw) setHidden(new Set(JSON.parse(raw) as string[]));
     } catch {}
+    setDarkModeState(getDarkMode());
   }, []);
+
+  function toggleDarkMode() {
+    const next = !darkMode;
+    setDarkModeState(next);
+    setDarkMode(next);
+    // Trigger ThemeInit-handler så evt. andre lyttere oppdaterer
+    try {
+      window.dispatchEvent(new Event('sakspilot:theme-updated'));
+    } catch {}
+  }
 
   function toggleNav(id: string) {
     setHidden((prev) => {
@@ -104,6 +117,38 @@ export default function UtseendePage() {
           <ThemePicker />
         </section>
 
+        {/* Mørk modus */}
+        <section style={sectionStyle}>
+          <h2 style={sectionTitleStyle}>Mørk modus</h2>
+          <p style={{ fontSize: 13, color: tokens.color.textMuted, marginBottom: 16 }}>
+            Bytt mellom lys og mørk bakgrunn. Påvirker hele grensesnittet —
+            farge­temaet over beholdes som aksent.
+          </p>
+          {mounted && (
+            <button
+              onClick={toggleDarkMode}
+              aria-pressed={darkMode}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 18px',
+                background: darkMode ? tokens.color.navy : tokens.color.surface,
+                color: darkMode ? tokens.color.white : tokens.color.text,
+                border: `1px solid ${darkMode ? tokens.color.navy : tokens.color.border}`,
+                borderRadius: tokens.radius.md,
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              {darkMode ? <Moon size={16} strokeWidth={2.5} /> : <Sun size={16} strokeWidth={2.5} />}
+              Mørk modus: {darkMode ? 'På' : 'Av'}
+            </button>
+          )}
+        </section>
+
         {/* Nav-skjul */}
         <section style={sectionStyle}>
           <h2 style={sectionTitleStyle}>Sidebar — vis/skjul elementer</h2>
@@ -123,8 +168,8 @@ export default function UtseendePage() {
                       alignItems: 'center',
                       gap: 6,
                       padding: '8px 14px',
-                      background: isHidden ? 'white' : tokens.color.navy,
-                      color: isHidden ? tokens.color.textMuted : 'white',
+                      background: isHidden ? tokens.color.surface : tokens.color.navy,
+                      color: isHidden ? tokens.color.textMuted : tokens.color.white,
                       border: `1px solid ${isHidden ? tokens.color.border : tokens.color.navy}`,
                       borderRadius: 999,
                       fontSize: 13,
@@ -159,7 +204,7 @@ export default function UtseendePage() {
               alignItems: 'center',
               gap: 8,
               padding: '10px 18px',
-              background: 'white',
+              background: tokens.color.surface,
               color: tokens.color.red,
               border: `1px solid ${tokens.color.red}`,
               borderRadius: tokens.radius.md,
@@ -179,7 +224,7 @@ export default function UtseendePage() {
 }
 
 const sectionStyle: React.CSSProperties = {
-  background: 'white',
+  background: tokens.color.surface,
   border: `1px solid ${tokens.color.border}`,
   borderRadius: tokens.radius.lg,
   padding: 20,

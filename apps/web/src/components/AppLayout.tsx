@@ -134,7 +134,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 left: 0,
                 bottom: 0,
                 width: 260,
-                background: 'white',
+                background: tokens.color.surface,
                 zIndex: 997,
                 transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
                 transition: 'transform 0.2s ease',

@@ -1,11 +1,40 @@
-/* CSS-variabler for tema-bytte. ThemeInit overstyrer disse på <html>.
-   Defaults = Navy & Gull. */
+/* CSS-variabler for tema-bytte. ThemeInit overstyrer palette-vars (--sp-primary*,
+   --sp-accent*) på <html data-theme>. Mørk modus styres separat via
+   <html data-mode="dark"> så bruker kan kombinere palette + lys/mørk fritt. */
 :root {
+  /* Palette (settes per tema av ThemeInit) — default Navy & Gull */
   --sp-primary: #1E3A5F;
   --sp-primary-dark: #152A47;
   --sp-primary-light: #2D5183;
   --sp-accent: #D4A017;
   --sp-accent-light: #E9C46A;
+
+  /* Nøytrale flater — lys modus (default) */
+  --sp-bg: #F8F9FB;
+  --sp-bg-alt: #F1F3F7;
+  --sp-bg-surface: #FFFFFF;
+  --sp-text: #172B4D;
+  --sp-text-muted: #5E6C84;
+  --sp-text-subtle: #8993A4;
+  --sp-border: #E6E9EF;
+  --sp-shadow-rgb: 23, 43, 77;
+  --sp-scrollbar-thumb: #d4d4d4;
+  --sp-scrollbar-thumb-hover: #b0b0b0;
+}
+
+/* Mørk modus — overstyrer kun nøytrale flater, palette-fargene beholdes
+   så Navy/Rose/Forest fortsatt fungerer som aksent på mørk bakgrunn. */
+[data-mode="dark"] {
+  --sp-bg: #0F1419;
+  --sp-bg-alt: #151B23;
+  --sp-bg-surface: #1A1F26;
+  --sp-text: #E8EAED;
+  --sp-text-muted: #9AA3AE;
+  --sp-text-subtle: #6B7480;
+  --sp-border: #2A313B;
+  --sp-shadow-rgb: 0, 0, 0;
+  --sp-scrollbar-thumb: #3A414B;
+  --sp-scrollbar-thumb-hover: #4D5560;
 }
 
 * {
@@ -16,8 +45,8 @@
 
 html, body {
   height: 100%;
-  background: #FAFAF7;
-  color: #1A1A1A;
+  background: var(--sp-bg);
+  color: var(--sp-text);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 14px;
   line-height: 1.55;
@@ -132,9 +161,9 @@ input:focus, select:focus, textarea:focus, button:focus {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d4;
+  background: var(--sp-scrollbar-thumb);
   border-radius: 5px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #b0b0b0;
+  background: var(--sp-scrollbar-thumb-hover);
 }

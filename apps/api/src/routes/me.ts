@@ -298,4 +298,146 @@ router.put("/preferences", async (req: Request, res: Response) => {
   return res.json({ ok: true });
 });
 
+// ──────────────────────────────────────────────────────────────
+// Tidsmål — uke/mnd-mål for fakturerbare (eller totale) timer
+// Brukes til progress-widget på /hjem og varsler hvis brukeren henger etter.
+// ──────────────────────────────────────────────────────────────
+
+const GoalsSchema = z.object({
+  // null = nullstill målet, undefined = ikke endre.
+  weeklyHoursGoal: z.number().int().min(0).max(168).nullable().optional(),
+  monthlyHoursGoal: z.number().int().min(0).max(744).nullable().optional(),
+  goalType: z.enum(["billable", "total"]).optional(),
+});
+
+/**
+ * PATCH /me/goals
+ * Oppdater personlige tidsmål. Felter som ikke sendes forblir uendret.
+ * Send null for å fjerne et mål.
+ */
+router.patch("/goals", async (req: Request, res: Response) => {
+  const parsed = GoalsSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: "Ugyldig input", details: parsed.error.flatten() });
+  }
+  const { userId } = req.session!;
+  const data: {
+    weeklyHoursGoal?: number | null;
+    monthlyHoursGoal?: number | null;
+    goalType?: string;
+  } = {};
+  if (parsed.data.weeklyHoursGoal !== undefined) data.weeklyHoursGoal = parsed.data.weeklyHoursGoal;
+  if (parsed.data.monthlyHoursGoal !== undefined) data.monthlyHoursGoal = parsed.data.monthlyHoursGoal;
+  if (parsed.data.goalType !== undefined) data.goalType = parsed.data.goalType;
+
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data,
+    select: {
+      id: true,
+      weeklyHoursGoal: true,
+      monthlyHoursGoal: true,
+      goalType: true,
+    },
+  });
+  return res.json(user);
+});
+
+/**
+ * GET /me/goals/progress
+ * Returnerer fremdrift mot uke- og månedsmål. Uke = mandag-søndag,
+ * måned = 1. til siste dag i kalendermåneden. Tidssone: Europe/Oslo
+ * (vi bruker server-lokal tid via Date — Render-servere er UTC, men siden
+ * pro-rata bare regnes på dager og ikke timer-i-døgnet er det robust nok).
+ *
+ * prorataTarget = hvor mange timer brukeren BURDE ha logget akkurat nå
+ * hvis hen er i rute (lineær progresjon gjennom perioden).
+ */
+router.get("/goals/progress", async (req: Request, res: Response) => {
+  const { userId } = req.session!;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { weeklyHoursGoal: true, monthlyHoursGoal: true, goalType: true },
+  });
+  if (!user) return res.status(404).json({ error: "Bruker ikke funnet" });
+
+  const now = new Date();
+
+  // Ukestart = mandag 00:00 lokal tid (samme mønster som /reports/home).
+  // Søn=0 → -6, ellers 1 - day.
+  const weekStart = new Date(now);
+  const dow = weekStart.getDay();
+  weekStart.setDate(weekStart.getDate() + (dow === 0 ? -6 : 1 - dow));
+  weekStart.setHours(0, 0, 0, 0);
+
+  // Månedsstart = 1. i måneden 00:00. Måneds-slutt håndteres av JS
+  // automatisk når vi setter dato=0 i NESTE måned.
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  const daysInMonth = monthEnd.getDate();
+
+  // Pro-rata: hvor langt inn i perioden er vi? Bruker ms for nøyaktighet
+  // (håndterer halve dager / desimaler), men eksponerer daysIn som heltall.
+  const weekElapsedMs = now.getTime() - weekStart.getTime();
+  const weekTotalMs = 7 * 86_400_000;
+  // daysIn = antall fulle eller delvis startede dager (mandag = 1).
+  const weekDaysIn = Math.min(7, Math.floor(weekElapsedMs / 86_400_000) + 1);
+
+  const monthElapsedMs = now.getTime() - monthStart.getTime();
+  const monthTotalMs = monthEnd.getTime() - monthStart.getTime();
+  const monthDaysIn = Math.min(daysInMonth, now.getDate());
+
+  // Hent alle TimeEntry-rader for begge periodene i ett kall (måneden
+  // dekker uka i 6 av 7 dager — vi henter alt månedens og filtrerer).
+  // Edge case: ved månedsskifte (f.eks. torsdag 1. november) går uka delvis
+  // tilbake i forrige måned. Da må vi hente fra MIN(weekStart, monthStart).
+  const fetchFrom = weekStart < monthStart ? weekStart : monthStart;
+
+  const entries = await prisma.timeEntry.findMany({
+    where: {
+      userId,
+      startedAt: { gte: fetchFrom },
+      ...(user.goalType === "billable" ? { billable: true } : {}),
+    },
+    select: { startedAt: true, durationSec: true },
+  });
+
+  let weekSec = 0;
+  let monthSec = 0;
+  for (const e of entries) {
+    if (e.startedAt >= weekStart) weekSec += e.durationSec;
+    if (e.startedAt >= monthStart) monthSec += e.durationSec;
+  }
+  const weekLogged = Math.round((weekSec / 3600) * 10) / 10;
+  const monthLogged = Math.round((monthSec / 3600) * 10) / 10;
+
+  function buildPeriod(
+    goal: number | null,
+    logged: number,
+    elapsedMs: number,
+    totalMs: number,
+    daysIn: number,
+    daysTotal: number,
+  ) {
+    return {
+      goal,
+      logged,
+      percentage: goal && goal > 0 ? Math.round((logged / goal) * 100) : null,
+      prorataTarget:
+        goal && goal > 0 && totalMs > 0
+          ? Math.round((goal * (elapsedMs / totalMs)) * 10) / 10
+          : null,
+      daysIn,
+      daysTotal,
+    };
+  }
+
+  return res.json({
+    week: buildPeriod(user.weeklyHoursGoal, weekLogged, weekElapsedMs, weekTotalMs, weekDaysIn, 7),
+    month: buildPeriod(user.monthlyHoursGoal, monthLogged, monthElapsedMs, monthTotalMs, monthDaysIn, daysInMonth),
+    goalType: user.goalType,
+  });
+});
+
 export default router;

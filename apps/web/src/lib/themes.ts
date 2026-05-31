@@ -88,3 +88,39 @@ export function applyTheme(id: ThemeId): void {
   root.style.setProperty('--sp-accent-light', t.accentLight);
   root.setAttribute('data-theme', id);
 }
+
+/* ────────────────────────────────────────────────────────────────
+ * Mørk modus — separat akse fra palette.
+ * Lagres som sakspilot_dark_mode='1' (på) / '0' eller fraværende (av).
+ * Default = lys modus (vi auto-detect ikke prefers-color-scheme — bruker
+ * må aktivt velge mørk for å unngå overraskelser ved første besøk).
+ * ──────────────────────────────────────────────────────────────── */
+
+const DARK_MODE_KEY = 'sakspilot_dark_mode';
+
+export function getDarkMode(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return localStorage.getItem(DARK_MODE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function setDarkMode(on: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(DARK_MODE_KEY, on ? '1' : '0');
+  } catch {}
+  applyDarkMode(on);
+}
+
+export function applyDarkMode(on: boolean): void {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  if (on) {
+    root.setAttribute('data-mode', 'dark');
+  } else {
+    root.removeAttribute('data-mode');
+  }
+}

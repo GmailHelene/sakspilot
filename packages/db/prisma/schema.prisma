@@ -81,6 +81,12 @@ model Organization {
   plan            Plan     @default(solo)
   billingEmail    String?  @map("billing_email")
   orgNumber       String?  @map("org_number")       // norsk organisasjonsnummer
+  // Adresse + bankkonto — brukes på faktura-PDF (route: /invoice-pdf/sak/:id).
+  // Alle felter er valgfrie; PDF-en bruker placeholder hvis null.
+  address         String?
+  postalCode      String?  @map("postal_code")
+  city            String?
+  bankAccount     String?  @map("bank_account")     // kontonr for utbetaling, vises på faktura-PDF
   defaultHourlyRate Int?   @map("default_hourly_rate") // kr/t — kan overstyres per sak
   timezone        String   @default("Europe/Oslo")
   /// Pilotperiode-utløp. Mens denne er i fremtiden er produktet GRATIS
@@ -105,6 +111,7 @@ model Organization {
   automations Automation[]
   subscription Subscription?
   fikenIntegration FikenIntegration?
+  feedbacks Feedback[]
 
   @@map("organizations")
 }
@@ -216,6 +223,13 @@ model User {
   /// så DB-lekkasje ikke gir reset-tilgang.
   passwordResetTokenHash String?   @map("password_reset_token_hash")
   passwordResetExpiresAt DateTime? @map("password_reset_expires_at")
+  /// Personlige tidsmål — null = ikke satt. Måles i timer.
+  /// Brukes til progress-widget på /hjem og varsler hvis brukeren henger etter.
+  weeklyHoursGoal  Int?    @map("weekly_hours_goal")
+  monthlyHoursGoal Int?    @map("monthly_hours_goal")
+  /// "billable" = teller kun fakturerbare timer, "total" = alle timer.
+  /// Default billable — frilanseren bryr seg primært om inntektsgivende tid.
+  goalType         String  @default("billable") @map("goal_type")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
@@ -227,6 +241,7 @@ model User {
   stickyNotes  StickyNote[]
   sharedLinks  SharedSakLink[]
   preferences  UserPreferences?
+  feedbacks    Feedback[]
 
   @@index([organizationId])
   @@map("users")
@@ -537,4 +552,25 @@ model AuditLog {
   @@index([organizationId, createdAt])
   @@index([userId, createdAt])
   @@map("audit_logs")
+}
+
+/// Pilot-feedback fra brukere som tester Sakspilot.
+/// Helene leser via Prisma Studio (eller liten admin-side senere).
+/// Tre fritekst-felter + ønske om video-samtale.
+model Feedback {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  organizationId  String   @map("organization_id")
+  whatWorksBest   String?  @map("what_works_best")   // max 1000 (håndheves i route)
+  whatFrustrates  String?  @map("what_frustrates")   // max 1000 (håndheves i route)
+  whatIsMissing   String?  @map("what_is_missing")   // max 1000 (håndheves i route)
+  wantsVideoCall  Boolean  @default(false) @map("wants_video_call")
+  submittedAt     DateTime @default(now()) @map("submitted_at")
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, submittedAt])
+  @@index([userId, submittedAt])
+  @@map("feedbacks")
 }

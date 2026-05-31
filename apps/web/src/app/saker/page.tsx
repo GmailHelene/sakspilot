@@ -138,7 +138,7 @@ function ViewToggle({ current, onChange }: { current: View; onChange: (v: View) 
         onClick={() => onChange('kanban')}
         style={{
           ...styles,
-          background: current === 'kanban' ? tokens.color.white : 'transparent',
+          background: current === 'kanban' ? tokens.color.surface : 'transparent',
           color: current === 'kanban' ? tokens.color.navy : tokens.color.textMuted,
           borderRadius: tokens.radius.sm,
         }}
@@ -149,7 +149,7 @@ function ViewToggle({ current, onChange }: { current: View; onChange: (v: View) 
         onClick={() => onChange('tabell')}
         style={{
           ...styles,
-          background: current === 'tabell' ? tokens.color.white : 'transparent',
+          background: current === 'tabell' ? tokens.color.surface : 'transparent',
           color: current === 'tabell' ? tokens.color.navy : tokens.color.textMuted,
           borderRadius: tokens.radius.sm,
         }}
@@ -225,7 +225,7 @@ function SakCard({ sak }: { sak: Sak }) {
     <Link
       href={`/saker/${sak.id}`}
       style={{
-        background: tokens.color.white,
+        background: tokens.color.surface,
         padding: 14,
         borderRadius: tokens.radius.md,
         border: `1px solid ${tokens.color.border}`,
@@ -358,7 +358,7 @@ function TabellView({ saker }: { saker: Sak[] }) {
     <div style={{ padding: '0 24px 24px' }}>
       <div
         style={{
-          background: tokens.color.white,
+          background: tokens.color.surface,
           border: `1px solid ${tokens.color.border}`,
           borderRadius: tokens.radius.lg,
           overflow: 'hidden',
@@ -455,7 +455,7 @@ function EmptyState() {
     <div
       style={{
         margin: 24, padding: 48,
-        background: tokens.color.white,
+        background: tokens.color.surface,
         borderRadius: tokens.radius.lg,
         border: `1px dashed ${tokens.color.border}`,
         textAlign: 'center',

@@ -15,6 +15,7 @@ import MilestonesSection from './_sections/MilestonesSection';
 import AiAssistantSection from './_sections/AiAssistantSection';
 import TimeEntriesSection from './_sections/TimeEntriesSection';
 import FikenInvoiceButton from './_sections/FikenInvoiceButton';
+import InvoicePdfButton from './_sections/InvoicePdfButton';
 
 export default function SakDetailPage() {
   const router = useRouter();
@@ -135,7 +136,16 @@ export default function SakDetailPage() {
               </div>
             ) : null}
             {summary && summary.billableHours > 0 && (
-              <FikenInvoiceButton sakId={sak.id} hours={summary.billableHours} amount={summary.totalAmount} />
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16, alignItems: 'flex-start' }}>
+                <InvoicePdfButton sakId={sak.id} />
+                <div style={{ marginTop: -16 }}>
+                  <FikenInvoiceButton
+                    sakId={sak.id}
+                    hours={summary.billableHours}
+                    amount={summary.totalAmount}
+                  />
+                </div>
+              </div>
             )}
             {!summary || summary.entryCount === 0 ? (
               <div

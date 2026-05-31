@@ -34,14 +34,17 @@ export const tokens = {
     teal: '#00C7BE',          // alternativ aksent
     tealSoft: '#CCF4F2',
 
-    // Nøytral — lysere og roligere
-    white: '#FFFFFF',
-    bg: '#F8F9FB',            // litt blålig — mer levende enn varmgrå
-    bgAlt: '#F1F3F7',
-    border: '#E6E9EF',
-    text: '#172B4D',          // dyp blå-grå, ikke svart
-    textMuted: '#5E6C84',
-    textSubtle: '#8993A4',
+    // Nøytral — leser fra CSS-variabler så de flipper i mørk modus
+    // (se globals.css :root og [data-mode="dark"]). Fallback-verdiene
+    // matcher lys modus så SSR/tidlig render ser riktig ut.
+    white: '#FFFFFF',                                       // ren hvit — for tekst på mørke flater (header-tekst, badges osv). Endres IKKE av mørk modus.
+    surface: 'var(--sp-bg-surface, #FFFFFF)',               // kort-/panel-bakgrunn — flipper til mørk grå i mørk modus
+    bg: 'var(--sp-bg, #F8F9FB)',                            // app-bakgrunn
+    bgAlt: 'var(--sp-bg-alt, #F1F3F7)',                     // sub-flater (sidebar add-form, hover)
+    border: 'var(--sp-border, #E6E9EF)',
+    text: 'var(--sp-text, #172B4D)',
+    textMuted: 'var(--sp-text-muted, #5E6C84)',
+    textSubtle: 'var(--sp-text-subtle, #8993A4)',
   },
   // Gradients til CTA-knapper og hero-elementer.
   // navy/gold leser CSS-vars så de bytter med tema.

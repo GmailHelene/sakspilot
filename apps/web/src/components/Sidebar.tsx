@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   Home, LayoutGrid, Users, Calendar, GanttChartSquare, Plus, X,
   ExternalLink, Trash2, StickyNote, FolderOpen, Folder, Shield, Zap, BarChart3, Plug, Palette,
+  MessageSquare,
   type LucideIcon,
 } from 'lucide-react';
 import { tokens } from '@/lib/tokens';
@@ -215,6 +216,7 @@ export default function Sidebar() {
     { id: 'integrasjoner', href: '/innstillinger/integrasjoner', label: 'Integrasjoner', Icon: Plug },
     { id: 'sikkerhet', href: '/innstillinger/sikkerhet', label: 'Sikkerhet', Icon: Shield },
     { id: 'utseende', href: '/innstillinger/utseende', label: 'Utseende', Icon: Palette },
+    { id: 'feedback', href: '/feedback', label: 'Tilbakemelding', Icon: MessageSquare },
   ];
   const HIDDEN_NAV_KEY = 'sakspilot_hidden_nav';
   // navTick i deps tvinger re-eval når toggling skjer
@@ -465,7 +467,7 @@ export default function Sidebar() {
                     width: '100%',
                     aspectRatio: '1',
                     borderRadius: 10,
-                    background: tokens.color.white,
+                    background: tokens.color.surface,
                     border: `1px solid ${tokens.color.border}`,
                     boxShadow: tokens.shadow.sm,
                     overflow: 'hidden',
@@ -617,7 +619,7 @@ function SidebarSection({
 const sidebarStyle: React.CSSProperties = {
   width: 220,
   minWidth: 220,
-  background: tokens.color.white,
+  background: tokens.color.surface,
   borderRight: `1px solid ${tokens.color.border}`,
   padding: '20px 8px 12px',
   display: 'flex',

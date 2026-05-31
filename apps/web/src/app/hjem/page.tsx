@@ -7,6 +7,7 @@ import {
   Plus, ArrowRight, TrendingUp, Play, Settings2, EyeOff, Eye,
 } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
+import GoalProgressWidget from '@/components/GoalProgressWidget';
 import { tokens } from '@/lib/tokens';
 import { api } from '@/lib/api';
 
@@ -49,7 +50,7 @@ interface Stats {
 
 // Hvilke widgets kan brukeren skjule? Lagres i localStorage.
 const WIDGET_HIDDEN_KEY = 'sakspilot_hjem_hidden_widgets';
-type WidgetId = 'frister' | 'recent' | 'quick' | 'tips' | 'minikpi';
+type WidgetId = 'frister' | 'recent' | 'quick' | 'tips' | 'minikpi' | 'tidsmal';
 
 export default function HjemPage() {
   const [me, setMe] = useState<Me | null>(null);
@@ -222,6 +223,7 @@ export default function HjemPage() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {([
                 ['minikpi', 'Omsetning / Agenter / E-poster'],
+                ['tidsmal', 'Tidsmål'],
                 ['frister', 'Kommende frister'],
                 ['recent', 'Nylige prosjekter'],
                 ['quick', 'Hurtighandlinger'],
@@ -418,6 +420,9 @@ export default function HjemPage() {
           </Widget>
           )}
 
+          {/* Tidsmål — uke/mnd-progress */}
+          {!hidden.has('tidsmal') && <GoalProgressWidget />}
+
           {/* Tips for dagen */}
           {!hidden.has('tips') && (
           <Widget
@@ -465,7 +470,7 @@ function KPICard({ icon, label, value, href, color }: {
     <Link
       href={href}
       style={{
-        background: tokens.color.white,
+        background: tokens.color.surface,
         padding: 16,
         borderRadius: tokens.radius.lg,
         border: `1px solid ${tokens.color.border}`,
@@ -489,7 +494,7 @@ function MiniKpi({ label, value, color }: { label: string; value: React.ReactNod
   return (
     <div
       style={{
-        background: tokens.color.white,
+        background: tokens.color.surface,
         border: `1px solid ${tokens.color.border}`,
         borderRadius: tokens.radius.md,
         padding: 14,
@@ -511,7 +516,7 @@ function Widget({ title, icon, action, children }: {
 }) {
   return (
     <div style={{
-      background: tokens.color.white,
+      background: tokens.color.surface,
       borderRadius: tokens.radius.lg,
       border: `1px solid ${tokens.color.border}`,
       overflow: 'hidden',

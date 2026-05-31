@@ -57,6 +57,8 @@ import oauthRouter from "./routes/oauth";
 import emailsRouter from "./routes/emails";
 import accountingRouter from "./routes/accounting";
 import billingRouter from "./routes/billing";
+import feedbackRouter from "./routes/feedback";
+import invoicePdfRouter from "./routes/invoicePdf";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 8001;
@@ -196,6 +198,8 @@ app.use("/oauth", oauthLimiter, oauthRouter);
 app.use("/emails", emailsRouter);
 app.use("/accounting", accountingRouter);
 app.use("/billing", billingRouter);
+app.use("/feedback", feedbackRouter);
+app.use("/invoice-pdf", invoicePdfRouter);
 
 // ── Root ────────────────────────────────────────────────────────
 app.get("/", (_req: Request, res: Response) => {
