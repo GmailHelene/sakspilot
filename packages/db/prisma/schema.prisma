@@ -242,6 +242,7 @@ model User {
   sharedLinks  SharedSakLink[]
   preferences  UserPreferences?
   feedbacks    Feedback[]
+  aiChatMessages AiChatMessage[]
 
   @@index([organizationId])
   @@map("users")
@@ -310,11 +311,33 @@ model Sak {
   invoices       Invoice[]
   stickyNotes    StickyNote[]
   sharedLinks    SharedSakLink[]
+  aiChatMessages AiChatMessage[]
 
   @@index([organizationId, status])
   @@index([organizationId, clientId])
   @@index([organizationId, archived])
   @@map("saker")
+}
+
+/// AI-chathistorikk per sak per bruker. Lar Claude huske konteksten innenfor
+/// samme sak (men ikke på tvers av saker) — neste prompt får siste N meldinger
+/// med, slik at oppfølgingsspørsmål gir mening. Slettes når sak eller bruker
+/// slettes. Bruker kan også selv "starte ny samtale" via DELETE-endpoint.
+model AiChatMessage {
+  id             String   @id @default(uuid())
+  sakId          String   @map("sak_id")
+  sak            Sak      @relation(fields: [sakId], references: [id], onDelete: Cascade)
+  userId         String   @map("user_id")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String   // "user" eller "assistant"
+  content        String   @db.Text
+  // For sporing: lagre token-bruk hvis assistant
+  inputTokens    Int?     @map("input_tokens")
+  outputTokens   Int?     @map("output_tokens")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([sakId, createdAt])
+  @@map("ai_chat_messages")
 }
 
 model MatchingRule {

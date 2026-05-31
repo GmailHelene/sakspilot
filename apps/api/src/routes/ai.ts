@@ -148,6 +148,11 @@ const AskSchema = z.object({
   question: z.string().min(1).max(2000),
 });
 
+/// Hvor mange tidligere meldinger vi sender med som kontekst.
+/// 10 ≈ 5 turtaks. Holder oss godt under kontekstvindu selv ved lange svar,
+/// og bremser oppblåst token-bruk når en samtale drar ut.
+const CHAT_HISTORY_LIMIT = 10;
+
 router.post("/sak/:id/ask", async (req: Request, res: Response) => {
   const client = getClient();
   if (!client) {
@@ -173,6 +178,24 @@ router.post("/sak/:id/ask", async (req: Request, res: Response) => {
   const ctx = await loadSakContext(req.params.id, session.organizationId);
   if (!ctx) return res.status(404).json({ error: "Sak ikke funnet" });
 
+  // Hent siste N meldinger for denne sak+bruker, sortert kronologisk
+  // (eldste først, slik Claude forventer message-arrayer).
+  const history = await prisma.aiChatMessage.findMany({
+    where: { sakId: req.params.id, userId: session.userId },
+    orderBy: { createdAt: "asc" },
+    take: CHAT_HISTORY_LIMIT,
+    select: { role: true, content: true },
+  });
+
+  // Bygg messages-array: historikk + nytt brukerspørsmål.
+  // Defensiv: filtrer ut ugyldige roller hvis noen skulle ha snikit seg inn.
+  const messages: Array<{ role: "user" | "assistant"; content: string }> = [
+    ...history
+      .filter((m) => m.role === "user" || m.role === "assistant")
+      .map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
+    { role: "user", content: parsed.data.question },
+  ];
+
   try {
     const response = await client.messages.create({
       model: MODEL_FN(),
@@ -185,7 +208,7 @@ router.post("/sak/:id/ask", async (req: Request, res: Response) => {
           cache_control: { type: "ephemeral" }, // sak-konteksten caches
         },
       ],
-      messages: [{ role: "user", content: parsed.data.question }],
+      messages,
     });
 
     await recordAiUsage(session.organizationId, response.usage);
@@ -194,6 +217,32 @@ router.post("/sak/:id/ask", async (req: Request, res: Response) => {
       .filter((c): c is Anthropic.TextBlock => c.type === "text")
       .map((c) => c.text)
       .join("\n");
+
+    // Lagre BÅDE bruker-spørsmål og assistant-svar etter at vi har fått svaret.
+    // Hvis lagring feiler vil vi fortsatt returnere svaret til bruker —
+    // mister bare historikk-konteksten. Bedre enn å feile hele kallet.
+    try {
+      await prisma.aiChatMessage.createMany({
+        data: [
+          {
+            sakId: req.params.id,
+            userId: session.userId,
+            role: "user",
+            content: parsed.data.question,
+          },
+          {
+            sakId: req.params.id,
+            userId: session.userId,
+            role: "assistant",
+            content: text,
+            inputTokens: response.usage.input_tokens,
+            outputTokens: response.usage.output_tokens,
+          },
+        ],
+      });
+    } catch (persistErr) {
+      console.error("[ai] kunne ikke lagre chat-historikk:", persistErr);
+    }
 
     return res.json({
       answer: text,
@@ -210,6 +259,56 @@ router.post("/sak/:id/ask", async (req: Request, res: Response) => {
       error: "AI-tjenesten svarte ikke. Prøv igjen om litt.",
     });
   }
+});
+
+// ── GET /ai/sak/:id/history ──────────────────────────────────────
+// Returnerer siste 50 meldinger for denne sak+bruker, sortert kronologisk.
+// Brukes av frontend for å vise hele chat-tråden ved mount.
+
+router.get("/sak/:id/history", async (req: Request, res: Response) => {
+  const session = req.session!;
+
+  // Bekreft at saken tilhører innloggers organisasjon (samme tilgangssjekk
+  // som loadSakContext gjør implisitt — uten den kunne hvilken som helst
+  // sakId returnert historikk).
+  const sak = await prisma.sak.findFirst({
+    where: { id: req.params.id, organizationId: session.organizationId },
+    select: { id: true },
+  });
+  if (!sak) return res.status(404).json({ error: "Sak ikke funnet" });
+
+  const messages = await prisma.aiChatMessage.findMany({
+    where: { sakId: req.params.id, userId: session.userId },
+    orderBy: { createdAt: "asc" },
+    take: 50,
+    select: {
+      id: true,
+      role: true,
+      content: true,
+      createdAt: true,
+    },
+  });
+
+  return res.json({ messages });
+});
+
+// ── DELETE /ai/sak/:id/history ───────────────────────────────────
+// Sletter all chat-historikk for sak+bruker. Lar bruker "starte ny samtale".
+
+router.delete("/sak/:id/history", async (req: Request, res: Response) => {
+  const session = req.session!;
+
+  const sak = await prisma.sak.findFirst({
+    where: { id: req.params.id, organizationId: session.organizationId },
+    select: { id: true },
+  });
+  if (!sak) return res.status(404).json({ error: "Sak ikke funnet" });
+
+  const result = await prisma.aiChatMessage.deleteMany({
+    where: { sakId: req.params.id, userId: session.userId },
+  });
+
+  return res.json({ deleted: result.count });
 });
 
 // ── POST /ai/sak/:id/summary ─────────────────────────────────────

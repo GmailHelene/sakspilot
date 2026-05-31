@@ -2,10 +2,12 @@
 
 /**
  * Claude AI-assistent for en sak: oppsummering, e-postutkast og fri prompt.
+ * Chat-historikk lagres per sak slik at AI husker konteksten innenfor samme
+ * sak (men ikke på tvers av saker). "Ny samtale" sletter historikken.
  * Kaller backend som proxy mot Anthropic.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { tokens } from '@/lib/tokens';
 import { api } from '@/lib/api';
 import { events } from '@/lib/analytics';
@@ -25,13 +27,25 @@ const EMAIL_TYPES: { value: EmailType; label: string; icon: string }[] = [
   { value: 'tilbakemelding', label: 'Be om tilbakemelding', icon: '💬' },
 ];
 
+type ChatMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: string;
+  /** True mens vi venter på svar fra serveren (kun for siste user-melding). */
+  pending?: boolean;
+};
+
 export default function AiAssistantSection({ sakId }: { sakId: string }) {
   const [summary, setSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
 
   const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState<string | null>(null);
   const [askLoading, setAskLoading] = useState(false);
+
+  // Hele chat-tråden for denne saken (per bruker, hentet fra backend).
+  const [chat, setChat] = useState<ChatMessage[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
 
   const [emailDraft, setEmailDraft] = useState<{
     subject: string;
@@ -42,6 +56,26 @@ export default function AiAssistantSection({ sakId }: { sakId: string }) {
   const [emailLoading, setEmailLoading] = useState<EmailType | null>(null);
 
   const [error, setError] = useState<string | null>(null);
+
+  // Hent historikk ved mount / når sakId endres.
+  useEffect(() => {
+    let cancelled = false;
+    setHistoryLoading(true);
+    api<{ messages: ChatMessage[] }>(`/ai/sak/${sakId}/history`)
+      .then((r) => {
+        if (!cancelled) setChat(r.messages);
+      })
+      .catch(() => {
+        // Stille feile — historikk er ikke kritisk for å bruke assistenten.
+        if (!cancelled) setChat([]);
+      })
+      .finally(() => {
+        if (!cancelled) setHistoryLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sakId]);
 
   async function generateSummary() {
     setSummaryLoading(true);
@@ -58,20 +92,52 @@ export default function AiAssistantSection({ sakId }: { sakId: string }) {
   }
 
   async function ask() {
-    if (!question.trim()) return;
+    const q = question.trim();
+    if (!q) return;
     setAskLoading(true);
-    setAnswer(null);
     setError(null);
+
+    // Optimistisk: vis bruker-melding + en placeholder assistant-melding med spinner.
+    const now = new Date().toISOString();
+    const tempUserId = `tmp-u-${Date.now()}`;
+    const tempAssistantId = `tmp-a-${Date.now()}`;
+    setChat((prev) => [
+      ...prev,
+      { id: tempUserId, role: 'user', content: q, createdAt: now },
+      { id: tempAssistantId, role: 'assistant', content: '', createdAt: now, pending: true },
+    ]);
+    setQuestion('');
+
     try {
       const r = await api<{ answer: string }>(`/ai/sak/${sakId}/ask`, {
         method: 'POST',
-        body: { question: question.trim() },
+        body: { question: q },
       });
-      setAnswer(r.answer);
+      // Erstatt placeholder med ekte svar.
+      setChat((prev) =>
+        prev.map((m) =>
+          m.id === tempAssistantId
+            ? { ...m, content: r.answer, pending: false, createdAt: new Date().toISOString() }
+            : m
+        )
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'AI-tjenesten svarte ikke');
+      // Fjern placeholder-meldingen, behold bruker-meldingen så hen kan prøve igjen.
+      setChat((prev) => prev.filter((m) => m.id !== tempAssistantId));
     } finally {
       setAskLoading(false);
+    }
+  }
+
+  async function startNewConversation() {
+    if (chat.length === 0) return;
+    if (!confirm('Slette hele samtalen og starte en ny? Dette kan ikke angres.')) return;
+    try {
+      await api(`/ai/sak/${sakId}/history`, { method: 'DELETE' });
+      setChat([]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Kunne ikke slette samtalen');
     }
   }
 
@@ -111,6 +177,20 @@ export default function AiAssistantSection({ sakId }: { sakId: string }) {
       alert('E-postutkast kopiert til utklippstavlen');
     } catch {
       // ignorer
+    }
+  }
+
+  function formatTimestamp(iso: string): string {
+    try {
+      const d = new Date(iso);
+      return d.toLocaleString('nb-NO', {
+        hour: '2-digit',
+        minute: '2-digit',
+        day: '2-digit',
+        month: '2-digit',
+      });
+    } catch {
+      return '';
     }
   }
 
@@ -229,8 +309,8 @@ export default function AiAssistantSection({ sakId }: { sakId: string }) {
         </div>
       )}
 
-      {/* ── Fri prompt ── */}
-      <details style={{ marginTop: 8 }}>
+      {/* ── Chat-tråd ── */}
+      <details style={{ marginTop: 8 }} open={chat.length > 0}>
         <summary
           style={{
             cursor: 'pointer',
@@ -238,11 +318,101 @@ export default function AiAssistantSection({ sakId }: { sakId: string }) {
             fontWeight: 500,
             color: tokens.color.navy,
             padding: '8px 0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
           }}
         >
-          💬 Still et eget spørsmål
+          <span>💬 Still et eget spørsmål{chat.length > 0 ? ` (${chat.length})` : ''}</span>
+          {chat.length > 0 && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                void startNewConversation();
+              }}
+              style={{
+                ...aiSecondaryBtnStyle,
+                padding: '4px 10px',
+                fontSize: 12,
+              }}
+              title="Slett samtalen og start på nytt"
+            >
+              🗑️ Ny samtale
+            </button>
+          )}
         </summary>
+
         <div style={{ marginTop: 8 }}>
+          {historyLoading && (
+            <div style={{ fontSize: 13, color: tokens.color.textMuted, padding: '8px 0' }}>
+              Laster historikk…
+            </div>
+          )}
+
+          {!historyLoading && chat.length === 0 && (
+            <div style={{ fontSize: 13, color: tokens.color.textMuted, padding: '8px 0' }}>
+              Ingen meldinger ennå — still et spørsmål under for å starte en samtale.
+              AI-en husker konteksten innenfor denne saken.
+            </div>
+          )}
+
+          {chat.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 10,
+                marginBottom: 12,
+                maxHeight: 480,
+                overflowY: 'auto',
+                padding: 4,
+              }}
+            >
+              {chat.map((m) => (
+                <div
+                  key={m.id}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: m.role === 'user' ? 'flex-end' : 'flex-start',
+                  }}
+                >
+                  <div
+                    style={{
+                      maxWidth: '85%',
+                      padding: '10px 14px',
+                      borderRadius: tokens.radius.md,
+                      background: m.role === 'user' ? '#DBEAFE' : tokens.color.bgAlt,
+                      color: tokens.color.text,
+                      fontSize: 14,
+                      lineHeight: 1.55,
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {m.pending ? (
+                      <span style={{ color: tokens.color.textMuted }}>⏳ Tenker…</span>
+                    ) : (
+                      m.content
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: tokens.color.textMuted,
+                      marginTop: 2,
+                      padding: '0 4px',
+                    }}
+                  >
+                    {m.role === 'user' ? 'Du' : 'AI'} · {formatTimestamp(m.createdAt)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           <textarea
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
@@ -265,21 +435,6 @@ export default function AiAssistantSection({ sakId }: { sakId: string }) {
           >
             {askLoading ? '⏳ Tenker…' : 'Spør'}
           </button>
-          {answer && (
-            <div
-              style={{
-                marginTop: 12,
-                padding: 14,
-                background: tokens.color.bgAlt,
-                borderRadius: tokens.radius.sm,
-                fontSize: 14,
-                lineHeight: 1.6,
-                whiteSpace: 'pre-wrap',
-              }}
-            >
-              {answer}
-            </div>
-          )}
         </div>
       </details>
     </SectionCard>

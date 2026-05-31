@@ -49,13 +49,43 @@ const COLUMNS: SakStatus[] = [
   'ikke_pabegynt', 'pagaaende', 'venter_kunde', 'venter_3part', 'ferdig',
 ];
 
+// Alle statuser brukeren kan velge mellom i mobil-modalen (inkluderer arkivert,
+// som ikke har egen kolonne i kanban, men er en gyldig status).
+const ALL_STATUSES: SakStatus[] = [
+  'ikke_pabegynt', 'pagaaende', 'venter_kunde', 'venter_3part', 'ferdig', 'arkivert',
+];
+
 type View = 'kanban' | 'tabell';
 const VIEW_STORAGE = 'sakspilot_saker_view';
+
+// Detekterer touch-/mobil-enheter via pointer: coarse. Brukes for å tilby
+// klikk-for-å-endre-status-modal som alternativ til drag-and-drop på mobil.
+function useIsTouchDevice() {
+  const [touch, setTouch] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(pointer: coarse)');
+    setTouch(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setTouch(e.matches);
+    // Eldre Safari bruker addListener; nye bruker addEventListener.
+    if (mq.addEventListener) {
+      mq.addEventListener('change', onChange);
+      return () => mq.removeEventListener('change', onChange);
+    } else {
+      mq.addListener(onChange);
+      return () => mq.removeListener(onChange);
+    }
+  }, []);
+  return touch;
+}
 
 export default function SakerPage() {
   const [saker, setSaker] = useState<Sak[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<View>('kanban');
+  const isTouch = useIsTouchDevice();
+  const [statusModalSak, setStatusModalSak] = useState<Sak | null>(null);
+  const [savingStatus, setSavingStatus] = useState(false);
 
   useEffect(() => {
     try {
@@ -70,6 +100,21 @@ export default function SakerPage() {
   function changeView(v: View) {
     setView(v);
     try { localStorage.setItem(VIEW_STORAGE, v); } catch {}
+  }
+
+  async function updateSakStatus(sakId: string, newStatus: SakStatus) {
+    setSavingStatus(true);
+    try {
+      await api(`/saker/${sakId}`, { method: 'PATCH', body: { status: newStatus } });
+      setSaker((curr) =>
+        curr ? curr.map((s) => (s.id === sakId ? { ...s, status: newStatus } : s)) : curr,
+      );
+      setStatusModalSak(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Kunne ikke oppdatere status');
+    } finally {
+      setSavingStatus(false);
+    }
   }
 
   return (
@@ -104,9 +149,22 @@ export default function SakerPage() {
         ) : saker.length === 0 ? (
           <EmptyState />
         ) : view === 'kanban' ? (
-          <KanbanView saker={saker} />
+          <KanbanView
+            saker={saker}
+            isTouch={isTouch}
+            onTouchCardClick={(s) => setStatusModalSak(s)}
+          />
         ) : (
           <TabellView saker={saker} />
+        )}
+
+        {statusModalSak && (
+          <StatusChangeModal
+            sak={statusModalSak}
+            saving={savingStatus}
+            onSave={(s) => updateSakStatus(statusModalSak.id, s)}
+            onClose={() => (savingStatus ? null : setStatusModalSak(null))}
+          />
         )}
       </div>
     </AppLayout>
@@ -162,24 +220,39 @@ function ViewToggle({ current, onChange }: { current: View; onChange: (v: View) 
 
 // ── Kanban ──────────────────────────────────────────────────────
 
-function KanbanView({ saker }: { saker: Sak[] }) {
+function KanbanView({
+  saker,
+  isTouch,
+  onTouchCardClick,
+}: {
+  saker: Sak[];
+  isTouch: boolean;
+  onTouchCardClick: (s: Sak) => void;
+}) {
   const grouped: Record<SakStatus, Sak[]> = {
     ikke_pabegynt: [], pagaaende: [], venter_kunde: [], venter_3part: [], ferdig: [], arkivert: [],
   };
   saker.forEach((s) => grouped[s.status].push(s));
 
+  // På touch-enheter trenger kolonnene egen horisontal scroll med god
+  // touch-target-bredde per kolonne. På desktop fyller de bredden.
+  const columnMinWidth = isTouch ? 280 : 220;
+
   return (
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(5, minmax(220px, 1fr))',
+        gridTemplateColumns: isTouch
+          ? `repeat(${COLUMNS.length}, ${columnMinWidth}px)`
+          : `repeat(${COLUMNS.length}, minmax(${columnMinWidth}px, 1fr))`,
         gap: 16,
-        padding: 24,
+        padding: isTouch ? '16px 16px 24px' : 24,
         overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch',
       }}
     >
       {COLUMNS.map((status) => (
-        <div key={status} style={{ minWidth: 220 }}>
+        <div key={status} style={{ minWidth: columnMinWidth }}>
           <div
             style={{
               display: 'flex',
@@ -198,7 +271,14 @@ function KanbanView({ saker }: { saker: Sak[] }) {
             </span>
           </div>
           <div style={{ display: 'grid', gap: 8 }}>
-            {grouped[status].map((sak) => <SakCard key={sak.id} sak={sak} />)}
+            {grouped[status].map((sak) => (
+              <SakCard
+                key={sak.id}
+                sak={sak}
+                isTouch={isTouch}
+                onTouchClick={() => onTouchCardClick(sak)}
+              />
+            ))}
           </div>
         </div>
       ))}
@@ -206,7 +286,15 @@ function KanbanView({ saker }: { saker: Sak[] }) {
   );
 }
 
-function SakCard({ sak }: { sak: Sak }) {
+function SakCard({
+  sak,
+  isTouch,
+  onTouchClick,
+}: {
+  sak: Sak;
+  isTouch: boolean;
+  onTouchClick: () => void;
+}) {
   const initials = sak.client?.name
     ? sak.client.name
         .split(' ')
@@ -221,33 +309,44 @@ function SakCard({ sak }: { sak: Sak }) {
     sak.deadline && new Date(sak.deadline).getTime() - Date.now() < 7 * 86400000;
   const overdue = sak.deadline && new Date(sak.deadline).getTime() < Date.now();
 
-  return (
-    <Link
-      href={`/saker/${sak.id}`}
-      style={{
-        background: tokens.color.surface,
-        padding: 14,
-        borderRadius: tokens.radius.md,
-        border: `1px solid ${tokens.color.border}`,
-        display: 'block',
-        textDecoration: 'none',
-        color: 'inherit',
-        boxShadow: tokens.shadow.sm,
-        transition: 'transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease',
-        position: 'relative',
-        borderLeft: sak.color ? `4px solid ${sak.color}` : `1px solid ${tokens.color.border}`,
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = tokens.shadow.md;
-        e.currentTarget.style.borderColor = tokens.color.navy;
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = '';
-        e.currentTarget.style.boxShadow = tokens.shadow.sm;
-        e.currentTarget.style.borderColor = tokens.color.border;
-      }}
-    >
+  // På touch-enheter er kortet en knapp som åpner status-velger-modal
+  // (samme rolle som drag-and-drop på desktop). Detalj-siden er fortsatt
+  // tilgjengelig via "Åpne" inne i modalen og via tabell-view.
+  const cardStyle: React.CSSProperties = {
+    background: tokens.color.surface,
+    padding: 14,
+    borderRadius: tokens.radius.md,
+    border: `1px solid ${tokens.color.border}`,
+    display: 'block',
+    width: '100%',
+    textAlign: 'left',
+    textDecoration: 'none',
+    color: 'inherit',
+    boxShadow: tokens.shadow.sm,
+    transition: 'transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease',
+    position: 'relative',
+    borderLeft: sak.color ? `4px solid ${sak.color}` : `1px solid ${tokens.color.border}`,
+    cursor: isTouch ? 'pointer' : 'grab',
+    minHeight: isTouch ? 64 : undefined,
+    font: 'inherit',
+  };
+  const hoverHandlers = isTouch
+    ? {}
+    : {
+        onMouseEnter: (e: React.MouseEvent<HTMLElement>) => {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+          e.currentTarget.style.boxShadow = tokens.shadow.md;
+          e.currentTarget.style.borderColor = tokens.color.navy;
+        },
+        onMouseLeave: (e: React.MouseEvent<HTMLElement>) => {
+          e.currentTarget.style.transform = '';
+          e.currentTarget.style.boxShadow = tokens.shadow.sm;
+          e.currentTarget.style.borderColor = tokens.color.border;
+        },
+      };
+
+  const cardInner = (
+    <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
         <div style={{ fontWeight: 600, fontSize: 14, lineHeight: 1.35, color: tokens.color.text }}>
           {sak.title}
@@ -327,6 +426,25 @@ function SakCard({ sak }: { sak: Sak }) {
           </span>
         )}
       </div>
+    </>
+  );
+
+  if (isTouch) {
+    return (
+      <button
+        type="button"
+        onClick={onTouchClick}
+        aria-label={`Endre status for ${sak.title}`}
+        style={cardStyle}
+      >
+        {cardInner}
+      </button>
+    );
+  }
+
+  return (
+    <Link href={`/saker/${sak.id}`} style={cardStyle} {...hoverHandlers}>
+      {cardInner}
     </Link>
   );
 }
@@ -445,6 +563,216 @@ function StatusBadge({ status }: { status: SakStatus }) {
     >
       {STATUS_LABEL[status]}
     </span>
+  );
+}
+
+// ── Status-velger-modal (touch/mobil) ───────────────────────────
+
+function StatusChangeModal({
+  sak,
+  saving,
+  onSave,
+  onClose,
+}: {
+  sak: Sak;
+  saving: boolean;
+  onSave: (status: SakStatus) => void;
+  onClose: () => void;
+}) {
+  const [selected, setSelected] = useState<SakStatus>(sak.status);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && !saving) onClose();
+    }
+    document.addEventListener('keydown', onKey);
+    // Lås body-scroll mens modalen er åpen.
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose, saving]);
+
+  const changed = selected !== sak.status;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Endre status for ${sak.title}`}
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(15, 23, 42, 0.55)',
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        zIndex: 1000,
+        padding: 12,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: tokens.color.surface,
+          borderRadius: tokens.radius.lg,
+          width: '100%',
+          maxWidth: 440,
+          padding: 20,
+          boxShadow: tokens.shadow.lg,
+          marginBottom: 'max(12px, env(safe-area-inset-bottom))',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 12,
+            marginBottom: 16,
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 12, color: tokens.color.textMuted, marginBottom: 4 }}>
+              Endre status for
+            </div>
+            <div style={{ fontWeight: 700, fontSize: 16, color: tokens.color.navy }}>
+              {sak.title}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            aria-label="Lukk"
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: tokens.radius.sm,
+              border: 'none',
+              background: 'transparent',
+              fontSize: 22,
+              color: tokens.color.textMuted,
+              cursor: saving ? 'not-allowed' : 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div role="radiogroup" aria-label="Status" style={{ display: 'grid', gap: 6, marginBottom: 16 }}>
+          {ALL_STATUSES.map((status) => {
+            const isSelected = selected === status;
+            return (
+              <label
+                key={status}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '12px 14px',
+                  minHeight: 48,
+                  borderRadius: tokens.radius.md,
+                  border: `2px solid ${isSelected ? STATUS_COLOR[status] : tokens.color.border}`,
+                  background: isSelected ? `${STATUS_COLOR[status]}14` : tokens.color.surface,
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: 14,
+                  color: tokens.color.text,
+                }}
+              >
+                <input
+                  type="radio"
+                  name="sak-status"
+                  value={status}
+                  checked={isSelected}
+                  onChange={() => setSelected(status)}
+                  disabled={saving}
+                  style={{ width: 20, height: 20, accentColor: STATUS_COLOR[status], cursor: 'pointer' }}
+                />
+                <span
+                  style={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: '50%',
+                    background: STATUS_COLOR[status],
+                    flexShrink: 0,
+                  }}
+                />
+                {STATUS_LABEL[status]}
+              </label>
+            );
+          })}
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Link
+            href={`/saker/${sak.id}`}
+            style={{
+              flex: '1 1 100%',
+              minHeight: 44,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '10px 16px',
+              borderRadius: tokens.radius.md,
+              border: `1px solid ${tokens.color.border}`,
+              background: tokens.color.bgAlt,
+              color: tokens.color.navy,
+              fontWeight: 600,
+              fontSize: 14,
+              textDecoration: 'none',
+              marginBottom: 4,
+            }}
+          >
+            Åpne prosjekt →
+          </Link>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            style={{
+              flex: 1,
+              minHeight: 48,
+              padding: '12px 16px',
+              borderRadius: tokens.radius.md,
+              border: `1px solid ${tokens.color.border}`,
+              background: tokens.color.surface,
+              color: tokens.color.text,
+              fontWeight: 600,
+              fontSize: 14,
+              cursor: saving ? 'not-allowed' : 'pointer',
+            }}
+          >
+            Avbryt
+          </button>
+          <button
+            type="button"
+            onClick={() => onSave(selected)}
+            disabled={saving || !changed}
+            style={{
+              flex: 1,
+              minHeight: 48,
+              padding: '12px 16px',
+              borderRadius: tokens.radius.md,
+              border: 'none',
+              background: changed ? tokens.color.navy : tokens.color.bgAlt,
+              color: changed ? tokens.color.white : tokens.color.textMuted,
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: saving || !changed ? 'not-allowed' : 'pointer',
+              opacity: saving ? 0.7 : 1,
+            }}
+          >
+            {saving ? 'Lagrer…' : 'Lagre'}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
