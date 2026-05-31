@@ -1,0 +1,68 @@
+name: Monthly DB Backup
+
+# Kjører 1. hver mnd kl 03:00 UTC (= 04:00 Oslo vinter / 05:00 Oslo sommer).
+# pg_dump → gzip → upload som GitHub Actions artifact (90 dagers retention,
+# gratis). For lengre oppbevaring eller off-GitHub-lagring: aktiver R2-blokk
+# nederst med Cloudflare R2-credentials i secrets.
+on:
+  schedule:
+    - cron: '0 3 1 * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # Neon kjører Postgres 16 — installer matchende client
+      - name: Install postgresql-client-16
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-16 || sudo apt-get install -y postgresql-client
+
+      - name: Run pg_dump
+        env:
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+        run: |
+          if [ -z "$DIRECT_URL" ]; then
+            echo "::error::DIRECT_URL er ikke satt i secrets"
+            exit 1
+          fi
+          DATE=$(date -u +%Y-%m-%d)
+          BACKUP_FILE="sakspilot-backup-${DATE}.sql.gz"
+          echo "Lager backup: $BACKUP_FILE"
+          pg_dump --no-owner --no-acl --dbname="$DIRECT_URL" \
+            | gzip -9 > "$BACKUP_FILE"
+          ls -lh "$BACKUP_FILE"
+          echo "BACKUP_FILE=$BACKUP_FILE" >> "$GITHUB_ENV"
+
+      - name: Upload backup as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sakspilot-db-backup-${{ github.run_number }}
+          path: ${{ env.BACKUP_FILE }}
+          retention-days: 90
+
+      # ── Valgfritt: last opp til Cloudflare R2 også ──
+      # Aktiver ved å:
+      #   1. Lag R2 bucket "sakspilot-backups" på cloudflare.com
+      #   2. Generer R2 API token (Account → R2 → Manage API Tokens)
+      #   3. Legg til repo-secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID,
+      #      R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME
+      #   4. Fjern `if: false` under
+      - name: Upload to Cloudflare R2 (valgfritt)
+        if: false
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+        run: |
+          aws --endpoint-url "https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com" \
+            s3 cp "${BACKUP_FILE}" "s3://${R2_BUCKET_NAME}/${BACKUP_FILE}"
