@@ -29,6 +29,18 @@ const store = new Store({
     paused: false,
     excludedApps: [],
     lastSyncAt: null,
+    // Auto-track: ÉN bryter som sier "alt jeg åpner i/gjennom Sakspilot
+    // skal automatisk telle som arbeidstid". Når på:
+    //   1. Arbeidsøkt starter automatisk når noe åpnes (eller appen åpnes)
+    //   2. Alle BrowserView-snarveier, eksterne lenker, lokale .exe og
+    //      mapper som åpnes via Sakspilot starter umiddelbart en session
+    //   3. Sessions attribueres til "aktiv sak" (sist sett /saker/[id])
+    //      hvis tilgjengelig, ellers sakId=null (kan tilordnes senere)
+    autoTrackOpened: false,
+    // Aktiv sak — settes fra web-appen via IPC når bruker navigerer til
+    // /saker/[id]. Brukes som default-attribusjon for auto-tracked sessions.
+    activeSakId: null,
+    activeSakTitle: null,
   },
   // Filnavn i appdata-katalogen
   name: 'config',

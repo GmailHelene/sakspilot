@@ -22,6 +22,13 @@ contextBridge.exposeInMainWorld('sakspilot', {
   togglePause: () => ipcRenderer.invoke('agent:toggle-pause'),
   syncNow: () => ipcRenderer.invoke('agent:sync-now'),
 
+  // Auto-track: ÉN bryter — når på, telles alt åpnet via Sakspilot automatisk
+  setAutoTrack: (enabled) => ipcRenderer.invoke('agent:set-auto-track', enabled),
+  // Aktiv sak — settes når bruker navigerer til /saker/[id] så auto-track
+  // attribuerer åpnede snarveier til riktig sak
+  setActiveSak: (sakId, sakTitle) =>
+    ipcRenderer.invoke('agent:set-active-sak', sakId, sakTitle),
+
   // Filsystem (kun Electron — åpner mapper i Windows Explorer)
   openFolder: (path) => ipcRenderer.invoke('shell:open-folder', path),
 
@@ -45,5 +52,26 @@ contextBridge.exposeInMainWorld('sakspilot', {
     const listener = (_e, state) => callback(state);
     ipcRenderer.on('shortcut:state', listener);
     return () => ipcRenderer.removeListener('shortcut:state', listener);
+  },
+});
+
+// Egen, mer begrenset bro for det flytende widget-vinduet (widget.html).
+// Trenger bare et lite sett IPC-kanaler — eksponeres via egen world for
+// å holde sakspilot.no-overflaten ren fra widget-spesifikke ting.
+const WIDGET_ALLOWED = new Set([
+  'agent:status',
+  'agent:start-work-session',
+  'agent:stop-work-session',
+  'agent:toggle-pause',
+  'agent:set-auto-track',
+  'agent:sync-now',
+  'widget:resize',
+]);
+contextBridge.exposeInMainWorld('sakspilotWidget', {
+  invoke: (channel, ...args) => {
+    if (!WIDGET_ALLOWED.has(channel)) {
+      return Promise.reject(new Error('Widget channel ikke tillatt: ' + channel));
+    }
+    return ipcRenderer.invoke(channel, ...args);
   },
 });

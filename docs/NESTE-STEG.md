@@ -1,24 +1,24 @@
 # Sakspilot — Hva gjenstår + videre arbeid
 
-**Snapshot:** 28. mai 2026, kveld.
-**Status:** Funksjonelt komplett for pilotbruk. Hele pipeline (web → API → .exe → download) er live på sakspilot.no. Klar til å sende ut piloter.
+**Snapshot:** 31. mai 2026.
+**Status:** Funksjonelt komplett for pilotbruk. Hele pipeline (web → API → .exe → download) er live på sakspilot.no. Klar til å sende ut piloter. Auto-spor (én bryter, ingen regler trengs) er fersk leveranse.
 
 ---
 
 ## TL;DR
 
-**Du kan poste FB-rekruttering i morgen tidlig** og sende Nicole-eposten samtidig. Alt det grunnleggende er på plass. Det som gjenstår er polering, skalering-forberedelser, og utvidelser som forsterker verdiforslaget — ingenting er blokkerende for pilotstart.
+**Klar for å poste FB-rekruttering + sende Nicole-eposten.** Sentry, Brevo SMTP og auto-spor er nå løst — pilotene får ekte reset-lenker på epost, feil fanges automatisk, og tidsføring krever ingen oppsett (bare slå på bryteren).
 
 **3 viktigste neste steg:**
-1. **SMTP for glemt-passord** (Resend, 30 min) — piloter får ikke reset-lenken på epost ennå, kun via _devResetUrl i dev-respons
+1. **Send Nicole-epost + post på LinkedIn + WP Norge FB** (`docs/pilot-epost-nicole.md`, `docs/linkedin-post.md`, `docs/post-fb-wp-norge.md`)
 2. **AI rate-limit per org** (1 time) — vern mot Claude-budsjett-eksplosjon ved 50+ piloter
-3. **Splitt `saker/[id]/page.tsx`** (1901 linjer) — tech-debt som gjør bug-fixing tregere
+3. **Splitt `saker/[id]/page.tsx`** (1900+ linjer) — tech-debt som gjør bug-fixing tregere
 
 ---
 
 ## ✅ Hva er ferdig (referanse)
 
-Se `docs/STATUS-2026-05-28.md` for komplett liste. Kort versjon:
+Se `docs/STATUS-2026-05-31.md` for komplett liste (eller `STATUS-2026-05-28.md` for forrige snapshot). Kort versjon:
 
 - Auth (register/login/glemt passord/reset/logout-all)
 - Multi-tenant org-isolering (cascade)
@@ -44,22 +44,30 @@ Se `docs/STATUS-2026-05-28.md` for komplett liste. Kort versjon:
 - Vercel + Render + Neon i EU-regioner
 - 401-cleanup + onboarding-per-user
 - Reset-grensesnitt-funksjon
+- **(NY) Auto-spor — én bryter, alt åpnet via Sakspilot logges**
+- **(NY) Multi-tab BrowserView-snarveier**
+- **(NY) Egne ikon-opplastinger i Launcher**
+- **(NY) Cloud-sync av snarveier/sites/mapper (`UserPreferences`-blob)**
+- **(NY) Brevo SMTP — glemt-passord sender ekte epost**
+- **(NY) Sentry aktivert i EU-region** (de.sentry.io)
+- **(NY) Split rate-limiters** — `auth/me` (120/min) vs login (30/15min)
+- **(NY) 401-handler scoped** til `/auth/me` (ingen random logouts)
+- **(NY) PWA-ikon (S på charcoal), multi-resolution favicon**
+- **(NY) Mobil-responsiveness** — hamburger + nav-hide på <600px
+- **(NY) Versjonsløs GitHub Releases-URL** (`releases/latest/download/...`)
+- **(NY) /sammenligning + llms.txt + JSON-LD** for SEO/AEO
+- **(NY) Build-størrelse 1 GB → 169 MB** (electron-packager ignore-regex)
 
 ---
 
 ## 🚀 Bør gjøres FØR du sender ut piloter (kritisk)
 
-### 1. SMTP for glemt-passord — 30 min
-**Problem:** `/glemt-passord` lager reset-token og logger lenken til server-konsoll. Brukeren får IKKE epost. I dev-modus vises lenken i response, men det er ikke acceptable for prod.
+### 1. ~~SMTP for glemt-passord~~ ✅ FERDIG (Brevo, 30. mai)
+Brevo SMTP er nå satt opp. `/forgot-password` sender ekte HTML-epost via `apps/api/src/lib/email.ts` → `nodemailer`. Reset-token gyldig i 12 timer. `_devResetUrl` fjernet fra response.
 
-**Fix:**
-- Opprett Resend-konto (free tier 3000 mails/mnd, EU-region Frankfurt)
-- Verifiser domene `sakspilot.no` (TXT-records på Domeneshop)
-- Sett `RESEND_API_KEY` på Render
-- Oppdater `apps/api/src/routes/auth.ts` `/forgot-password` til å kalle `resend.emails.send()` i stedet for å bare console.log
-- Fjern `_devResetUrl` fra response
+**Env-vars på Render:** `SMTP_HOST=smtp-relay.brevo.com`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM=helene721@gmail.com`.
 
-**Hvorfor før piloter:** Nicole/andre vil glemme passord. Uten epost-funksjon må Helene manuelt videresende lenker fra server-logger.
+⚠️ **Sikkerhetsoppgave igjen:** Rotér Brevo SMTP-key i dashbordet (ble delt i chat under setup) og oppdater Render-env.
 
 ### 2. Test demo-brukerflyt selv én gang — 15 min
 **Logg inn med:**
@@ -94,10 +102,10 @@ Etter du har satt Vercel env-var: gå til `https://sakspilot.no/last-ned`, klikk
 - Følg opp i kommentartråden første 30 min
 - Vent 5-7 dager, send oppfølger til Nicole hvis ingen respons
 
-### 6. Sett opp Sentry på Render — 15 min
-**Status:** Sentry er konfigurert i kode (`@sentry/node` installert), men DSN er ikke satt → ingen feilmeldinger sendes.
+### 6. ~~Sett opp Sentry på Render~~ ✅ FERDIG (30. mai)
+Sentry-prosjekt opprettet via Claude Browser i `grnberg-tech-solution.sentry.io`. DSN satt på Render. `apps/api/src/index.ts` initialiserer Sentry tidlig, strip `Authorization`/`Cookie` i `beforeSend`, og error-middleware kaller `Sentry.captureException`. EU-region (`de.sentry.io`).
 
-**Fix:** Lag Sentry-konto, lag prosjekt, kopier DSN, sett `SENTRY_DSN` på Render. Eventuelt også `NEXT_PUBLIC_SENTRY_DSN` på Vercel for frontend-feil.
+**Valgfritt gjenstår:** `NEXT_PUBLIC_SENTRY_DSN` på Vercel for frontend-feil.
 
 ### 7. Pilot-tilbakemelding-form — 30 min
 Liten side `/feedback` (intern, krever innlogging) med:
@@ -249,11 +257,12 @@ Antagelser: 50 betalende kunder à 199 kr/mnd = 9950 kr/mnd inntekt.
 
 ## 📋 Foreslått sprint-plan (neste 2 uker)
 
-### Uke 1 (29. mai – 4. juni)
-- **Mandag:** Sett Vercel env-var, redeploy, test /last-ned. Send Nicole-eposten kl 09. Post i WP Norge FB kl 10.
-- **Tirsdag-onsdag:** Sett opp Resend + SMTP for glemt-passord. Verifiser domene.
-- **Torsdag:** Sett Sentry-DSN. Sjekk at feilmeldinger kommer inn.
-- **Fredag:** AI rate-limit per org (commit + test). Følg opp tidlig-piloter.
+### Uke 1 (29. mai – 4. juni) — oppdatert 31. mai
+- ✅ **Tirs-fre (29.-30. mai):** Brevo SMTP, Sentry, auto-spor (én bryter), multi-tab, egne ikoner, PWA-fix, mobil-resp, build-size-fix, sammenligning-side, LinkedIn-post-utkast.
+- **Mandag 1. juni:** Send Nicole-eposten kl 09. Post på LinkedIn kl 11. Post i WP Norge FB kl 13.
+- **Tirsdag:** AI rate-limit per org (commit + test). Følg opp tidlig-piloter.
+- **Onsdag:** Pilot-feedback-form (`/feedback`).
+- **Torsdag-fredag:** Splitt `saker/[id]/page.tsx` — del 1 av 2 (matching-regler + milepæler ut i egne komponenter).
 
 ### Uke 2 (5.–11. juni)
 - **Mandag-tirsdag:** Splitt `saker/[id]/page.tsx`. Refactor uten å endre adferd.
@@ -301,8 +310,13 @@ Hvis sluttall i uke 8 er < 50% av mål: produktet treffer ikke, rethink position
 Du er klar til å sende piloter. Hovedjobben fremover er **lytte + iterere**, ikke bygge mer. Holdningen «bygg ferdig før vi viser noen» er den vanligste startup-fellen. Sakspilot er mer enn ferdig nok — nå handler det om å validere produktmarkedstilpasning.
 
 **Top 3 ting denne uka:**
-1. Sett Vercel env-var → test /last-ned virker
-2. Sett opp Resend så glemt-passord virker
-3. Send Nicole-epost + FB-post på samme dag
+1. ~~Sett Vercel env-var → test /last-ned virker~~ ✅
+2. ~~Sett opp Resend så glemt-passord virker~~ ✅ (Brevo)
+3. **Send Nicole-epost + LinkedIn-post + WP Norge FB-post**
+
+**Top 3 etter pilotstart:**
+1. AI rate-limit per org (vern mot kostnadssprekk)
+2. Pilot-feedback-form (`/feedback`)
+3. Splitt `saker/[id]/page.tsx` (tech-debt)
 
 Resten kan komme etterhvert. 🚀

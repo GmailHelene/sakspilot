@@ -66,7 +66,19 @@ Pluss de generelle (Outlook, alle .docx/.xlsx/.pdf, Holte, Tripletex...).
 
 Nå fanger Sakspilot ALT du gjør for Patience uansett hvilket program, automatisk.
 
-## Daglig flyt
+## Auto-spor — alternativ til matching-regler (anbefalt)
+
+Hvis du synes matching-regler er for mye styr, er det nå en enklere vei:
+
+1. Åpne Sakspilot
+2. Tray → klikk **🎯 Auto-spor AV** (eller widget-pillen) → slå PÅ
+3. Naviger til saken du jobber med (`/saker/[id]` i web)
+4. Åpne alt du trenger via Sakspilot — Launcher-snarvei, Mine sites, Mine mapper, lokal .exe
+5. Alt logges automatisk som sessions på den aktive saken
+
+Bytter du sak (navigerer til en annen `/saker/[id]`) tilordnes nye åpne-handlinger til den nye saken. Matching-regler funker fortsatt og overstyrer auto-spor — så du kan kombinere.
+
+## Daglig flyt (klassisk — med matching-regler)
 
 **Morgen:**
 1. Dobbeltklikk `Sakspilot.exe` (eller `Start - Sakspilot desktop.bat`)

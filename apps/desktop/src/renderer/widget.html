@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Sakspilot tidsregistrering</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; background: transparent; overflow: hidden;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none;
+  }
+  #icon {
+    position: absolute; right: 8px; bottom: 8px;
+    width: 44px; height: 44px; border-radius: 22px;
+    background: #1E3A5F; color: white; border: none; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; line-height: 1;
+    transition: transform 0.15s;
+  }
+  #icon:hover { transform: scale(1.08); }
+  #icon.active { background: #2D6A4F; }
+  #icon.paused { background: #E9C46A; color: #1A1A1A; }
+  #icon-dot {
+    position: absolute; top: 6px; right: 6px; width: 10px; height: 10px;
+    border-radius: 5px; background: #2D6A4F; border: 2px solid white;
+    display: none;
+  }
+  #icon.active #icon-dot { display: block; animation: pulse 2s infinite; }
+  #icon.paused #icon-dot { background: #E9C46A; animation: none; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  #panel {
+    display: none; position: absolute; right: 8px; bottom: 8px;
+    width: 260px; padding: 12px;
+    background: white; border: 1px solid #E2E2DC; border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+  }
+  #panel.open { display: block; }
+  .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .status-pill { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #555; }
+  .status-pill.active { color: #2D6A4F; }
+  .status-pill.paused { color: #9C7E1D; }
+  .dot { width: 8px; height: 8px; border-radius: 4px; background: #94A3B8; }
+  .status-pill.active .dot { background: #2D6A4F; animation: pulse 2s infinite; }
+  .status-pill.paused .dot { background: #E9C46A; }
+  .min { background: #F1F3F7; border: none; color: #5E6C84; cursor: pointer; padding: 0; width: 22px; height: 22px; border-radius: 11px; font-size: 14px; line-height: 1; }
+  .time { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; color: #1E3A5F; margin-bottom: 4px; }
+  .meta { font-size: 11px; color: #555; margin-bottom: 10px; line-height: 1.3; }
+  .auto-track { display: flex; align-items: center; gap: 6px; width: 100%; background: #F4F4F0; color: #5E6C84; border: 1px solid #E2E2DC; padding: 7px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; margin-bottom: 8px; box-sizing: border-box; }
+  .auto-track.on { background: #E8F4EC; color: #1B5E3F; border-color: #2D6A4F; }
+  .auto-track .label { flex: 1; text-align: left; }
+  .badge { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; background: #94A3B8; color: white; }
+  .auto-track.on .badge { background: #2D6A4F; }
+  .sak-hint { font-size: 10px; color: #5E6C84; padding: 0 4px; margin-bottom: 10px; line-height: 1.3; }
+  .actions { display: flex; gap: 6px; }
+  .btn { flex: 1; background: #2D6A4F; color: white; border: none; padding: 7px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+  .btn:hover { filter: brightness(1.05); }
+  .btn-stop { background: #9D0208; }
+  .btn-secondary { background: #F4F4F0; color: #1E3A5F; border: 1px solid #E2E2DC; }
+</style>
+</head>
+<body>
+  <button id="icon" title="Sakspilot tidsregistrering">
+    <span>⏱</span>
+    <span id="icon-dot"></span>
+  </button>
+  <div id="panel">
+    <div class="row">
+      <div class="status-pill" id="status-pill">
+        <span class="dot"></span>
+        <span id="status-text">KLAR</span>
+      </div>
+      <button class="min" id="close" title="Minimer">−</button>
+    </div>
+    <div class="time" id="time" style="display:none">0:00</div>
+    <div class="meta" id="meta"></div>
+    <button class="auto-track" id="auto" title="Auto-spor alt åpnet via Sakspilot">
+      <span>🎯</span>
+      <span class="label">Auto-spor alt jeg åpner</span>
+      <span class="badge" id="auto-badge">AV</span>
+    </button>
+    <div class="sak-hint" id="sak-hint" style="display:none"></div>
+    <div class="actions" id="actions"></div>
+  </div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  let state = { active: false, paused: false, startedAt: null, sessionCount: 0, pendingCount: 0, autoTrackOpened: false, activeSakTitle: null };
+  let now = Date.now();
+  let expanded = false;
+  let inFlight = false;
+
+  function fmt(ms) {
+    const sec = Math.max(0, Math.floor(ms/1000));
+    const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+    if (h) return h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    return m+':'+String(s).padStart(2,'0');
+  }
+
+  function render() {
+    const icon = $('icon');
+    icon.className = state.active ? (state.paused ? 'paused' : 'active') : '';
+    const pill = $('status-pill');
+    pill.className = 'status-pill' + (state.active ? (state.paused ? ' paused' : ' active') : '');
+    $('status-text').textContent = state.active ? (state.paused ? 'PAUSET' : 'TAR TID') : 'KLAR';
+
+    if (state.active && state.startedAt) {
+      $('time').style.display = 'block';
+      $('time').textContent = fmt(now - state.startedAt);
+    } else {
+      $('time').style.display = 'none';
+    }
+
+    let meta = '';
+    if (state.active && state.sessionCount > 0) {
+      meta = state.sessionCount + ' sessions logget';
+      if (state.pendingCount > 0) meta += ' · ' + state.pendingCount + ' venter på sync';
+    } else if (state.pendingCount > 0) {
+      meta = state.pendingCount + ' venter på sync';
+    }
+    $('meta').textContent = meta;
+    $('meta').style.display = meta ? 'block' : 'none';
+
+    $('auto').className = 'auto-track' + (state.autoTrackOpened ? ' on' : '');
+    $('auto-badge').textContent = state.autoTrackOpened ? 'PÅ' : 'AV';
+
+    if (state.autoTrackOpened && state.activeSakTitle) {
+      $('sak-hint').style.display = 'block';
+      $('sak-hint').innerHTML = '↳ tilordnes <strong>' + escapeHtml(state.activeSakTitle) + '</strong>';
+    } else {
+      $('sak-hint').style.display = 'none';
+    }
+
+    const actions = $('actions');
+    if (!state.active) {
+      actions.innerHTML = '<button class="btn" data-act="start">▶ Start</button>';
+    } else {
+      const pauseLabel = state.paused ? '▶' : '⏸';
+      actions.innerHTML =
+        '<button class="btn btn-secondary" data-act="pause" title="' + (state.paused?'Fortsett':'Pause') + '">' + pauseLabel + '</button>' +
+        '<button class="btn btn-stop" data-act="stop" title="Stopp arbeidsøkt + lag rapport">■ Stopp</button>';
+    }
+    actions.querySelectorAll('[data-act]').forEach(btn => {
+      btn.onclick = () => doAction(btn.getAttribute('data-act'));
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  async function doAction(act) {
+    if (inFlight) return;
+    inFlight = true;
+    try {
+      if (act === 'start') await window.sakspilotWidget.invoke('agent:start-work-session');
+      if (act === 'stop') await window.sakspilotWidget.invoke('agent:stop-work-session');
+      if (act === 'pause') await window.sakspilotWidget.invoke('agent:toggle-pause');
+      await refresh();
+    } finally { inFlight = false; }
+  }
+
+  async function toggleAuto() {
+    if (inFlight) return;
+    inFlight = true;
+    try {
+      await window.sakspilotWidget.invoke('agent:set-auto-track', !state.autoTrackOpened);
+      await refresh();
+    } finally { inFlight = false; }
+  }
+
+  function expand(open) {
+    expanded = open !== undefined ? open : !expanded;
+    $('panel').className = expanded ? 'open' : '';
+    $('icon').style.display = expanded ? 'none' : 'flex';
+    window.sakspilotWidget.invoke('widget:resize', expanded);
+  }
+
+  $('icon').onclick = () => expand(true);
+  $('close').onclick = () => expand(false);
+  $('auto').onclick = toggleAuto;
+
+  async function refresh() {
+    try {
+      const s = await window.sakspilotWidget.invoke('agent:status');
+      if (s) state = s;
+    } catch(e){}
+    render();
+  }
+
+  setInterval(() => { now = Date.now(); if (state.active) render(); }, 1000);
+  setInterval(refresh, 5000);
+  refresh();
+</script>
+</body>
+</html>

@@ -15,6 +15,15 @@ Hvert 15. sekund (default `intervalSec`):
 | **Filsti hvis åpen** | `"C:\Jobb\Bygdøy12\søknad.docx"` | Matching mot sak |
 | **Tidsstempel** | `2026-05-28T14:23:10Z` | Beregne varighet |
 
+I tillegg — KUN når **Auto-spor** er slått på (se egen seksjon):
+
+| Type | Eksempel | Bruk |
+|------|----------|------|
+| **URL/sti som åpnes via Sakspilot** | `"https://mail.google.com/"` eller `"C:\Programs\Cyberduck.exe"` | Logges som session attribuert til aktiv sak |
+| **Label på snarvei** | `"Gmail"` | Vises i rapport |
+
+Disse fanges kun fordi Sakspilot selv initierte åpningen (klikk i Launcher/Mine sites/Mine mapper). Ingenting overvåkes utenom — det er fortsatt poller-mekanismen over som kun ser aktivt vindu.
+
 Agenten ser **IKKE**:
 - ❌ Skjermbilder
 - ❌ Tastetrykk eller innhold som skrives
@@ -69,6 +78,25 @@ Ved første oppstart skal brukeren se:
 
 **TODO:** Implementere denne dialogen i .exe ved første start (ikke gjort enda).
 
+## Auto-spor (én bryter, fra mai 2026)
+
+I tray-menyen og web-widgeten finnes nå en enkel **🎯 Auto-spor PÅ/AV**-bryter. Når **PÅ**:
+
+1. **Arbeidsøkt startes automatisk** når Sakspilot åpnes (eller når du åpner noe via Sakspilot)
+2. **Alle ting du åpner via Sakspilot** (Launcher-snarvei, Mine sites, Mine mapper, lokale .exe-snarveier, eksterne lenker) logges som session
+3. **Sessions attribueres til "aktiv sak"** — den siste saken du har åpnet `/saker/[id]` i web-appen. Hvis ingen aktiv sak: `sakId=null` (kan tilordnes senere).
+
+**Hva auto-spor IKKE gjør:**
+- ❌ Logger ikke ting du åpner utenfor Sakspilot (f.eks. via Windows Start-meny eller filutforsker direkte). Det fanges fortsatt kun via poller-mekanismen (vindustittel + applikasjonsnavn).
+- ❌ Sender ikke skjermbilder, tastetrykk eller innhold.
+- ❌ Starter ikke logging automatisk hvis brukeren har slått **AV** bryteren.
+
+**Personvernkonsekvens:** Auto-spor reduserer behovet for matching-regler, men endrer ikke fundamentalt hva som logges. URL-en/stien til det du åpner via Sakspilot lagres som `title`-feltet i `TimeEntry` — samme datatype som vindustittel allerede gjør. Bryteren er bevisst **AV som standard** — bruker må aktivt slå den på.
+
+**Hvor det logges:**
+- Lokalt i electron-store: `autoTrackOpened` (bool), `activeSakId` (uuid), `activeSakTitle` (string) — i `%APPDATA%\sakspilot\config.json`
+- Som vanlig session via `/agent/sync` til Sakspilot-server, samme retention som øvrige TimeEntries
+
 ## Retention-policy (default)
 
 | Data | Slettes etter |
@@ -101,6 +129,6 @@ Brukeren kan når som helst:
 ## Klage-mulighet
 
 Brukerens klientorganisasjon eller sluttkunden kan kontakte:
-**helene@helene.cloud** (databehandler) — vi videresender til behandlingsansvarlig.
+**helene721@gmail.com** (databehandler) — vi videresender til behandlingsansvarlig.
 
 Brukeren har klagerett til Datatilsynet: https://datatilsynet.no/personvern/klage/

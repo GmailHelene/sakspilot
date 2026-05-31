@@ -198,10 +198,21 @@ i bakgrunnen (sjekk system-trayen, den er der).
    tidssammendraget oppdatere seg neste gang du bytter vindu (sync skjer hvert
    5. min, eller med "Synk nå" i tray-menyen).
 
-⚠ **NB:** Backend-endepunktet `/agent/sync` finnes ikke ennå — i denne første
-versjonen lagrer agenten sessions lokalt i `%APPDATA%\sakspilot\pending-sessions.jsonl`.
-Når jeg bygger /agent/sync (1-2 timers jobb) sendes de automatisk til backend
-og dukker opp i tidssammendraget i web.
+✅ **Synk fungerer:** `/agent/sync`-endepunktet er live på `api.sakspilot.no`. Sessions sendes automatisk hvert 5. minutt eller manuelt via tray-meny → "🔄 Synk til backend".
+
+---
+
+## Steg 9 (valgfritt — anbefalt): Slå på Auto-spor
+
+I tray-menyen er det øverst en bryter **🎯 Auto-spor AV** — klikk den for å slå PÅ. Da:
+
+- Arbeidsøkt starter automatisk
+- Alt du åpner via Sakspilot (Launcher-snarvei, Mine sites, Mine mapper, lokal .exe) logges som session
+- Sessions attribueres til "aktiv sak" — den siste saken du har åpnet `/saker/[id]` i web
+
+Du slipper å sette opp matching-regler. De fungerer fortsatt og overstyrer auto-spor hvis de matcher, men de er ikke lenger en forutsetning.
+
+Når du navigerer til en sak (`/saker/[id]`) i web-vinduet, viser tray-menyen og widgeten "↳ tilordnes: [saksnavn]" så du ser hva som registreres.
 
 ---
 

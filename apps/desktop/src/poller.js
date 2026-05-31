@@ -69,6 +69,41 @@ class Poller extends EventEmitter {
     this.excludedApps = new Set(apps.map((s) => s.toLowerCase()));
   }
 
+  /**
+   * Manuelt logg en ekstern session — brukes når Sakspilot åpner noe
+   * (snarvei/.exe/mappe/URL) og auto-track er på.
+   *
+   * Vi vet ikke når brukeren slutter å bruke det åpnede, så vi logger
+   * det som en "startet"-event nå — varigheten kommer fra poller-cyklusen
+   * som plukker opp vinduet uansett. Hovedpoenget her er at vi attribuerer
+   * det til riktig sak selv om matching-regler mangler.
+   */
+  logOpenedExternal({ app, title, sakId = null, sakTitle = null, durationSec = 5 }) {
+    const now = new Date();
+    const sess = {
+      startedAt: new Date(now.getTime() - durationSec * 1000),
+      endedAt: now,
+      app: app || 'sakspilot-opened',
+      title: title || '',
+      processId: null,
+      sakId,
+      sakTitle,
+      matchedOn: sakId ? 'auto-track' : null,
+      durationSec,
+    };
+    this.sessionCount++;
+    this.emit('session-closed', sess);
+  }
+
+  /**
+   * Override-attribusjon — kalles av main.js for å si "alle nye sessions
+   * uten match skal heretter attribueres til denne saken". Returneres til
+   * matching-pipelinen som fallback når reglene ikke matcher.
+   */
+  setActiveSakFallback(sakId, sakTitle) {
+    this.activeSakFallback = sakId ? { sakId, sakTitle } : null;
+  }
+
   setInterval(sec) {
     if (sec === this.intervalSec) return;
     this.intervalSec = sec;
@@ -128,6 +163,15 @@ class Poller extends EventEmitter {
       if (target && rule.regex.test(target)) {
         return { sakId: rule.sakId, sakTitle: rule.sakTitle, matchedOn: rule.type };
       }
+    }
+    // Fallback: auto-track-modus setter "active sak" som default-attribusjon
+    // for alt som ikke matcher en eksplisitt regel.
+    if (this.activeSakFallback) {
+      return {
+        sakId: this.activeSakFallback.sakId,
+        sakTitle: this.activeSakFallback.sakTitle,
+        matchedOn: 'active-sak',
+      };
     }
     return null;
   }

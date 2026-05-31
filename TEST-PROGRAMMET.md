@@ -144,6 +144,30 @@ For å teste den passive logging:
 
 Hvis du har 0 matching-regler: tiden går til "ikke-matchet" og du ser fortsatt totaltall + per-app, bare ikke per-sak.
 
+## Sjekk 9b: Auto-spor (én bryter — NY)
+
+Auto-spor lar deg slippe matching-regler helt:
+
+1. **I tray-menyen:** klikk **🎯 Auto-spor AV** øverst → den bytter til **🎯 Auto-spor PÅ (alt jeg åpner telles)** med haken på
+2. **ELLER i web-widgeten** (nede til venstre, klokke-knapp): klikk pillen "Auto-spor alt jeg åpner" → badgen bytter fra AV (grå) til PÅ (grønn)
+3. **Arbeidsøkt skal starte automatisk** — du ser elapsed-tid begynne å telle
+4. **Naviger til en sak** (`/saker/[id]`) — widgeten viser nå "↳ tilordnes <saksnavn>"
+5. **Klikk en Launcher-snarvei** (f.eks. Gmail) eller en `Mine snarveier`-lenke → den åpnes i ny fane
+6. **Sjekk:** i tray-menyen, "X sessions i denne økten" øker med 1 umiddelbart
+7. Naviger bort fra sak-siden → widgeten viser ikke lenger noen sak (sessions vil få `sakId=null` deretter)
+8. **Slå av igjen:** klikk pillen → badgen blir grå → arbeidsøkten kjører fortsatt, men nye åpne-handlinger logges ikke ekstra
+
+Auto-spor fungerer **sammen med** matching-regler — regler overstyrer fallback hvis de matcher.
+
+## Sjekk 9c: Multi-tab snarveier (NY)
+
+1. Klikk en Launcher-snarvei (f.eks. Gmail) → åpnes i fane
+2. Klikk en annen (f.eks. Tripletex) → åpnes som ny fane (Gmail er fortsatt åpen i bakgrunn)
+3. Du skal se en fane-rad over snarvei-vinduet med to piller, aktiv har grønn prikk + hvit bakgrunn
+4. Klikk Gmail-pillen → tilbake til Gmail (Tripletex beholder sin sesjon)
+5. Klikk X på en pille → den lukkes, neste blir aktiv
+6. Klikk **← Tilbake** → alle fane-vinduer lukkes, du er tilbake i Sakspilot
+
 ## Sjekk 10: Synk fra desktop → web (1 min)
 
 Etter en arbeidsøkt:

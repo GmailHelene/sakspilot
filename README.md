@@ -3,16 +3,16 @@
 Workspace for selvstendig næringsdrivende. Sak-CRM, passiv tidsregistrering,
 Outlook-integrasjon, AI-assistent og Fiken-faktura — i ett verktøy.
 
-## Status (28. mai 2026)
+## Status (31. mai 2026)
 
 ✅ **Funksjonelt komplett for pilotbruk.** Web + API + desktop-agent live i prod.
 
-Se [`docs/STATUS-2026-05-28.md`](docs/STATUS-2026-05-28.md) for fullstendig status.
+Se [`docs/STATUS-2026-05-31.md`](docs/STATUS-2026-05-31.md) for fullstendig status.
 
 - **Web:** https://sakspilot.no (Vercel)
 - **API:** https://api.sakspilot.no (Render)
 - **Database:** Neon Postgres (eu-central-1)
-- **Desktop:** `apps/desktop/release/Sakspilot-0.0.1-win-x64.zip`
+- **Desktop:** `apps/desktop/release/Sakspilot-win-x64.zip` (GitHub Releases — versjonsløs URL følger seneste)
 
 ## Hva er ferdig
 
@@ -23,15 +23,21 @@ Se [`docs/STATUS-2026-05-28.md`](docs/STATUS-2026-05-28.md) for fullstendig stat
 | Klistrelapper / kalender / Gantt | ✅ |
 | Agenter (Monday/Notion-stil) | ✅ |
 | Tidsregistrering (desktop-agent) | ✅ |
+| **Auto-spor: ÉN bryter, alt åpnet via Sakspilot telles** | ✅ NY |
+| Multi-tab snarveier (BrowserView) | ✅ |
 | Outlook-integrasjon (MS Graph) | ✅ |
 | AI-assistent (Claude Sonnet 4.5) | ✅ |
-| Fiken faktura (PAT-basert) | ✅ |
+| Fiken faktura (PAT + OAuth-klient klar) | ✅ |
 | Tripletex CSV | ✅ (direkte API venter på partner) |
-| GDPR (innsyn / sletting / DPA) | ✅ |
+| GDPR (innsyn / sletting / DPA-mal) | ✅ |
 | Bransje-onboarding (9 bransjer) | ✅ |
-| Tema-velger (3 fargesett) | ✅ |
-| Sidebar Mine sites | ✅ |
+| Tema-velger (3 fargesett, CSS-vars) | ✅ |
+| Sidebar Mine sites + Mine mapper (cloud-sync) | ✅ |
+| Launcher med eget ikon-opplasting | ✅ |
 | Pilot-pricing (gratis ut 2026) | ✅ |
+| Brevo SMTP for glemt-passord | ✅ |
+| Sentry (EU-region, prod-aktiv) | ✅ |
+| GitHub Releases + versjonsløs download-URL | ✅ |
 | AWS Bedrock-provider | 🟡 stub klar |
 | Stripe checkout | 🔴 Q1 2027 |
 
@@ -93,13 +99,19 @@ cd apps/desktop && npm run build:exe
 
 ## Dokumenter
 
-- [Status pr 28. mai 2026](docs/STATUS-2026-05-28.md) — faktisk tilstand i prod
+- [Status pr 31. mai 2026](docs/STATUS-2026-05-31.md) — faktisk tilstand i prod
+- [Status pr 28. mai 2026](docs/STATUS-2026-05-28.md) — forrige snapshot
+- [Neste steg + roadmap](docs/NESTE-STEG.md) — hva som gjenstår og prioritering
 - [Pilot-invitasjon til Nicole](docs/pilot-epost-nicole.md) — 3 versjoner
 - [Bruksanvisning for ansvarlig søker](docs/nicole-bruksanvisning-byggesak.md) — vedlegg til Nicole
+- [LinkedIn-post (3 versjoner)](docs/linkedin-post.md) — lansering
 - [FB-post WordPress Norge](docs/post-fb-wp-norge.md) — rekruttering av testbrukere
 - [GDPR / DPA-sjekkliste](docs/dpa-sjekkliste.md)
-- [Personvern desktop-agent](docs/personvern-desktop-agent.md)
+- [DPA-mal (databehandleravtale)](docs/dpa-mal.md)
+- [Personvern desktop-agent](docs/personvern-desktop-agent.md) — inkl. auto-spor
 - [Tripletex/Fiken partner-søknad](docs/tripletex-fiken-soknad.md)
+- [Test-programmet](TEST-PROGRAMMET.md) — 15-min ende-til-ende sjekkliste
+- [Setup-guide (første gang)](SETUP-GUIDE.md) — lokal dev fra null
 
 ## Lisens
 

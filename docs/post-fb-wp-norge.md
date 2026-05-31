@@ -7,35 +7,26 @@ Lavere friksjon = flere testere = bedre tilbakemelding.
 
 ## Versjon A — kort + selvbetjent (anbefalt første post)
 
-> 👋 Hei alle frilansere/selvstendige!
->
-> Jeg har bygget **Sakspilot** — et arbeidsbord som samler det vi vanligvis
-> gjør i 8 forskjellige faner: kunder, prosjekter, tidsføring, e-post,
-> faktura. Tilpasset norske ENK-er.
->
-> 🎁 **Gratis ut hele 2026** for alle som vil teste i pilotperioden — ingen
-> kredittkort, ingen forpliktelse, ingen «trial som blir til abonnement»-
-> felle. Etter pilotperioden: 199 kr/mnd eller 1990 kr/år.
->
-> **Funker bra for:**
-> 🔧 IT-konsulenter/utviklere
-> 🎨 Designere
-> 🏗️ Ansvarlige søkere / arkitekter
-> ⚖️ Advokater
-> 📊 Regnskap
-> 💡 Konsulenter generelt
->
-> **Slik kommer du i gang (5 min):**
-> 1. Registrer deg på 👉 **sakspilot.no/registrer**
-> 2. Velg bransjen din i oppstartsveilederen — sidebaren tilpasses
->    automatisk med relevante snarveier (Tripletex, Holte, Lovdata, Figma,
->    Vercel osv. avhengig av yrke)
-> 3. (Valgfritt) Last ned Windows-appen på **sakspilot.no/last-ned** for
->    automatisk tidsregistrering basert på vindustittel
->
-> Setter PRIS på tilbakemelding — også «dette suger»-tilbakemelding 😅.
-> Send DM eller skriv her hvis det er noe som ikke fungerer, så fikser jeg
-> det samme dag i pilotfasen.
+👋 Hei alle frilansere/selvstendige!
+
+Jeg har bygget Sakspilot — et arbeidsbord som samler det vi vanligvis gjør i 8 forskjellige faner: kunder, prosjekter, tidsføring, e-post, faktura. Tilpasset norske ENK-er.
+
+🎁 Gratis ut hele 2026 for alle som vil teste i pilotperioden — ingen kredittkort, ingen forpliktelse, ingen «trial som blir til abonnement»-felle. Etter pilotperioden: 199 kr/mnd eller 1990 kr/år.
+
+Funker bra for:
+🔧 IT-konsulenter/utviklere
+🎨 Designere
+🏗️ Ansvarlige søkere / arkitekter
+⚖️ Advokater
+📊 Regnskap
+💡 Konsulenter generelt
+
+Slik kommer du i gang (5 min):
+
+Registrer deg på 👉 sakspilot.no/registrer
+Velg bransjen din i oppstartsveilederen — sidebaren tilpasses automatisk med relevante snarveier (Tripletex, Holte, Lovdata, Figma, Vercel osv. avhengig av yrke)
+(Valgfritt) Last ned Windows-appen på sakspilot.no/last-ned for automatisk tidsregistrering basert på vindustittel
+Setter PRIS på tilbakemelding — også «dette suger»-tilbakemelding 😅. Send DM eller skriv her hvis det er noe som ikke fungerer, så fikser jeg det samme dag i pilotfasen.
 
 ---
 

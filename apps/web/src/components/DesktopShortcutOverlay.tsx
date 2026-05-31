@@ -21,6 +21,7 @@ import { X, ArrowLeft, ExternalLink } from 'lucide-react';
 interface Tab {
   url: string;
   label: string;
+  loading?: boolean;
 }
 
 interface ShortcutState {
@@ -183,15 +184,32 @@ export default function DesktopShortcutOverlay() {
                   transition: 'background 0.1s',
                 }}
               >
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
-                    background: isActive ? '#00B884' : '#CBD5E1',
-                    flexShrink: 0,
-                  }}
-                />
+                {tab.loading ? (
+                  <span
+                    aria-label="Laster"
+                    title="Laster siden …"
+                    style={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: 6,
+                      border: '2px solid #CBD5E1',
+                      borderTopColor: '#1E3A5F',
+                      animation: 'sp-tab-spin 0.8s linear infinite',
+                      flexShrink: 0,
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                ) : (
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 4,
+                      background: isActive ? '#00B884' : '#CBD5E1',
+                      flexShrink: 0,
+                    }}
+                  />
+                )}
                 <span
                   style={{
                     fontWeight: isActive ? 600 : 500,
@@ -247,6 +265,7 @@ export default function DesktopShortcutOverlay() {
           Åpne i nettleser
         </button>
       </div>
+      <style>{`@keyframes sp-tab-spin { to { transform: rotate(360deg); } }`}</style>
     </>
   );
 }

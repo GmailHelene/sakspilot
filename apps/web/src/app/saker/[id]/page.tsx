@@ -109,6 +109,23 @@ export default function SakDetailPage() {
     refresh();
   }, [router, refresh]);
 
+  // Når saken er lastet, fortell desktop-agenten at dette er "aktiv sak"
+  // så auto-spor attribuerer alt som åpnes herfra til riktig sak.
+  // Nullstilles når man navigerer bort fra sak-siden.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const api = (window as any).sakspilot;
+    if (!api?.isDesktop || !api.setActiveSak) return;
+    if (sak) {
+      api.setActiveSak(sak.id, sak.title);
+    }
+    return () => {
+      // forlater sak-siden → ingen aktiv sak lenger
+      api.setActiveSak(null, null);
+    };
+  }, [sak]);
+
   async function handleStatusChange(newStatus: SakStatus) {
     await api(`/saker/${sakId}`, { method: 'PATCH', body: { status: newStatus } });
     events.sakStatusChanged(newStatus);

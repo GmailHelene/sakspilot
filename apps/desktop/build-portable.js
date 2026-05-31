@@ -129,7 +129,11 @@ async function main() {
       OriginalFilename: 'Sakspilot.exe',
     },
     ignore: [
-      /^\/release($|\/)/,
+      // Inkluder BÅDE 'release' og timestamped 'release-1780238...' (sistnevnte
+      // brukes som fallback når 'release' er låst). Tidligere bug: bare /release/
+      // ble fanget, så hver build pakket forrige builds release-* inn i ny asar
+      // og asar vokste eksponentielt (460 MB → 1 GB → 3 GB).
+      /^\/release(-\d+)?($|\/)/,
       /^\/scripts($|\/)/,
       /^\/src\/(poc-logger|diagnose)\.js$/,
       /^\/build-portable\.js$/,
@@ -150,6 +154,41 @@ async function main() {
       /^\/node_modules\/png-to-ico($|\/)/,
       /^\/node_modules\/pngjs($|\/)/,
     ],
+    // afterPrune: kjøres etter packagers egen prune-fase men FØR asar-pakking.
+    // Vi sletter aggressivt kjente dev-dirs som har sneket seg med (transitive
+    // avhengigheter fra @electron/packager osv som ikke ble fanget av prune).
+    afterPrune: [(buildPath, _electronVersion, _platform, _arch, callback) => {
+      const fs = require('node:fs');
+      const path = require('node:path');
+      const DEV_DIRS = [
+        '@electron', '@develar', '@malept',
+        'electron', 'electron-builder', 'electron-packager',
+        'app-builder-bin', 'app-builder-lib',
+        'builder-util', 'builder-util-runtime',
+        'dmg-builder', 'dmg-license',
+        '7zip-bin', 'png-to-ico', 'pngjs',
+        'extract-zip', 'plist', 'xmlbuilder', 'xmlbuilder2',
+        'node-abi', 'sumchecker', 'global-agent', 'global-tunnel-ng',
+        'matcher', 'pe-library', 'resedit',
+        '@sindresorhus', '@szmarczak',
+      ];
+      const nm = path.join(buildPath, 'node_modules');
+      let nuked = 0, bytesFreed = 0;
+      try {
+        for (const d of DEV_DIRS) {
+          const target = path.join(nm, d);
+          if (fs.existsSync(target)) {
+            try { bytesFreed += dirSize(target); } catch {}
+            fs.rmSync(target, { recursive: true, force: true });
+            nuked++;
+          }
+        }
+        console.log(`      afterPrune: slettet ${nuked} dev-deps (~${(bytesFreed/1024/1024).toFixed(1)} MB)`);
+      } catch (err) {
+        console.warn('      afterPrune-feil (ikke fatal):', err.message);
+      }
+      callback();
+    }],
   });
 
   const appDir = appPaths[0];
@@ -228,11 +267,29 @@ async function rmWithRetry(dir, attempts = 5) {
   }
 }
 
+function dirSize(p) {
+  let total = 0;
+  const stat = fs.statSync(p);
+  if (stat.isDirectory()) {
+    for (const entry of fs.readdirSync(p)) {
+      total += dirSize(path.join(p, entry));
+    }
+  } else {
+    total += stat.size;
+  }
+  return total;
+}
+
 function copyRecursive(src, dest, ignore = []) {
   const stat = fs.statSync(src);
   if (stat.isDirectory()) {
     const base = path.basename(src);
+    // Eksakt match (node_modules, release, dist) ELLER timestamped
+    // release-fallbacks (release-1780238407445 osv) — sistnevnte ble tidligere
+    // kopiert med, og hver build pakket forrige builds release-* inn i ny
+    // asar → eksponentiell størrelsesvekst (460 MB → 1 GB → 3 GB).
     if (ignore.includes(base)) return;
+    if (/^release(-\d+)?$/.test(base)) return;
     fs.mkdirSync(dest, { recursive: true });
     for (const entry of fs.readdirSync(src)) {
       copyRecursive(path.join(src, entry), path.join(dest, entry), ignore);

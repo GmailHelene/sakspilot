@@ -1,0 +1,54 @@
+SAKSPILOT TODO — oppdatert 31. mai 2026
+==========================================
+
+DENNE UKA (kritisk)
+- [ ] Send Nicole-epost (docs/pilot-epost-nicole.md, versjon A)
+- [ ] Post på LinkedIn (docs/linkedin-post.md, versjon A — founder-story)
+- [ ] Post i WordPress Norge FB-gruppe (docs/post-fb-wp-norge.md)
+- [ ] Sjekk at /last-ned faktisk laster ned siste exe (versjonsløs URL nå)
+- [ ] Rotér Fiken Client Secret + Brevo SMTP-key (begge ble delt i chat)
+
+FERDIG SISTE UKE (29.-31. mai)
+- [x] Brevo SMTP for glemt-passord (sender ekte epost nå)
+- [x] Sentry aktivert (EU-region, de.sentry.io)
+- [x] Auto-spor — én bryter, alt åpnet via Sakspilot logges automatisk
+- [x] Multi-tab BrowserView-snarveier (Gmail/Tripletex/osv som faner)
+- [x] Egne ikon-opplastinger i Launcher (PNG/JPG/SVG)
+- [x] Cloud-sync av snarveier/sites/mapper (UserPreferences-blob)
+- [x] Mobil-responsiveness (header/hamburger/nav)
+- [x] PWA-ikon (S på charcoal, multi-resolution)
+- [x] Split rate-limiters (fikset random logouts)
+- [x] /sammenligning + llms.txt + JSON-LD (SEO/AEO)
+- [x] Build size 1 GB → 169 MB (electron-packager ignore-regex)
+- [x] Versjonsløs GitHub Releases-URL
+- [x] LinkedIn-post-utkast i 3 versjoner (docs/linkedin-post.md)
+
+NESTE 1-2 UKER
+- [ ] AI rate-limit per org (vern mot Claude-kostnadssprekk)
+- [ ] Pilot-feedback-form (/feedback)
+- [ ] Splitt apps/web/src/app/saker/[id]/page.tsx (1900+ linjer)
+- [ ] Cron-jobb for daglige automasjons-trigger (milestone_due_soon)
+- [ ] Database-backup-script (månedlig dump til S3/R2)
+- [ ] Onboarding-emails drip-kampanje (dag 0/3/7/14 via Brevo)
+
+INTEGRASJONER — venter
+- [ ] Tripletex partner-status (søknad inne, 3-5 dagers godkjenning)
+- [ ] Fiken OAuth-flow (Client ID/Secret klart, mangler callback-handler)
+
+LENGRE SIKT (Q4 2026 / Q1 2027)
+- [ ] Stripe checkout
+- [ ] Engelsk språkversjon (next-intl)
+- [ ] Mac- og Linux-desktop (active-win istedenfor get-windows)
+- [ ] Team-plan med invite-flyt
+- [ ] Faktura-PDF (eget, for de uten Fiken/Tripletex)
+- [ ] Code-signing .exe (EV cert ~500 USD/år)
+
+DEMO + DEV
+URL:      https://sakspilot.no/login
+E-post:   demo.advokat@sakspilot.no
+Passord:  Demo!uSQrPcaXKuu7
+
+Lokal dev:
+- Start - Sakspilot dev.bat (API + web)
+- Start - Sakspilot desktop.bat (tray-app)
+- Stopp alt - Sakspilot.bat

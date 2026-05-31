@@ -13,9 +13,9 @@
 
 Hei Nicole,
 
-Du husker kanskje at vi snakket om hvor irriterende det er å hoppe mellom Outlook, Holte, Excel-timeføring, klistrelapper og e-post-tråder for hver byggesak. Jeg ble så provosert at jeg bygde noe.
+Du husker kanskje at vi snakket om hvor irriterende det er å hoppe mellom Outlook, Holte, Excel-timeføring, klistrelapper og e-post-tråder for hver byggesak. Jeg har nå laget et system for å forsøke å møte dette behovet.
 
-Det heter **Sakspilot** — et arbeidsbord for selvstendig næringsdrivende. Du var faktisk en av personene jeg tenkte på da jeg startet, fordi ansvarlig-søker-rollen er en av de mest "splittet-mellom-mange-systemer"-yrkene jeg vet om.
+Det heter **Sakspilot** — et arbeidsbord for selvstendig næringsdrivende. 
 
 **Hva det gjør for deg som ansvarlig søker:**
 - 📋 Hver byggesak som et kanban-kort — pågår, venter på kommune, ferdig
@@ -24,12 +24,12 @@ Det heter **Sakspilot** — et arbeidsbord for selvstendig næringsdrivende. Du 
 - 📧 Outlook-integrasjon — eposter fra byggherre/kommune havner automatisk på riktig sak
 - 🤖 Agenter som lager påminnelse om faktura når sak er ferdig
 - 🔗 Del status med byggherre via lenke (uten at de må logge inn)
-- 💰 Send faktura rett til Fiken med ett klikk (eller CSV-eksport til Tripletex)
+- 💰 Send faktura rett til Fiken med ett klikk (eller CSV-eksport til Tripletex) **Under arbeid 
 - ✨ AI-assistent som skriver utkast til kommune-eposter / klient-statusoppdateringer
 
 **Hva jeg trenger fra deg:**
-- Bruke det i 2-4 uker på 1-3 reelle saker
-- 20 min videocall etter første uke — jeg vil høre hva som funker og hva som ikke gjør det
+- Bruke det i 2-4 uker på 1-3 reelle saker, og gjerne også ellers i arbeidshverdagen
+- Et lite møte etter 2 - 4 uker — jeg vil høre hva som funker og hva som ikke gjør det
 
 **Hva du får:**
 - Full tilgang **gratis ut hele 2026** (pilotperiode)
@@ -40,8 +40,8 @@ Sakspilot er på https://sakspilot.no. Jeg har lagd en kort bruksanvisning som e
 
 Skal vi prøve? Bare svar «ja» så får du innloggings-info + en lenke til installasjonsfilen for Windows-appen.
 
-Klem,
-Helene
+
+Helene Grønberg :)
 
 ---
 

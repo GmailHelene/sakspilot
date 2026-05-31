@@ -17,11 +17,23 @@
  */
 const {
   app, BrowserWindow, BrowserView, Tray, Menu, nativeImage, shell, ipcMain,
-  Notification, dialog,
+  Notification, dialog, session,
 } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
+
+// ── GPU + smooth scrolling — må settes FØR app.whenReady ─────────
+// Disse switchene aktiverer hardware-akselerasjon og zero-copy buffer-
+// transfer, som gir merkbart smoothere scrolling i tunge sider (WP-admin,
+// Gmail). Sjelden målbar load-tid-gevinst, men UX-en føles raskere.
+try {
+  app.commandLine.appendSwitch('enable-gpu-rasterization');
+  app.commandLine.appendSwitch('enable-zero-copy');
+  app.commandLine.appendSwitch('ignore-gpu-blocklist');
+  // Smooth scrolling-flagget overstyrer browser-default på Windows
+  app.commandLine.appendSwitch('enable-smooth-scrolling');
+} catch {}
 
 // ── Crash-logger — skriv ALLE krasj til fil + dialog ────────────
 // Uten dette feiler en pakket .exe stille hvis noe går galt ved oppstart.
@@ -81,6 +93,31 @@ app.whenReady().then(async () => {
     store.set('deviceId', deviceId);
   }
 
+  // Preconnect/DNS-prefetch til kjente snarvei-domener — bygger TCP +
+  // TLS-håndtrykk på forhånd så første klikk på en snarvei sparer 200-400 ms.
+  // Vi preconnecter til snarvei-partition (samme som faktiske snarveier bruker)
+  // så connection-pool faktisk gjenbrukes når brukeren klikker.
+  try {
+    const snarveiSession = session.fromPartition('persist:sakspilot-snarvei');
+    const PRECONNECT_URLS = [
+      'https://outlook.office.com',
+      'https://mail.google.com',
+      'https://teams.microsoft.com',
+      'https://app.slack.com',
+      'https://calendar.google.com',
+      'https://tripletex.no',
+      'https://fiken.no',
+      'https://holte.no',
+      'https://github.com',
+      'https://chat.openai.com',
+      'https://claude.ai',
+      'https://drive.google.com',
+    ];
+    for (const url of PRECONNECT_URLS) {
+      try { snarveiSession.preconnect({ url, numSockets: 1 }); } catch {}
+    }
+  } catch {}
+
   createTray();
 
   if (!store.get('token')) {
@@ -124,6 +161,16 @@ function initializeAgent() {
 
     poller.start();
     poller.pause(); // start pauset — venter på "Start arbeidsøkt"
+
+    // Hvis auto-track er på, sett aktiv-sak-fallback fra siste lagrede valg
+    // og start arbeidsøkten automatisk så bruker ikke trenger gjøre noe.
+    if (store.get('autoTrackOpened')) {
+      poller.setActiveSakFallback(
+        store.get('activeSakId'),
+        store.get('activeSakTitle')
+      );
+      if (!workSessionActive) startWorkSession({ silent: true });
+    }
   }
 
   scheduleSync();
@@ -154,6 +201,24 @@ function updateTrayMenu() {
 
   if (loggedIn) {
     items.push({ label: `📍 ${userName}`, enabled: false });
+
+    // Auto-track toggle — synlig øverst slik at status er åpenbar
+    const autoOn = !!store.get('autoTrackOpened');
+    items.push({
+      label: autoOn
+        ? '🎯 Auto-spor PÅ (alt jeg åpner telles)'
+        : '🎯 Auto-spor AV',
+      type: 'checkbox',
+      checked: autoOn,
+      click: () => setAutoTrack(!autoOn),
+    });
+    if (autoOn && store.get('activeSakTitle')) {
+      items.push({
+        label: `   ↳ tilordnes: ${truncate(store.get('activeSakTitle'), 36)}`,
+        enabled: false,
+      });
+    }
+    items.push({ type: 'separator' });
 
     if (workSessionActive) {
       const elapsedSec = Math.round((Date.now() - workSessionStart) / 1000);
@@ -239,16 +304,62 @@ function formatDur(sec) {
 }
 
 // ── Arbeidsøkt-håndtering ───────────────────────────────────────
-function startWorkSession() {
+function startWorkSession(opts = {}) {
   if (!poller) return;
   workSessionActive = true;
   workSessionStart = Date.now();
   workSessionSessions = [];
   poller.resume();
   updateTrayMenu();
-  notify('Sakspilot', 'Arbeidsøkt startet — logging aktiv');
+  if (!opts.silent) {
+    notify(
+      'Sakspilot',
+      store.get('autoTrackOpened')
+        ? 'Auto-spor PÅ — alt du åpner via Sakspilot telles automatisk'
+        : 'Arbeidsøkt startet — logging aktiv'
+    );
+  }
   // Hent friske regler ved start
   refreshRules();
+}
+
+// ── Auto-track ──────────────────────────────────────────────────
+// Når på: alt som åpnes via Sakspilot (snarveier, .exe, mapper, eksterne
+// URL-er) starter automatisk en arbeidsøkt hvis ingen er aktiv, og
+// attribueres til "aktiv sak" hvis bruker har en åpen sak-side.
+function ensureWorkSessionForOpen() {
+  if (!poller) return;
+  if (!store.get('autoTrackOpened')) return; // bruker har skrudd av — gjør ingenting
+  if (!workSessionActive) {
+    startWorkSession({ silent: true });
+  } else if (poller.paused) {
+    poller.resume();
+    updateTrayMenu();
+  }
+}
+
+function setAutoTrack(enabled) {
+  store.set('autoTrackOpened', !!enabled);
+  if (poller) {
+    if (enabled) {
+      poller.setActiveSakFallback(
+        store.get('activeSakId'),
+        store.get('activeSakTitle')
+      );
+      if (!workSessionActive) startWorkSession({ silent: false });
+    } else {
+      poller.setActiveSakFallback(null, null);
+    }
+  }
+  updateTrayMenu();
+}
+
+function setActiveSak(sakId, sakTitle) {
+  store.set('activeSakId', sakId || null);
+  store.set('activeSakTitle', sakTitle || null);
+  if (poller && store.get('autoTrackOpened')) {
+    poller.setActiveSakFallback(sakId || null, sakTitle || null);
+  }
 }
 
 async function stopWorkSession() {
@@ -536,21 +647,14 @@ function openDashboardWindow() {
     icon: path.join(__dirname, '..', 'assets', 'icon.png'),
   });
 
-  // Tøm HTTP-cache OG service-worker-cache for å unngå webpack chunk-hash-
-  // mismatch etter deploy. Vercel ruller ut nye chunks med nye hashes;
-  // gammel cachet HTML refererer til chunks som ikke lenger eksisterer →
-  // «Cannot read properties of undefined (reading 'call')».
-  // Disse er fire-and-forget — vil ikke blokkere oppstart, men bruker
-  // session.clearStorageData som tar alt for sakspilot.no.
-  Promise.all([
-    dashboardWindow.webContents.session.clearCache(),
-    // Ingen origin-filter: clear ALT av SW + cachestorage. URL-en kan være
-    // både sakspilot.no og www.sakspilot.no, og origin-filteret krever
-    // EKSAKT match, så vi dropper det.
-    dashboardWindow.webContents.session.clearStorageData({
-      storages: ['serviceworkers', 'cachestorage'],
-    }),
-  ]).catch(() => {});
+  // Tøm KUN service-worker- og cachestorage (chunk-hash-bug fra Vercel),
+  // ikke HTTP-cache. Tidligere clearet vi alt → snarveier i samme session
+  // mistet også sin cache → tregere reload. Nå har snarveier egen partition
+  // ('persist:sakspilot-snarvei'), så de er upåvirket uansett, men vi
+  // beholder HTTP-cachen på dashboardet også for raskere kald-start.
+  dashboardWindow.webContents.session
+    .clearStorageData({ storages: ['serviceworkers', 'cachestorage'] })
+    .catch(() => {});
 
   // Auto-recovery: hvis renderer crasher (typisk webpack chunk-feil), reload.
   // Tøm BÅDE cache og service-worker så vi ikke får samme feil i loop.
@@ -595,6 +699,13 @@ function openDashboardWindow() {
   // Forsøk å laste web-appen etter 500ms
   setTimeout(() => attemptLoad(), 500);
 
+  // Floating widget — opprett etter at vinduet finnes så bounds er klare
+  setTimeout(() => ensureWidgetView(), 800);
+
+  // Hold widget riktig posisjonert + på topp når dashbordet endrer størrelse
+  dashboardWindow.on('resize', () => positionWidgetView());
+  dashboardWindow.on('move', () => positionWidgetView());
+
   // 'did-fail-load' fanger ERR_CONNECTION_REFUSED osv. som .catch() ikke gjør
   dashboardWindow.webContents.on('did-fail-load', (_e, errorCode, errorDescription, validatedURL) => {
     // Hopp over hvis det er splash/error-pagen vår som "feilet" (data: URLs)
@@ -605,6 +716,7 @@ function openDashboardWindow() {
 
   dashboardWindow.on('closed', () => {
     if (dashboardLoadTimer) { clearTimeout(dashboardLoadTimer); dashboardLoadTimer = null; }
+    destroyWidgetView();
     dashboardWindow = null;
   });
 
@@ -820,6 +932,10 @@ ipcMain.handle('agent:status', () => {
     startedAt: workSessionStart ? new Date(workSessionStart).getTime() : null,
     sessionCount: workSessionSessions.length,
     pendingCount: pendingSessions.length,
+    // Auto-track-state for web-widgeten
+    autoTrackOpened: !!store.get('autoTrackOpened'),
+    activeSakId: store.get('activeSakId') || null,
+    activeSakTitle: store.get('activeSakTitle') || null,
   };
 });
 ipcMain.handle('agent:pending-count', () => pendingSessions.length);
@@ -827,6 +943,19 @@ ipcMain.handle('agent:start-work-session', () => { startWorkSession(); return tr
 ipcMain.handle('agent:stop-work-session', () => { stopWorkSession(); return true; });
 ipcMain.handle('agent:toggle-pause', () => { togglePause(); return true; });
 ipcMain.handle('agent:sync-now', async () => { await syncSessions(); return true; });
+
+// Auto-track-toggle (én bryter for "track everything I open via Sakspilot")
+ipcMain.handle('agent:set-auto-track', (_e, enabled) => {
+  setAutoTrack(!!enabled);
+  return { ok: true, enabled: !!enabled };
+});
+
+// Aktiv sak — kalles fra web når bruker navigerer til /saker/[id]
+// så auto-track vet hvilken sak å attribuere til.
+ipcMain.handle('agent:set-active-sak', (_e, sakId, sakTitle) => {
+  setActiveSak(sakId, sakTitle);
+  return { ok: true };
+});
 
 // Velg en lokal .exe-fil (eller annen kjørbar). Brukes fra Launcher når
 // brukeren vil legge til snarvei til et lokalt Windows-program.
@@ -861,6 +990,17 @@ ipcMain.handle('shell:open-local', async (_e, filePath) => {
       // openPath returnerer feilmelding-string hvis den feilet
       return { ok: false, error: result };
     }
+    // Auto-track: marker som åpnet via Sakspilot
+    ensureWorkSessionForOpen();
+    if (poller && store.get('autoTrackOpened')) {
+      const path = require('path');
+      poller.logOpenedExternal({
+        app: path.basename(filePath),
+        title: filePath,
+        sakId: store.get('activeSakId'),
+        sakTitle: store.get('activeSakTitle'),
+      });
+    }
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err.message };
@@ -876,6 +1016,16 @@ ipcMain.handle('shell:open-external', async (_e, url) => {
   if (!/^https?:\/\//i.test(url)) return { ok: false, error: 'Kun http(s)-URLer tillatt' };
   try {
     await shell.openExternal(url);
+    // Auto-track: marker som åpnet via Sakspilot
+    ensureWorkSessionForOpen();
+    if (poller && store.get('autoTrackOpened')) {
+      poller.logOpenedExternal({
+        app: 'ekstern-lenke',
+        title: url,
+        sakId: store.get('activeSakId'),
+        sakTitle: store.get('activeSakTitle'),
+      });
+    }
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err.message };
@@ -888,6 +1038,16 @@ ipcMain.handle('shell:open-folder', async (_e, folderPath) => {
   try {
     const result = await shell.openPath(folderPath);
     if (result) return { ok: false, error: result };
+    // Auto-track: marker som åpnet via Sakspilot
+    ensureWorkSessionForOpen();
+    if (poller && store.get('autoTrackOpened')) {
+      poller.logOpenedExternal({
+        app: 'explorer',
+        title: folderPath,
+        sakId: store.get('activeSakId'),
+        sakTitle: store.get('activeSakTitle'),
+      });
+    }
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err.message };
@@ -934,6 +1094,7 @@ function broadcastShortcutState() {
   const tabs = Array.from(openShortcuts.entries()).map(([url, meta]) => ({
     url,
     label: meta.label,
+    loading: !!meta.loading,
   }));
   dashboardWindow.webContents.send('shortcut:state', {
     tabs,
@@ -957,6 +1118,8 @@ function setActiveShortcut(url) {
   entry.view.setBounds(getShortcutBounds(dashboardWindow));
   activeShortcutUrl = url;
   broadcastShortcutState();
+  // Sørg for at widget-overlayet ligger ØVERST etter snarvei-bytte
+  raiseWidgetOnTop();
 }
 
 function destroyShortcut(url) {
@@ -988,23 +1151,136 @@ function closeAllShortcuts() {
   for (const url of urls) {
     destroyShortcut(url);
   }
+  raiseWidgetOnTop();
 }
+
+// ─────────────────────────────────────────────────────────────────
+// Floating widget — alltid-på-topp tidsregistrerings-kontroller
+// ─────────────────────────────────────────────────────────────────
+// React-widgeten i sakspilot.no lever i hoved-DOM-en og dekkes av
+// snarvei-BrowserViews. Dette er en EGEN BrowserView som vi alltid
+// re-legger øverst etter at andre views er manipulert. Lader en liten
+// statisk widget.html som snakker med main via `sakspilotWidget.invoke`.
+
+let widgetView = null;
+let widgetIsExpanded = false;
+const WIDGET_ICON_SIZE = 60;          // 44px knapp + margin
+const WIDGET_PANEL_W = 290;           // bredde på utvidet panel
+const WIDGET_PANEL_H = 260;           // høyde på utvidet panel
+const WIDGET_MARGIN = 8;
+
+function ensureWidgetView() {
+  if (!dashboardWindow || dashboardWindow.isDestroyed()) return;
+  if (widgetView && !widgetView.webContents.isDestroyed()) {
+    raiseWidgetOnTop();
+    positionWidgetView();
+    return;
+  }
+  widgetView = new BrowserView({
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      // transparent: vi tegner kun knappen/panelet — resten skal være see-through
+      backgroundThrottling: false,
+    },
+  });
+  try { widgetView.setBackgroundColor('#00000000'); } catch {}
+  widgetView.webContents.loadFile(path.join(__dirname, 'renderer', 'widget.html'))
+    .catch((err) => console.error('[widget] kunne ikke laste widget.html:', err));
+  positionWidgetView();
+  raiseWidgetOnTop();
+}
+
+function positionWidgetView() {
+  if (!widgetView || widgetView.webContents.isDestroyed()) return;
+  if (!dashboardWindow || dashboardWindow.isDestroyed()) return;
+  const b = dashboardWindow.getContentBounds();
+  const w = widgetIsExpanded ? WIDGET_PANEL_W : WIDGET_ICON_SIZE;
+  const h = widgetIsExpanded ? WIDGET_PANEL_H : WIDGET_ICON_SIZE;
+  try {
+    widgetView.setBounds({
+      x: Math.max(0, b.width - w - WIDGET_MARGIN),
+      y: Math.max(0, b.height - h - WIDGET_MARGIN),
+      width: w,
+      height: h,
+    });
+  } catch {}
+}
+
+function raiseWidgetOnTop() {
+  if (!widgetView || widgetView.webContents.isDestroyed()) return;
+  if (!dashboardWindow || dashboardWindow.isDestroyed()) return;
+  // Re-add view → flytter den til topp av z-stacken
+  try { dashboardWindow.removeBrowserView(widgetView); } catch {}
+  try { dashboardWindow.addBrowserView(widgetView); } catch {}
+  positionWidgetView();
+}
+
+function destroyWidgetView() {
+  if (!widgetView) return;
+  try {
+    if (dashboardWindow && !dashboardWindow.isDestroyed()) {
+      dashboardWindow.removeBrowserView(widgetView);
+    }
+  } catch {}
+  try { widgetView.webContents.destroy(); } catch {}
+  widgetView = null;
+}
+
+ipcMain.handle('widget:resize', (_e, expanded) => {
+  widgetIsExpanded = !!expanded;
+  positionWidgetView();
+  return { ok: true };
+});
 
 ipcMain.handle('shell:open-in-window', async (_e, url, label) => {
   if (!dashboardWindow || dashboardWindow.isDestroyed()) {
     shell.openExternal(url);
+    ensureWorkSessionForOpen();
+    if (poller && store.get('autoTrackOpened')) {
+      poller.logOpenedExternal({
+        app: 'sakspilot-snarvei',
+        title: label ? `${label} (${url})` : url,
+        sakId: store.get('activeSakId'),
+        sakTitle: store.get('activeSakTitle'),
+      });
+    }
     return { ok: true, fallback: 'external' };
   }
 
   // Hvis allerede åpen → bare switch til den
   if (openShortcuts.has(url)) {
     setActiveShortcut(url);
+    ensureWorkSessionForOpen();
     return { ok: true, alreadyOpen: true };
   }
 
-  // Opprett ny BrowserView
+  // Ny snarvei åpnes — auto-track logger den
+  ensureWorkSessionForOpen();
+  if (poller && store.get('autoTrackOpened')) {
+    poller.logOpenedExternal({
+      app: 'sakspilot-snarvei',
+      title: label ? `${label} (${url})` : url,
+      sakId: store.get('activeSakId'),
+      sakTitle: store.get('activeSakTitle'),
+    });
+  }
+
+  // Opprett ny BrowserView med EGEN persistent session.
+  // Tidligere delte snarveier session med dashbordet, så hver gang vi
+  // tømte dashboard-cachen (clearStorageData ved oppstart for å unngå
+  // chunk-hash-bug) ble OGSÅ Gmail/WP-admin/osv sin cache nullstilt →
+  // tregere lasting hver gang. Egen partition gir snarveier varig cache.
   const view = new BrowserView({
-    webPreferences: { contextIsolation: true, nodeIntegration: false },
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      partition: 'persist:sakspilot-snarvei',
+      // Lar Chromium throttle bakgrunn-faner (sparer CPU/batteri når
+      // brukeren ser på en annen snarvei)
+      backgroundThrottling: true,
+    },
   });
 
   const resizeHandler = () => {
@@ -1019,11 +1295,24 @@ ipcMain.handle('shell:open-in-window', async (_e, url, label) => {
   };
   dashboardWindow.on('resize', resizeHandler);
 
-  openShortcuts.set(url, { view, label, resizeHandler });
+  openShortcuts.set(url, { view, label, resizeHandler, loading: true });
+
+  // Loading-state — tab-pillen får spinner mens siden laster
+  view.webContents.on('did-start-loading', () => {
+    const m = openShortcuts.get(url);
+    if (m) { m.loading = true; broadcastShortcutState(); }
+  });
+  view.webContents.on('did-stop-loading', () => {
+    const m = openShortcuts.get(url);
+    if (m) { m.loading = false; broadcastShortcutState(); }
+  });
+
   setActiveShortcut(url);
 
   view.webContents.loadURL(url).catch((err) => {
     console.error('[open-in-window] loadURL feilet:', err);
+    const m = openShortcuts.get(url);
+    if (m) { m.loading = false; broadcastShortcutState(); }
   });
 
   return { ok: true };
@@ -1049,6 +1338,7 @@ ipcMain.handle('shell:get-shortcut-state', () => {
   const tabs = Array.from(openShortcuts.entries()).map(([url, meta]) => ({
     url,
     label: meta.label,
+    loading: !!meta.loading,
   }));
   return { tabs, activeUrl: activeShortcutUrl };
 });
