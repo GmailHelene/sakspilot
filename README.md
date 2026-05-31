@@ -3,11 +3,11 @@
 Workspace for selvstendig næringsdrivende. Sak-CRM, passiv tidsregistrering,
 Outlook-integrasjon, AI-assistent og Fiken-faktura — i ett verktøy.
 
-## Status (31. mai 2026)
+## Status (1. juni 2026)
 
-✅ **Funksjonelt komplett for pilotbruk.** Web + API + desktop-agent live i prod.
+✅ **Funksjonelt komplett for pilotbruk + langt over.** Web + API + desktop-agent live i prod. Multi-user (team + klient-portal), whitelabel-domener, og cross-platform desktop er nå på plass.
 
-Se [`docs/STATUS-2026-05-31.md`](docs/STATUS-2026-05-31.md) for fullstendig status.
+Se [`docs/STATUS-2026-06-01.md`](docs/STATUS-2026-06-01.md) for fullstendig status.
 
 - **Web:** https://sakspilot.no (Vercel)
 - **API:** https://api.sakspilot.no (Render)
@@ -19,27 +19,44 @@ Se [`docs/STATUS-2026-05-31.md`](docs/STATUS-2026-05-31.md) for fullstendig stat
 | Område | Status |
 |---|---|
 | Auth + multi-tenant | ✅ |
-| Sak-CRM med kanban | ✅ |
-| Klistrelapper / kalender / Gantt | ✅ |
+| Prosjekt-CRM med kanban + tabell + Gantt | ✅ |
+| Klistrelapper (m/reminder + voice notes) | ✅ |
 | Agenter (Monday/Notion-stil) | ✅ |
-| Tidsregistrering (desktop-agent) | ✅ |
-| **Auto-spor: ÉN bryter, alt åpnet via Sakspilot telles** | ✅ NY |
-| Multi-tab snarveier (BrowserView) | ✅ |
+| Tidsregistrering (desktop-agent + auto-spor) | ✅ |
+| Multi-tab snarveier + native always-on-top widget | ✅ |
+| Pomodoro-timer i tray | ✅ |
+| AI-assistent (Claude Sonnet 4.5, chat-historie per prosjekt) | ✅ |
+| AI rate-limit per org (500/mnd, pilot 5000) | ✅ |
+| AI auto-triage av ukategoriserte timer | ✅ |
 | Outlook-integrasjon (MS Graph) | ✅ |
-| AI-assistent (Claude Sonnet 4.5) | ✅ |
 | Fiken faktura (PAT + OAuth-klient klar) | ✅ |
+| Faktura-PDF (pdfkit, norsk MVA-template) | ✅ |
+| Rapport-PDF | ✅ |
+| iCal-feed (Google/Apple/Outlook) | ✅ |
 | Tripletex CSV | ✅ (direkte API venter på partner) |
 | GDPR (innsyn / sletting / DPA-mal) | ✅ |
 | Bransje-onboarding (9 bransjer) | ✅ |
-| Tema-velger (3 fargesett, CSS-vars) | ✅ |
+| Tema-velger + mørk modus | ✅ |
+| Tids-mål per uke/mnd m/widget | ✅ |
+| Mobil-kanban (touch status-modal) | ✅ |
 | Sidebar Mine sites + Mine mapper (cloud-sync) | ✅ |
-| Launcher med eget ikon-opplasting | ✅ |
 | Pilot-pricing (gratis ut 2026) | ✅ |
-| Brevo SMTP for glemt-passord | ✅ |
-| Sentry (EU-region, prod-aktiv) | ✅ |
+| Pilot-feedback-form (/feedback) | ✅ |
+| Brevo SMTP + onboarding-drip (dag 0/3/7/14) | ✅ |
+| Sentry (EU-region) | ✅ |
 | GitHub Releases + versjonsløs download-URL | ✅ |
+| GitHub Actions: daglig automasjons-trigger + DB-backup | ✅ |
+| **Team-plan med invite-flyt** | ✅ NY |
+| **Klient-portal med login (`/portal/*`)** | ✅ NY |
+| **Custom domener (whitelabel)** | ✅ NY |
+| **Mac + Linux desktop build-pipeline** | ✅ NY (build-klar) |
+| **Klistrelapp-reminders (in-app + native)** | ✅ NY |
+| **Voice notes på klistrelapper** | ✅ NY |
+| Demo-video på forsiden | ✅ NY |
 | AWS Bedrock-provider | 🟡 stub klar |
 | Stripe checkout | 🔴 Q1 2027 |
+| Tripletex direkte (krever partner) | 🔴 venter |
+| macOS code-signing | 🟡 trenger Apple Dev cert |
 
 ## Struktur
 
@@ -99,8 +116,9 @@ cd apps/desktop && npm run build:exe
 
 ## Dokumenter
 
-- [Status pr 31. mai 2026](docs/STATUS-2026-05-31.md) — faktisk tilstand i prod
-- [Status pr 28. mai 2026](docs/STATUS-2026-05-28.md) — forrige snapshot
+- [Status pr 1. juni 2026](docs/STATUS-2026-06-01.md) — faktisk tilstand i prod
+- [Status pr 31. mai 2026](docs/STATUS-2026-05-31.md) — forrige snapshot
+- [Status pr 28. mai 2026](docs/STATUS-2026-05-28.md) — eldre snapshot
 - [Neste steg + roadmap](docs/NESTE-STEG.md) — hva som gjenstår og prioritering
 - [Pilot-invitasjon til Nicole](docs/pilot-epost-nicole.md) — 3 versjoner
 - [Bruksanvisning for ansvarlig søker](docs/nicole-bruksanvisning-byggesak.md) — vedlegg til Nicole

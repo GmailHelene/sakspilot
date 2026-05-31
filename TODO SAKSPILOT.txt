@@ -1,47 +1,70 @@
-SAKSPILOT TODO — oppdatert 31. mai 2026
+SAKSPILOT TODO — oppdatert 1. juni 2026
 ==========================================
 
 DENNE UKA (kritisk)
 - [ ] Send Nicole-epost (docs/pilot-epost-nicole.md, versjon A)
 - [ ] Post på LinkedIn (docs/linkedin-post.md, versjon A — founder-story)
 - [ ] Post i WordPress Norge FB-gruppe (docs/post-fb-wp-norge.md)
-- [ ] Sjekk at /last-ned faktisk laster ned siste exe (versjonsløs URL nå)
+- [ ] Sjekk at /last-ned faktisk laster ned siste exe (versjonsløs URL)
 - [ ] Rotér Fiken Client Secret + Brevo SMTP-key (begge ble delt i chat)
+- [ ] Test demo-video på sakspilot.no (er nå live, 65 MB)
+- [ ] Test ny Sakspilot.exe (pomodoro, voice notes, alle nye features)
 
-FERDIG SISTE UKE (29.-31. mai)
-- [x] Brevo SMTP for glemt-passord (sender ekte epost nå)
-- [x] Sentry aktivert (EU-region, de.sentry.io)
-- [x] Auto-spor — én bryter, alt åpnet via Sakspilot logges automatisk
-- [x] Multi-tab BrowserView-snarveier (Gmail/Tripletex/osv som faner)
-- [x] Egne ikon-opplastinger i Launcher (PNG/JPG/SVG)
-- [x] Cloud-sync av snarveier/sites/mapper (UserPreferences-blob)
-- [x] Mobil-responsiveness (header/hamburger/nav)
-- [x] PWA-ikon (S på charcoal, multi-resolution)
-- [x] Split rate-limiters (fikset random logouts)
-- [x] /sammenligning + llms.txt + JSON-LD (SEO/AEO)
-- [x] Build size 1 GB → 169 MB (electron-packager ignore-regex)
+FERDIG SISTE UKE (29. mai - 1. juni)
+- [x] Brevo SMTP for glemt-passord
+- [x] Sentry aktivert (EU-region)
+- [x] Auto-spor (én bryter)
+- [x] Multi-tab BrowserView-snarveier
+- [x] Egne ikon-opplastinger i Launcher
+- [x] Cloud-sync av snarveier/sites/mapper
+- [x] Mobil-responsiveness
+- [x] PWA-ikon (S på charcoal)
+- [x] Split rate-limiters
+- [x] /sammenligning + llms.txt + JSON-LD
+- [x] Build size 1 GB → 115 MB
 - [x] Versjonsløs GitHub Releases-URL
-- [x] LinkedIn-post-utkast i 3 versjoner (docs/linkedin-post.md)
+- [x] LinkedIn-post-utkast (3 versjoner)
+- [x] Splitt saker/[id]/page.tsx (2049 → 194 linjer)
+- [x] GitHub Actions: daily-automation + monthly-db-backup + onboarding-drip
+- [x] AI rate-limit per org
+- [x] Pilot-feedback-form (/feedback)
+- [x] Mørk modus
+- [x] Tids-mål per uke/mnd
+- [x] Faktura-PDF (pdfkit)
+- [x] AI chat-historie per prosjekt
+- [x] Splash-redesign
+- [x] Mobil-kanban (touch status-modal)
+- [x] Pomodoro-timer i tray
+- [x] Onboarding-emails drip (4 templates)
+- [x] Rapport-PDF
+- [x] AI auto-triage
+- [x] Push-notifs for klistrelapper
+- [x] Klient-portal med login + invite-flyt
+- [x] Team-plan med invite-flyt
+- [x] Voice notes på klistrelapper
+- [x] Mac/Linux desktop build-pipeline (active-win)
+- [x] iCal-feed av frister
+- [x] Custom domener (whitelabel)
+- [x] Sak → Prosjekt UI-rename
+- [x] Demo-video på forsiden
+- [x] Native always-on-top widget
 
 NESTE 1-2 UKER
-- [ ] AI rate-limit per org (vern mot Claude-kostnadssprekk)
-- [ ] Pilot-feedback-form (/feedback)
-- [ ] Splitt apps/web/src/app/saker/[id]/page.tsx (1900+ linjer)
-- [ ] Cron-jobb for daglige automasjons-trigger (milestone_due_soon)
-- [ ] Database-backup-script (månedlig dump til S3/R2)
-- [ ] Onboarding-emails drip-kampanje (dag 0/3/7/14 via Brevo)
+- [ ] Fiken OAuth-flow (callback-handler mangler)
+- [ ] AppImage for Linux
+- [ ] Trigge første cross-platform GitHub release
+- [ ] Verifiser custom-domener end-to-end (Vercel manuell aktivering)
 
-INTEGRASJONER — venter
-- [ ] Tripletex partner-status (søknad inne, 3-5 dagers godkjenning)
-- [ ] Fiken OAuth-flow (Client ID/Secret klart, mangler callback-handler)
-
-LENGRE SIKT (Q4 2026 / Q1 2027)
+LENGRE SIKT (Q3/Q4 2026)
 - [ ] Stripe checkout
 - [ ] Engelsk språkversjon (next-intl)
-- [ ] Mac- og Linux-desktop (active-win istedenfor get-windows)
-- [ ] Team-plan med invite-flyt
-- [ ] Faktura-PDF (eget, for de uten Fiken/Tripletex)
-- [ ] Code-signing .exe (EV cert ~500 USD/år)
+- [ ] macOS code-signing (EV cert ~$99/år)
+- [ ] Auto-aktivering av custom domener via Vercel API
+- [ ] AI-foreslår status-endring basert på milepæl-mønster
+- [ ] Klistrelapp-deling mellom team-medlemmer
+
+INTEGRASJONER — venter
+- [ ] Tripletex partner-status
 
 DEMO + DEV
 URL:      https://sakspilot.no/login
@@ -52,3 +75,7 @@ Lokal dev:
 - Start - Sakspilot dev.bat (API + web)
 - Start - Sakspilot desktop.bat (tray-app)
 - Stopp alt - Sakspilot.bat
+
+Claude i Sakspilot Launcher:
+- Claude Desktop.bat → UWP-appen (chat-grensesnitt)
+- Claude Code.bat → CLI i terminal (kodearbeid)
