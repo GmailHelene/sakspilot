@@ -9,7 +9,7 @@
 export const FAQ = [
   {
     q: 'Hva er Sakspilot?',
-    a: 'Sakspilot er et workspace for selvstendig næringsdrivende — sak-CRM, automatisk tidsregistrering, Outlook-integrasjon, AI-assistent og fakturagrunnlag i ett verktøy. Du slipper å hoppe mellom Excel, klistrelapper og 3 forskjellige timeregistreringer.',
+    a: 'Sakspilot er et workspace for selvstendig næringsdrivende — prosjekt-CRM, automatisk tidsregistrering, Outlook-integrasjon, AI-assistent og fakturagrunnlag i ett verktøy. Du slipper å hoppe mellom Excel, klistrelapper og 3 forskjellige timeregistreringer.',
   },
   {
     q: 'Hva koster Sakspilot etter pilotperioden?',
@@ -33,7 +33,7 @@ export const FAQ = [
   },
   {
     q: 'Hvordan funker desktop-agenten?',
-    a: 'Du installerer en liten Windows-app (Sakspilot Desktop). Den leser vindustittel hvert 15. sekund og kobler tiden til riktig sak via dine egne matching-regler. Ingen behov for å starte og stoppe timer manuelt.',
+    a: 'Du installerer en liten Windows-app (Sakspilot Desktop). Den leser vindustittel hvert 15. sekund og kobler tiden til riktig prosjekt via dine egne matching-regler. Ingen behov for å starte og stoppe timer manuelt.',
   },
   {
     q: 'Hva med klient-personvern på desktop-agenten?',
@@ -41,15 +41,15 @@ export const FAQ = [
   },
   {
     q: 'Hvordan kobler jeg Outlook til Sakspilot?',
-    a: 'Innstillinger → Integrasjoner → "Koble til Outlook". Logg inn med Microsoft-kontoen (Outlook.com, Hotmail eller Microsoft 365). Sakspilot kobler innkommende e-poster til riktig sak basert på avsender eller emnefelt.',
+    a: 'Innstillinger → Integrasjoner → "Koble til Outlook". Logg inn med Microsoft-kontoen (Outlook.com, Hotmail eller Microsoft 365). Sakspilot kobler innkommende e-poster til riktig prosjekt basert på avsender eller emnefelt.',
   },
   {
     q: 'Hvilke yrkesgrupper passer Sakspilot for?',
     a: 'Sakspilot er bygget for selvstendig næringsdrivende: advokater, ansvarlige søkere, arkitekter, regnskapsførere, designere, IT-konsulenter — og andre med klientoppdrag og timeføring.',
   },
   {
-    q: 'Kan jeg dele en sak med klienten min?',
-    a: 'Ja — generer en offentlig delt lenke per sak. Klienten ser status, milepæler og fremdrift uten å logge inn. Sensitive data (notater, tidsregistreringer, beløp) deles ikke.',
+    q: 'Kan jeg dele et prosjekt med klienten min?',
+    a: 'Ja — generer en offentlig delt lenke per prosjekt. Klienten ser status, milepæler og fremdrift uten å logge inn. Sensitive data (notater, tidsregistreringer, beløp) deles ikke.',
   },
   {
     q: 'Lagres data hos OpenAI eller Anthropic?',
@@ -75,7 +75,7 @@ export function landingJsonLd(): string {
         applicationCategory: 'BusinessApplication',
         operatingSystem: 'Web, Windows',
         description:
-          'Workspace for selvstendig næringsdrivende. Sak-CRM, passiv tidsregistrering, Outlook-integrasjon, AI-assistent og fakturagrunnlag i ett verktøy.',
+          'Workspace for selvstendig næringsdrivende. Prosjekt-CRM, passiv tidsregistrering, Outlook-integrasjon, AI-assistent og fakturagrunnlag i ett verktøy.',
         url: 'https://sakspilot.no',
         offers: {
           '@type': 'Offer',
@@ -91,7 +91,7 @@ export function landingJsonLd(): string {
         },
         inLanguage: 'nb-NO',
         featureList: [
-          'Sak-CRM med kanban',
+          'Prosjekt-CRM med kanban',
           'Passiv tidsregistrering (desktop-agent)',
           'Outlook-integrasjon (Microsoft Graph)',
           'AI-assistent (Claude)',

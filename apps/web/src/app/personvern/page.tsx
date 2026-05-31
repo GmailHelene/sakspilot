@@ -104,7 +104,7 @@ export default function PersonvernPage() {
 
               <h3 style={subheadStyle}>2. Innhold du legger inn</h3>
               <p>
-                Klienter du registrerer (navn, organisasjonsnummer, kontaktinfo), saker (tittel,
+                Klienter du registrerer (navn, organisasjonsnummer, kontaktinfo), prosjekter (tittel,
                 beskrivelse, frister, status), milepæler, klistrelapper, matching-regler for
                 tidsregistrering, og tidsregistreringer (varighet, vindustittel, applikasjonsnavn).
               </p>
@@ -124,8 +124,8 @@ export default function PersonvernPage() {
 
               <h3 style={subheadStyle}>5. AI-prompts (hvis du bruker AI-assistenten)</h3>
               <p>
-                Når du klikker «Oppsummer sak» eller «Skriv epost-utkast», sender vi den relevante
-                sak-konteksten (tittel, status, milepæler, eventuell klientnavn) til Anthropic Claude.
+                Når du klikker «Oppsummer prosjekt» eller «Skriv epost-utkast», sender vi den relevante
+                prosjekt-konteksten (tittel, status, milepæler, eventuell klientnavn) til Anthropic Claude.
                 Se eget avsnitt om AI-bruk under.
               </p>
             </Section>
@@ -154,7 +154,7 @@ export default function PersonvernPage() {
             <Section id="hvor-lagres" title="Hvor data lagres">
               <p>All data lagres på servere i EU/EØS:</p>
               <ul>
-                <li><strong>Neon Postgres</strong> — Frankfurt, Tyskland (kunde-, sak- og tidsdata)</li>
+                <li><strong>Neon Postgres</strong> — Frankfurt, Tyskland (kunde-, prosjekt- og tidsdata)</li>
                 <li><strong>Render</strong> — Frankfurt, Tyskland (API-host, ingen vedvarende lagring)</li>
                 <li><strong>Vercel</strong> — global CDN for statiske ressurser (ingen personopplysninger)</li>
                 <li><strong>Umami Cloud</strong> — EU (anonym analytics)</li>
@@ -205,11 +205,11 @@ export default function PersonvernPage() {
             <Section id="ai-bruk" title="AI-bruk (Claude)">
               <p>
                 Sakspilot tilbyr valgfrie AI-funksjoner som bruker <strong>Anthropic Claude</strong>.
-                Når du klikker «Oppsummer sak», «Skriv epost-utkast» eller stiller et fritekst-spørsmål,
+                Når du klikker «Oppsummer prosjekt», «Skriv epost-utkast» eller stiller et fritekst-spørsmål,
                 sender vi følgende til Anthropic:
               </p>
               <ul>
-                <li>Saks-tittel, status, beskrivelse</li>
+                <li>Prosjekt-tittel, status, beskrivelse</li>
                 <li>Milepæler og frister</li>
                 <li>Klientens navn (firmanavn — for at AI-en skal kunne tilpasse tonen)</li>
                 <li>Tidsstatistikk (totaltimer, ikke detaljer)</li>
@@ -223,7 +223,7 @@ export default function PersonvernPage() {
                 <li>Dine matching-regler for tidsregistrering</li>
                 <li>E-post-innhold fra Outlook</li>
                 <li>Tidsregistreringer-detaljer (vindustittel, appname)</li>
-                <li>Informasjon om andre saker enn den du jobber med</li>
+                <li>Informasjon om andre prosjekter enn det du jobber med</li>
                 <li>Personnumre, fødselsdato, eller andre identifikatorer</li>
               </ul>
               <p>
@@ -260,7 +260,7 @@ export default function PersonvernPage() {
               <p>
                 Vindustitler kan inneholde klient-navn fra dokumenter — det regnes som
                 personopplysninger. Vår behandling baseres på berettiget interesse: selvstendig
-                næringsdrivende trenger korrekt tidsføring per sak for fakturering.
+                næringsdrivende trenger korrekt tidsføring per prosjekt for fakturering.
               </p>
               <p>
                 Du kan stoppe agenten når som helst via tray-menyen og slette all logget tid fra

@@ -83,7 +83,7 @@ export default function KlienterPage() {
               <div style={{ fontSize: 48, marginBottom: 12 }}>👥</div>
               <h2 style={{ color: tokens.color.navy, marginBottom: 8 }}>Ingen klienter enda</h2>
               <p style={{ color: tokens.color.textMuted, marginBottom: 20 }}>
-                Legg til din første klient så du kan opprette saker.
+                Legg til din første klient så du kan opprette prosjekter.
               </p>
               <Link
                 href="/klienter/ny"

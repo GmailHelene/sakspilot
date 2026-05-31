@@ -153,7 +153,7 @@ export default function GanttPage() {
               }}
             >
               <div style={{ padding: '10px 14px', fontSize: 11, fontWeight: 700, color: tokens.color.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                Sak / Klient
+                Prosjekt / Klient
               </div>
               <div style={{ position: 'relative', height: 32 }}>
                 {monthMarkers.map((m, i) => (

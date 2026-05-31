@@ -113,8 +113,50 @@ model Organization {
   fikenIntegration FikenIntegration?
   feedbacks Feedback[]
   teamInvites TeamInvite[]
+  customDomains CustomDomain[]
 
   @@map("organizations")
+}
+
+/// Eget domene en frilanser kan koble til sin klient-portal (whitelabel).
+/// Eksempel: "klienter.helenetech.no" → peker via CNAME til sakspilot.no,
+/// og når en request kommer inn med Host: klienter.helenetech.no resolver
+/// vi den til denne organisasjonen og overstyrer branding i portal-UI.
+///
+/// Sikkerhet:
+///   - hostname @unique — to orgs kan ikke kreve samme domene
+///   - DNS TXT-verifisering FØR vi anser domenet som verified — hindrer
+///     at noen "stjeler" andres domene ved bare å oppgi det
+///   - verificationToken regenereres ved hver POST /custom-domains (gammel
+///     blir ugyldig)
+///   - Branding-felter er null = bruk default Sakspilot-branding
+model CustomDomain {
+  id                String   @id @default(uuid())
+  organizationId    String   @map("organization_id")
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// Eksempel: "klienter.helenetech.no" — normaliseres til lowercase
+  hostname          String   @unique
+  /// false inntil DNS TXT-record på _sakspilot-verify.{hostname} matcher
+  /// verificationToken. Hostname-resolver SKAL bare matche verified=true.
+  verified          Boolean  @default(false)
+  /// Random hex-streng (32 hex tegn = 16 bytes entropi). Brukeren legger
+  /// denne som verdi i TXT-record. Regenereres ved re-add.
+  verificationToken String   @map("verification_token")
+  verifiedAt        DateTime? @map("verified_at")
+  // ── Branding-overrides — alle null = bruk Sakspilot default ────────
+  /// Erstatter "Sakspilot" i portal-topbar (f.eks. "Helene Tech Solutions")
+  brandName         String?  @map("brand_name")
+  /// Vises som tagline under brandName (f.eks. "Klient-portal")
+  brandTagline      String?  @map("brand_tagline")
+  /// Hex-farge som overstyrer navy-primary i portal-CSS-var
+  brandPrimaryColor String?  @map("brand_primary_color")
+  /// Valgfri logo (peker på fil — kan være data-URL eller absolutt URL)
+  brandLogoUrl      String?  @map("brand_logo_url")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@map("custom_domains")
 }
 
 /// Fiken-integrasjon per organisasjon.
@@ -237,6 +279,13 @@ model User {
   /// e-post to ganger hvis cron-jobben kjører flere ganger eller hvis vinduet
   /// glipper en dag.
   lastOnboardingEmail Int? @default(0) @map("last_onboarding_email")
+  /// iCal-feed-token — randomisert hex-streng (16 bytes = 32 hex tegn = 128 bits entropy).
+  /// Når satt, kan brukeren abonnere på sine frister/milepæler via en URL som
+  /// inneholder dette tokenet. Token er ENESTE autentisering på /ical-endepunktet,
+  /// så lengden må være lang nok til at brute-force er upraktisk.
+  /// Null = ingen feed generert (default). Regenereres ved POST /me/ical/generate,
+  /// nullstilles ved DELETE /me/ical (kalender slutter umiddelbart å virke).
+  icalToken      String?   @unique @map("ical_token")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 

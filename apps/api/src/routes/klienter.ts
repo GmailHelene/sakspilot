@@ -154,7 +154,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
   if (existing._count.saker > 0) {
     return res.status(400).json({
-      error: "Klienten har saker — arkiver istedenfor å slette",
+      error: "Klienten har prosjekter — arkiver istedenfor å slette",
       saker: existing._count.saker,
     });
   }

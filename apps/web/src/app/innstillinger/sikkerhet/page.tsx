@@ -353,7 +353,7 @@ function GDPRSection() {
       <Section
         icon={<Download size={18} strokeWidth={2} />}
         title="Last ned mine data"
-        description="GDPR art. 15: du har rett til å få utlevert all data vi har om deg. Klikk for å laste ned en strukturert JSON-fil med ALT — saker, klienter, time-entries, klistrelapper, alt."
+        description="GDPR art. 15: du har rett til å få utlevert all data vi har om deg. Klikk for å laste ned en strukturert JSON-fil med ALT — prosjekter, klienter, time-entries, klistrelapper, alt."
       >
         <button onClick={exportData} style={primaryBtn}>
           <Download size={14} strokeWidth={2} /> Last ned alle data (JSON)
@@ -363,7 +363,7 @@ function GDPRSection() {
       <Section
         icon={<AlertTriangle size={18} strokeWidth={2} />}
         title="Slett konto"
-        description="GDPR art. 17: du har rett til å bli glemt. Dette sletter kontoen din, all data, klienter, saker, time-entries — alt. Kan IKKE angres."
+        description="GDPR art. 17: du har rett til å bli glemt. Dette sletter kontoen din, all data, klienter, prosjekter, time-entries — alt. Kan IKKE angres."
         danger
       >
         {!showDelete ? (

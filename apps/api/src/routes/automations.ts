@@ -130,9 +130,9 @@ router.get("/templates", async (_req: Request, res: Response) => {
   const templates = [
     {
       id: "faktura-paaminnelse",
-      name: "Faktura-påminnelse når sak ferdig",
+      name: "Faktura-påminnelse når prosjekt ferdig",
       icon: "💰",
-      description: "Når en sak markeres Ferdig, opprett klistrelapp som minner om å sende faktura",
+      description: "Når et prosjekt markeres Ferdig, opprett klistrelapp som minner om å sende faktura",
       trigger: "sak_status_changed",
       triggerConfig: { toStatus: "ferdig" },
       action: "create_sticky",
@@ -150,7 +150,7 @@ router.get("/templates", async (_req: Request, res: Response) => {
       triggerConfig: { daysUntil: 7 },
       action: "create_sticky",
       actionConfig: {
-        stickyText: "⏰ {milestoneTitle} forfaller {dueDate} — sak: {sakTitle}",
+        stickyText: "⏰ {milestoneTitle} forfaller {dueDate} — prosjekt: {sakTitle}",
         color: "yellow",
       },
     },
@@ -163,7 +163,7 @@ router.get("/templates", async (_req: Request, res: Response) => {
       triggerConfig: { daysUntil: 1 },
       action: "create_sticky",
       actionConfig: {
-        stickyText: "🚨 IMORGEN: {milestoneTitle} — sak: {sakTitle}",
+        stickyText: "🚨 IMORGEN: {milestoneTitle} — prosjekt: {sakTitle}",
         color: "pink",
       },
     },
@@ -171,7 +171,7 @@ router.get("/templates", async (_req: Request, res: Response) => {
       id: "auto-pagaa",
       name: "Auto-flytt til Pågående ved tidslogging",
       icon: "▶️",
-      description: "Når desktop-agent logger tid på en sak, sett status til Pågående",
+      description: "Når desktop-agent logger tid på et prosjekt, sett status til Pågående",
       trigger: "time_entry_logged",
       triggerConfig: {},
       action: "change_sak_status",
@@ -181,7 +181,7 @@ router.get("/templates", async (_req: Request, res: Response) => {
       id: "faktura-milestone",
       name: "Auto-frist for fakturering",
       icon: "📨",
-      description: "Når sak går til Ferdig, opprett milepæl 'Send faktura' 7 dager frem",
+      description: "Når prosjekt går til Ferdig, opprett milepæl 'Send faktura' 7 dager frem",
       trigger: "sak_status_changed",
       triggerConfig: { toStatus: "ferdig" },
       action: "create_milestone",
@@ -189,14 +189,14 @@ router.get("/templates", async (_req: Request, res: Response) => {
     },
     {
       id: "ny-sak-welcome",
-      name: "Klistrelapp ved ny sak",
+      name: "Klistrelapp ved nytt prosjekt",
       icon: "✨",
-      description: "Ved opprettelse av ny sak, opprett huskelapp med standard sjekkliste",
+      description: "Ved opprettelse av nytt prosjekt, opprett huskelapp med standard sjekkliste",
       trigger: "sak_created",
       triggerConfig: {},
       action: "create_sticky",
       actionConfig: {
-        stickyText: "Ny sak: {sakTitle}\n\n☐ Sett timesats\n☐ Lag matching-regel\n☐ Sett frist\n☐ Avtal første møte",
+        stickyText: "Nytt prosjekt: {sakTitle}\n\n☐ Sett timesats\n☐ Lag matching-regel\n☐ Sett frist\n☐ Avtal første møte",
         color: "blue",
       },
     },
@@ -234,7 +234,7 @@ router.post("/:id/test", async (req: Request, res: Response) => {
     include: { client: { select: { id: true, name: true } } },
   });
   if (!sak) {
-    return res.status(400).json({ error: "Du må ha minst én sak for å teste agenten" });
+    return res.status(400).json({ error: "Du må ha minst ett prosjekt for å teste agenten" });
   }
 
   await runAutomationsForTrigger(automation.trigger, {
@@ -250,7 +250,7 @@ router.post("/:id/test", async (req: Request, res: Response) => {
       daysUntil: 7,
     },
   });
-  return res.json({ ok: true, message: "Test-kjøring ferdig — sjekk klistrelapper eller saken." });
+  return res.json({ ok: true, message: "Test-kjøring ferdig — sjekk klistrelapper eller prosjektet." });
 });
 
 export default router;

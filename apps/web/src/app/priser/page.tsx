@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 const FEATURES = [
-  'Sak-CRM med kanban + tabell',
+  'Prosjekt-CRM med kanban + tabell',
   'Automatisk tidsregistrering (Windows-app)',
   'Outlook-integrasjon (Microsoft Graph)',
   'AI-assistent (Claude — oppsummer + skriv eposter)',
@@ -23,7 +23,7 @@ const FEATURES = [
   'Kalender + tidslinje',
   'GDPR-eksport + slette-rett',
   'Mobil-app (PWA — iOS + Android)',
-  'Ubegrenset antall saker + klienter',
+  'Ubegrenset antall prosjekter + klienter',
 ];
 
 export default function PriserPage() {

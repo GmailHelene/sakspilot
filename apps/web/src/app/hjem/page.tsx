@@ -395,7 +395,7 @@ export default function HjemPage() {
                         {s.title}
                       </div>
                       <div style={{ fontSize: 12, color: tokens.color.textMuted, marginTop: 2 }}>
-                        {s.client?.name || 'Intern sak'}
+                        {s.client?.name || 'Internt prosjekt'}
                         {s.deadline && ` · Frist ${new Date(s.deadline).toLocaleDateString('nb-NO')}`}
                       </div>
                     </div>

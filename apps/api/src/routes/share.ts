@@ -40,7 +40,7 @@ async function ensureSakOwnership(
     select: { id: true },
   });
   if (!sak) {
-    res.status(404).json({ error: "Sak ikke funnet" });
+    res.status(404).json({ error: "Prosjekt ikke funnet" });
     return null;
   }
   return sak.id;

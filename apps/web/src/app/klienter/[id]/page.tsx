@@ -294,8 +294,8 @@ export default function KlientDetailPage() {
               </h2>
               <p style={{ fontSize: 13, color: tokens.color.textMuted, margin: 0, lineHeight: 1.5, maxWidth: 540 }}>
                 {client.portalEnabled
-                  ? `Klienten har aktiv portal-tilgang${client.lastLoginAt ? ` (sist innlogget ${new Date(client.lastLoginAt).toLocaleDateString('nb-NO')})` : ''}. De kan logge inn på /portal og se egne saker, milepæler og fakturaer.`
-                  : 'Inviter klienten til klient-portalen så de kan logge inn og se egne saker, milepæler og fakturahistorikk.'}
+                  ? `Klienten har aktiv portal-tilgang${client.lastLoginAt ? ` (sist innlogget ${new Date(client.lastLoginAt).toLocaleDateString('nb-NO')})` : ''}. De kan logge inn på /portal og se egne prosjekter, milepæler og fakturaer.`
+                  : 'Inviter klienten til klient-portalen så de kan logge inn og se egne prosjekter, milepæler og fakturahistorikk.'}
               </p>
             </div>
             <button
@@ -343,7 +343,7 @@ export default function KlientDetailPage() {
         {client.saker && client.saker.length > 0 && (
           <div style={cardStyle}>
             <h2 style={{ fontSize: 16, color: tokens.color.navy, marginBottom: 12 }}>
-              Saker ({client.saker.length})
+              Prosjekter ({client.saker.length})
             </h2>
             <div style={{ display: 'grid', gap: 6 }}>
               {client.saker.map((s) => (

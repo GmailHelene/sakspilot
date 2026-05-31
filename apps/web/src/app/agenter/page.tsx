@@ -65,7 +65,7 @@ const TRIGGER_LABELS: Record<TriggerType, string> = {
 const ACTION_LABELS: Record<ActionType, string> = {
   create_sticky: 'Lag klistrelapp',
   create_milestone: 'Lag milepæl',
-  change_sak_status: 'Endre sak-status',
+  change_sak_status: 'Endre prosjekt-status',
   show_notification: 'Vis varsel',
 };
 
@@ -299,7 +299,7 @@ export default function AgenterPage() {
             <h2 style={{ color: tokens.color.navy, marginBottom: 8 }}>Ingen agenter enda</h2>
             <p style={{ color: tokens.color.textMuted, marginBottom: 20, maxWidth: 420, margin: '0 auto 20px' }}>
               Agenter gjør boring repetitivt arbeid for deg — som å opprette
-              faktura-påminnelser når en sak er ferdig, eller varsle om
+              faktura-påminnelser når et prosjekt er ferdig, eller varsle om
               nærmende frister.
             </p>
             <button onClick={() => setShowGallery(true)} style={primaryBtn}>

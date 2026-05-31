@@ -142,13 +142,13 @@ export function welcomeEmail(user: OnboardingUser): EmailMessage {
     <h1 style="font-size:22px;color:#1F1F1F;margin:0 0 16px 0;">Velkommen til Sakspilot, ${firstName}!</h1>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
       Hyggelig å ha deg med. Sakspilot er et arbeidsrom for deg som er selvstendig
-      næringsdrivende — saker, kanban, timer, kalender og automatiseringer på ett sted.
+      næringsdrivende — prosjekter, kanban, timer, kalender og automatiseringer på ett sted.
     </p>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
       <strong>Slik kommer du i gang:</strong>
     </p>
     <ol style="font-size:14px;line-height:1.7;color:#5E6C84;margin:0 0 20px 20px;padding:0;">
-      <li>Logg inn på <a href="https://sakspilot.no" style="color:#1F1F1F;">sakspilot.no</a> og opprett din første sak.</li>
+      <li>Logg inn på <a href="https://sakspilot.no" style="color:#1F1F1F;">sakspilot.no</a> og opprett ditt første prosjekt.</li>
       <li>Last ned <strong>Windows-appen</strong> — den registrerer arbeidstid automatisk i bakgrunnen mens du jobber.</li>
       <li>Sett opp en agent (f.eks. "Påminn meg 3 dager før frist") fra Agenter-menyen.</li>
     </ol>
@@ -182,7 +182,7 @@ export function desktopAppReminderEmail(user: OnboardingUser): EmailMessage {
     </p>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
       <strong>Den gir deg ca 80% av verdien i Sakspilot:</strong> automatisk
-      tidsregistrering i bakgrunnen, kobling mellom dokumenter og saker, og
+      tidsregistrering i bakgrunnen, kobling mellom dokumenter og prosjekter, og
       én-klikks-tilgang til alt fra systemkurven.
     </p>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
@@ -406,7 +406,7 @@ export function teamInviteEmail(opts: {
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
       <strong>${inviterName}</strong> har invitert deg som <strong>${roleLabel}</strong>
       i <strong>${organizationName}</strong> på Sakspilot — et arbeidsrom for
-      saker, klienter, timer og kalender.
+      prosjekter, klienter, timer og kalender.
     </p>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
       Klikk lenken for å sette navn + passord og logge inn første gang.

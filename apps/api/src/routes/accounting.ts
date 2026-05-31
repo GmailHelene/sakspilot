@@ -206,17 +206,17 @@ router.post("/fiken/create-invoice", async (req: Request, res: Response) => {
       },
     },
   });
-  if (!sak) return res.status(404).json({ error: "Sak ikke funnet" });
+  if (!sak) return res.status(404).json({ error: "Prosjekt ikke funnet" });
   if (!sak.client) {
     return res.status(400).json({
-      error: "Saken har ingen klient — kan ikke opprette faktura uten mottaker.",
+      error: "Prosjektet har ingen klient — kan ikke opprette faktura uten mottaker.",
     });
   }
   if (sak.timeEntries.length === 0) {
     return res.status(400).json({
       error: onlyBillable
-        ? "Ingen fakturerbare timer på saken."
-        : "Ingen timeregistreringer på saken.",
+        ? "Ingen fakturerbare timer på prosjektet."
+        : "Ingen timeregistreringer på prosjektet.",
     });
   }
 
@@ -282,7 +282,7 @@ router.post("/fiken/create-invoice", async (req: Request, res: Response) => {
     cash: false,
     lines: [
       {
-        description: `${sak.title}${sak.saksnummer ? ` (saksnr ${sak.saksnummer})` : ""} — ${totalHours} timer`,
+        description: `${sak.title}${sak.saksnummer ? ` (prosjektnr ${sak.saksnummer})` : ""} — ${totalHours} timer`,
         unitPrice: Math.round(hourlyRate * 100), // Fiken bruker øre
         quantity: totalHours,
         vatType: "HIGH", // 25% — bruker må endre hvis tjenesten er fritatt

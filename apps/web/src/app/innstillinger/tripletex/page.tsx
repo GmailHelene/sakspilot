@@ -121,7 +121,7 @@ export default function TripletexPage() {
                         ['Dato', 'Dato'],
                         ['Varighet (timer)', 'Antall timer'],
                         ['Klient', 'Kunde'],
-                        ['Sak', 'Prosjekt eller Aktivitet'],
+                        ['Prosjekt', 'Prosjekt eller Aktivitet'],
                         ['Notat', 'Kommentar'],
                       ]}
                     />
@@ -169,7 +169,7 @@ export default function TripletexPage() {
                 title="Tips: én faktura per måned per kunde"
                 body={
                   <>
-                    Vår CSV grupperer timer per sak og kunde. Lag én Fiken-faktura per
+                    Vår CSV grupperer timer per prosjekt og kunde. Lag én Fiken-faktura per
                     kunde med fakturerbare timer × timesats fra CSV-en.
                   </>
                 }
@@ -199,7 +199,7 @@ export default function TripletexPage() {
             }}
           >
             <div style={{ color: '#7FD9C0' }}>
-              Dato;Start;Slutt;Varighet (timer);Klient;Sak;App / vindu;Notat;Fakturerbar;Timesats;Beløp
+              Dato;Start;Slutt;Varighet (timer);Klient;Prosjekt;App / vindu;Notat;Fakturerbar;Timesats;Beløp
             </div>
             <div>
               28.05.2026;09:00;11:30;2,50;Nordvik & Co. AS;Rebranding 2026;Figma;Logo-skisse;Ja;1450 kr;3 625 kr

@@ -250,7 +250,7 @@ export default function RapportPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: `1px solid ${tokens.color.border}` }}>
-                  <th style={thStyle}>Sak</th>
+                  <th style={thStyle}>Prosjekt</th>
                   <th style={thStyle}>Klient</th>
                   <th style={{ ...thStyle, textAlign: 'right' }}>Timer</th>
                   <th style={{ ...thStyle, textAlign: 'right' }}>Beløp</th>
@@ -296,7 +296,7 @@ export default function RapportPage() {
             }}
           >
             CSV med en linje per tidsregistrering — UTF-8 + Excel-vennlig BOM, importerbar i Tripletex, Fiken, Excel og Numbers.
-            PDF gir et pent oppsummert dokument (per sak, per dag og per app) som kan sendes til klient eller arkiveres.
+            PDF gir et pent oppsummert dokument (per prosjekt, per dag og per app) som kan sendes til klient eller arkiveres.
           </p>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, flexWrap: 'wrap' }}>
             <div>
@@ -335,7 +335,7 @@ export default function RapportPage() {
               onClick={downloadMonthPdf}
               disabled={downloadingPdf}
               style={downloadBtnStyle}
-              title="Pen PDF til klient eller arkiv — per sak, per dag og per app"
+              title="Pen PDF til klient eller arkiv — per prosjekt, per dag og per app"
             >
               <FileDown size={16} strokeWidth={2.5} style={{ marginRight: 6, verticalAlign: 'middle' }} />
               {downloadingPdf ? 'Genererer…' : 'Eksporter PDF'}

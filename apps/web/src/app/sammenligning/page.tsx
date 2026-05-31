@@ -6,7 +6,7 @@ import { tokens } from '@/lib/tokens';
 export const metadata: Metadata = {
   title: 'Sakspilot vs Tripletex, Toggl, Notion, Asana — sammenligning',
   description:
-    'Hvordan Sakspilot skiller seg fra Tripletex, Toggl, Notion og Asana. Bygd for norske ENK-er som vil ha sak-CRM, automatisk tidsregistrering og AI-utkast i ett verktøy.',
+    'Hvordan Sakspilot skiller seg fra Tripletex, Toggl, Notion og Asana. Bygd for norske ENK-er som vil ha prosjekt-CRM, automatisk tidsregistrering og AI-utkast i ett verktøy.',
   alternates: { canonical: '/sammenligning' },
 };
 

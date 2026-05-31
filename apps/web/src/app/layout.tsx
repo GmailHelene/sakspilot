@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     template: '%s · Sakspilot',
   },
   description:
-    'Sak-CRM, passiv tidsregistrering, Outlook-integrasjon og faktura — i ett verktøy. For ansvarlige søkere, arkitekter, advokater, regnskapsførere, designere og konsulenter.',
+    'Prosjekt-CRM, passiv tidsregistrering, Outlook-integrasjon og faktura — i ett verktøy. For ansvarlige søkere, arkitekter, advokater, regnskapsførere, designere og konsulenter.',
   applicationName: 'Sakspilot',
   manifest: '/manifest.json',
   alternates: { canonical: '/' },
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     siteName: 'Sakspilot',
     title: 'Sakspilot — Workspace for selvstendig næringsdrivende',
     description:
-      'Sak-CRM + automatisk tidsregistrering + Outlook + AI-assistent + faktura — i ett verktøy. Gratis i pilotperioden.',
+      'Prosjekt-CRM + automatisk tidsregistrering + Outlook + AI-assistent + faktura — i ett verktøy. Gratis i pilotperioden.',
     images: [
       {
         url: '/icon-512.svg',
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Sakspilot — Workspace for selvstendig næringsdrivende',
     description:
-      'Du jobber. Sakspilot teller timene. Sak-CRM, passiv tidsregistrering, AI-assistent, faktura.',
+      'Du jobber. Sakspilot teller timene. Prosjekt-CRM, passiv tidsregistrering, AI-assistent, faktura.',
     images: ['/icon-512.svg'],
   },
   robots: {

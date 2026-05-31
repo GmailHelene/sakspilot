@@ -101,7 +101,7 @@ router.post("/sak/:sakId", async (req: Request, res: Response) => {
     },
   });
   if (!sak) {
-    return res.status(404).json({ error: "Sak ikke funnet" });
+    return res.status(404).json({ error: "Prosjekt ikke funnet" });
   }
 
   const fromDate = periodFrom ? new Date(periodFrom) : undefined;
@@ -237,7 +237,7 @@ router.post("/sak/:sakId", async (req: Request, res: Response) => {
   doc
     .fontSize(10)
     .fillColor("#5E6C84")
-    .text(`Sak: ${sak.title}${sak.saksnummer ? ` (${sak.saksnummer})` : ""}`, leftX, cursorY);
+    .text(`Prosjekt: ${sak.title}${sak.saksnummer ? ` (${sak.saksnummer})` : ""}`, leftX, cursorY);
   if (fromDate || toDate) {
     cursorY = doc.y + 2;
     doc.text(

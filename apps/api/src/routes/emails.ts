@@ -48,7 +48,7 @@ router.get("/sak/:sakId", async (req: Request, res: Response) => {
     where: { id: req.params.sakId, organizationId: session.organizationId },
     select: { id: true },
   });
-  if (!sak) return res.status(404).json({ error: "Sak ikke funnet" });
+  if (!sak) return res.status(404).json({ error: "Prosjekt ikke funnet" });
 
   const emails = await prisma.emailLink.findMany({
     where: { sakId: sak.id },
@@ -72,7 +72,7 @@ router.patch("/:id/link", async (req: Request, res: Response) => {
     where: { id: parsed.data.sakId, organizationId: session.organizationId },
     select: { id: true },
   });
-  if (!sak) return res.status(404).json({ error: "Sak ikke funnet" });
+  if (!sak) return res.status(404).json({ error: "Prosjekt ikke funnet" });
 
   // Bekreft at e-posten tilhører innloggets org (via gammel sak)
   const existing = await prisma.emailLink.findUnique({

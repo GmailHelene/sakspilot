@@ -33,6 +33,26 @@ import { sendEmail, clientPortalPasswordResetEmail } from "../lib/email";
 
 const router = Router();
 
+/**
+ * Bygger en branding-blob basert på req.customDomain. Returnerer null hvis
+ * requesten kom inn på default sakspilot.no — da skal frontend bruke standard
+ * Sakspilot-branding.
+ *
+ * Returnert form gjenspeiler CustomDomainInfo, men begrenset til felter
+ * frontend trenger for å whitelabele portal-UI (ikke organizationId — det
+ * lekker org-id til klienter på andre orgs ved feilkonfig).
+ */
+function getBrandingFromRequest(req: Request) {
+  if (!req.customDomain) return null;
+  return {
+    hostname: req.customDomain.hostname,
+    brandName: req.customDomain.brandName,
+    brandTagline: req.customDomain.brandTagline,
+    brandPrimaryColor: req.customDomain.brandPrimaryColor,
+    brandLogoUrl: req.customDomain.brandLogoUrl,
+  };
+}
+
 // ── Schemas ─────────────────────────────────────────────────────
 
 const LoginSchema = z.object({
@@ -113,6 +133,7 @@ router.post("/login", async (req: Request, res: Response) => {
       email: client.email,
       organizationName: client.organization.name,
     },
+    branding: getBrandingFromRequest(req),
   });
 });
 
@@ -134,6 +155,7 @@ router.get("/me", requireClientAuth, async (req: Request, res: Response) => {
     name: client.name,
     contactEmail: client.email,
     organizationName: client.organization.name,
+    branding: getBrandingFromRequest(req),
   });
 });
 
@@ -256,6 +278,7 @@ router.post("/accept-invite", async (req: Request, res: Response) => {
       email: updated.email,
       organizationName: updated.organization!.name,
     },
+    branding: getBrandingFromRequest(req),
   });
 });
 
@@ -448,7 +471,7 @@ router.get(
         },
       },
     });
-    if (!sak) return res.status(404).json({ error: "Sak ikke funnet" });
+    if (!sak) return res.status(404).json({ error: "Prosjekt ikke funnet" });
 
     const total = sak.milestones.length;
     const done = sak.milestones.filter((m) => m.completedAt).length;
@@ -478,7 +501,7 @@ router.get(
       where: { id: req.params.sakId, clientId },
       select: { id: true },
     });
-    if (!sak) return res.status(404).json({ error: "Sak ikke funnet" });
+    if (!sak) return res.status(404).json({ error: "Prosjekt ikke funnet" });
 
     const invoices = await prisma.invoice.findMany({
       where: {

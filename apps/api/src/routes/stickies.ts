@@ -99,7 +99,7 @@ router.post("/", async (req: Request, res: Response) => {
       where: { id: parsed.data.sakId, organizationId: session.organizationId },
       select: { id: true },
     });
-    if (!sak) return res.status(400).json({ error: "Sak finnes ikke i din organisasjon" });
+    if (!sak) return res.status(400).json({ error: "Prosjekt finnes ikke i din organisasjon" });
   }
 
   const { remindAt, ...rest } = parsed.data;
@@ -137,7 +137,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
       where: { id: parsed.data.sakId, organizationId: session.organizationId },
       select: { id: true },
     });
-    if (!sak) return res.status(400).json({ error: "Sak finnes ikke i din organisasjon" });
+    if (!sak) return res.status(400).json({ error: "Prosjekt finnes ikke i din organisasjon" });
   }
 
   // Hvis remindAt eksplisitt settes (ny tid eller null) → nullstill notifiedAt

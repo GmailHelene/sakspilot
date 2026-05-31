@@ -84,7 +84,7 @@ export default function PortalSakDetailPage() {
         setSak(sakRes);
         setInvoices(invRes.invoices);
       } catch (err) {
-        setError(err instanceof PortalApiError ? err.message : 'Kunne ikke hente sak');
+        setError(err instanceof PortalApiError ? err.message : 'Kunne ikke hente prosjekt');
       } finally {
         setLoading(false);
       }
@@ -125,7 +125,7 @@ export default function PortalSakDetailPage() {
               </h1>
               {sak.saksnummer && (
                 <div style={{ fontSize: 13, color: tokens.color.textSubtle, marginBottom: 12 }}>
-                  Sak {sak.saksnummer}
+                  Prosjekt {sak.saksnummer}
                 </div>
               )}
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>

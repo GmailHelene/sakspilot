@@ -262,13 +262,13 @@ function formatDur(sec) {
 
 // ── Start ───────────────────────────────────────────────────────
 (async () => {
-  // get-windows er en ESM-only pakke i 9.x — bruk dynamic import
+  // active-win er ESM-only — bruk dynamic import. Cross-platform (win/mac/linux).
   let activeWindow;
   try {
-    const mod = await import('get-windows');
-    activeWindow = mod.activeWindow;
+    const mod = await import('active-win');
+    activeWindow = mod.default;
   } catch (err) {
-    console.error('Kunne ikke laste get-windows:', err.message);
+    console.error('Kunne ikke laste active-win:', err.message);
     console.error('Kjør "npm install" i apps/desktop først.');
     process.exit(1);
   }

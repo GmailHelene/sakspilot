@@ -129,7 +129,7 @@ export default function ShareButton({ sakId }: { sakId: string }) {
             }}
           >
             <h2 style={{ fontSize: 20, color: tokens.color.navy, marginBottom: 6 }}>
-              Del saken med klienten
+              Del prosjektet med klienten
             </h2>
             <p style={{ fontSize: 13, color: tokens.color.textMuted, marginBottom: 20 }}>
               Klienten kan se status, milepæler og fremdrift uten å logge inn.

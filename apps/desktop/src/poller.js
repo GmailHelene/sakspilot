@@ -1,13 +1,24 @@
 /**
  * Poller — kjernen i Sakspilot desktop-agent.
  *
- * Henter aktivt vindu fra get-windows hvert N. sekund og
+ * Henter aktivt vindu fra active-win hvert N. sekund og
  * fyrer av events når:
  *   - vinduet bytter
  *   - en session (kontinuerlig opphold i samme vindu) avsluttes
  *
  * Sak-matching gjøres via regler hentet fra backend (cached i Store).
  * I POC-versjonen er reglene tomme — full versjon henter via /agent/rules.
+ *
+ * Cross-platform via `active-win` (Windows + macOS + Linux). Returnerer
+ * { title, owner: { name, path, processId }, ... } — samme form som
+ * tidligere get-windows, så ingen call-sites trenger endring.
+ *
+ * Plattform-caveats:
+ *   - macOS: krever Accessibility permission (System Settings → Privacy &
+ *     Security → Accessibility). Brukeren får en prompt første gang appen
+ *     prøver å lese aktivt vindu.
+ *   - Linux: krever X11 (active-win bruker xprop/xdotool). Wayland-økter
+ *     har begrenset støtte (bare app-navn, ikke window title).
  */
 const { EventEmitter } = require('node:events');
 
@@ -29,8 +40,10 @@ class Poller extends EventEmitter {
 
   async start() {
     if (this.intervalId) return; // allerede startet
-    const mod = await import('get-windows');
-    this.activeWindow = mod.activeWindow;
+    // active-win er cross-platform (win32 + darwin + linux). Default-export
+    // er selve funksjonen: const activeWin = require('active-win'); await activeWin();
+    const mod = await import('active-win');
+    this.activeWindow = mod.default;
     this._tick(); // første tick umiddelbart
     this.intervalId = setInterval(() => this._tick(), this.intervalSec * 1000);
     this.emit('started');

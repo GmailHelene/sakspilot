@@ -42,6 +42,7 @@ import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 
 import { authMiddleware } from "./middleware/auth";
+import { customDomainMiddleware } from "./middleware/customDomain";
 import healthRouter from "./routes/health";
 import authRouter from "./routes/auth";
 import sakerRouter from "./routes/saker";
@@ -62,6 +63,8 @@ import feedbackRouter from "./routes/feedback";
 import invoicePdfRouter from "./routes/invoicePdf";
 import clientPortalRouter from "./routes/clientPortal";
 import teamRouter, { acceptInviteRouter } from "./routes/team";
+import icalFeedRouter from "./routes/icalFeed";
+import customDomainRouter from "./routes/customDomain";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 8001;
@@ -124,6 +127,12 @@ app.use(morgan(process.env.NODE_ENV === "production" ? "tiny" : "dev"));
 
 // ── Auth (leser JWT hvis tilstede, setter req.session) ──────────
 app.use(authMiddleware);
+
+// ── Custom-domain-resolver (whitelabel klient-portal) ───────────
+// Setter req.customDomain hvis Host-header matcher et verifisert
+// CustomDomain. Må stå FØR routene så clientPortal-routes kan inkludere
+// branding-info i responsene.
+app.use(customDomainMiddleware);
 
 // ── Rate-limit på /auth ─────────────────────────────────────────
 // Splittet i 'write' (login/register/forgot/reset — streng, mot brute-force)
@@ -196,6 +205,10 @@ app.use("/automations", automationsRouter);
 app.use("/reports", reportsRouter);
 app.use("/saker", shareAuthRouter);   // /saker/:sakId/share (delt prefix med sakerRouter — fungerer)
 app.use("/public", publicLimiter, sharePublicRouter); // /public/sak/:token
+// iCal-feed — PUBLIC (token i URL er eneste auth). Bak publicLimiter for å
+// hindre brute-force av tokens, men limit er løs nok til at kalender-klienter
+// som polleren hver time får plass (60/min per IP holder lenge).
+app.use("/ical", publicLimiter, icalFeedRouter);
 app.use("/ai", aiLimiter, aiRouter);
 app.use("/ai-triage", aiLimiter, aiTriageRouter);
 app.use("/oauth", oauthLimiter, oauthRouter);
@@ -204,6 +217,7 @@ app.use("/accounting", accountingRouter);
 app.use("/billing", billingRouter);
 app.use("/feedback", feedbackRouter);
 app.use("/invoice-pdf", invoicePdfRouter);
+app.use("/custom-domains", customDomainRouter);
 // Team-routes — listing/invite/management av team-medlemmer.
 // POST /team/invites og DELETE /team/invites er bak requireAuth + requireRole(owner).
 // Rate-limit på write-paths som matcher auth-write (forhindrer at en kompromittert

@@ -2,10 +2,7 @@
   "name": "@sakspilot/desktop",
   "version": "0.0.1",
   "private": true,
-  "os": [
-    "win32"
-  ],
-  "description": "Sakspilot desktop-agent — tray-app for Windows som logger aktivt vindu og kobler til sak",
+  "description": "Sakspilot desktop-agent — tray-app som logger aktivt vindu og kobler til sak. Cross-platform (Windows + macOS + Linux).",
   "author": {
     "name": "Helene Åsheim Grønberg",
     "email": "helene@helene.cloud"
@@ -16,6 +13,9 @@
     "start": "node start-electron.js",
     "dev": "node start-electron.js --dev",
     "build:exe": "node build-portable.js",
+    "build:exe:mac": "node build-portable.js --platform=darwin --arch=x64",
+    "build:exe:mac-arm": "node build-portable.js --platform=darwin --arch=arm64",
+    "build:exe:linux": "node build-portable.js --platform=linux --arch=x64",
     "build:installer": "electron-builder --win --x64 --config.electronVersion=30.5.1",
     "poc": "node src/poc-logger.js",
     "poc:fast": "node src/poc-logger.js --interval=3 --duration=120",
@@ -28,7 +28,7 @@
     "xlsx": "^0.18.5"
   },
   "optionalDependencies": {
-    "get-windows": "^9.2.0"
+    "active-win": "^8.2.0"
   },
   "devDependencies": {
     "@electron/packager": "^18.3.6",

@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Home, LayoutGrid, Users, Calendar, GanttChartSquare, Plus, X,
+  Home, LayoutGrid, Users, Calendar, CalendarClock, GanttChartSquare, Plus, X,
   ExternalLink, Trash2, StickyNote, FolderOpen, Folder, Shield, Zap, BarChart3, Plug, Palette,
-  MessageSquare, UserCog,
+  MessageSquare, UserCog, Globe,
   type LucideIcon,
 } from 'lucide-react';
 import { tokens } from '@/lib/tokens';
@@ -223,11 +223,16 @@ export default function Sidebar() {
     { id: 'klistrelapper', href: '/klistrelapper', label: 'Klistrelapper', Icon: StickyNote },
     { id: 'agenter', href: '/agenter', label: 'Agenter', Icon: Zap },
     { id: 'integrasjoner', href: '/innstillinger/integrasjoner', label: 'Integrasjoner', Icon: Plug },
+    { id: 'kalender-feed', href: '/innstillinger/kalender', label: 'Kalender-feed', Icon: CalendarClock },
     { id: 'sikkerhet', href: '/innstillinger/sikkerhet', label: 'Sikkerhet', Icon: Shield },
     { id: 'utseende', href: '/innstillinger/utseende', label: 'Utseende', Icon: Palette },
     // Team-side er KUN for owners. userRole hentes via /auth/me i useEffect.
     ...(userRole === 'owner'
       ? [{ id: 'team', href: '/innstillinger/team', label: 'Team', Icon: UserCog }]
+      : []),
+    // Egne domener (whitelabel klient-portal) — også owner-only
+    ...(userRole === 'owner'
+      ? [{ id: 'domener', href: '/innstillinger/domener', label: 'Egne domener', Icon: Globe }]
       : []),
     { id: 'feedback', href: '/feedback', label: 'Tilbakemelding', Icon: MessageSquare },
   ];

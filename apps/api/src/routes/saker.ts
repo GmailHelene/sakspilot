@@ -82,7 +82,7 @@ router.get("/:id", async (req: Request, res: Response) => {
     },
   });
 
-  if (!sak) return res.status(404).json({ error: "Sak ikke funnet" });
+  if (!sak) return res.status(404).json({ error: "Prosjekt ikke funnet" });
   return res.json(sak);
 });
 
@@ -158,7 +158,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
     where: { id: req.params.id, organizationId: session.organizationId },
     select: { id: true, status: true },
   });
-  if (!existing) return res.status(404).json({ error: "Sak ikke funnet" });
+  if (!existing) return res.status(404).json({ error: "Prosjekt ikke funnet" });
 
   // Verifiser klient hvis clientId er oppgitt
   if (parsed.data.clientId) {
@@ -225,7 +225,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
     where: { id: req.params.id, organizationId: session.organizationId },
     select: { id: true },
   });
-  if (!existing) return res.status(404).json({ error: "Sak ikke funnet" });
+  if (!existing) return res.status(404).json({ error: "Prosjekt ikke funnet" });
 
   await prisma.sak.delete({ where: { id: req.params.id } });
 
@@ -270,7 +270,7 @@ async function ensureSakOwnership(
     select: { id: true },
   });
   if (!sak) {
-    res.status(404).json({ error: "Sak ikke funnet" });
+    res.status(404).json({ error: "Prosjekt ikke funnet" });
     return null;
   }
   return sak.id;

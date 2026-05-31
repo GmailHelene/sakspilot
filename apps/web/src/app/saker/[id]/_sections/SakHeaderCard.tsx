@@ -117,7 +117,7 @@ export default function SakHeaderCard({
                 padding: '4px 8px',
               }}
             >
-              Slett sak
+              Slett prosjekt
             </button>
           </div>
         </div>

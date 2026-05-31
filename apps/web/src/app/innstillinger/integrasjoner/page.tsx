@@ -100,7 +100,7 @@ export default function IntegrasjonerPage() {
       events.outlookSynced(r.linked);
       setMessage({
         kind: 'ok',
-        text: `Synket: hentet ${r.fetched} e-poster, koblet ${r.linked} til saker.`,
+        text: `Synket: hentet ${r.fetched} e-poster, koblet ${r.linked} til prosjekter.`,
       });
       await load();
     } catch (err) {
@@ -181,7 +181,7 @@ export default function IntegrasjonerPage() {
                 )}
               </div>
               <p style={{ fontSize: 13, color: tokens.color.textMuted, marginBottom: 14 }}>
-                Sakspilot leser nye e-poster og kobler dem automatisk til riktig sak
+                Sakspilot leser nye e-poster og kobler dem automatisk til riktig prosjekt
                 basert på avsender (klient-epost) eller emnefelt. Sender ikke e-poster
                 — det gjør du fortsatt fra Outlook.
               </p>
@@ -395,7 +395,7 @@ function FikenSection({
             )}
           </div>
           <p style={{ fontSize: 13, color: tokens.color.textMuted, marginBottom: 14 }}>
-            Send fakturaer direkte til Fiken fra «Ferdig»-saker. Bruker personlig
+            Send fakturaer direkte til Fiken fra «Ferdig»-prosjekter. Bruker personlig
             API-token — ingen partner-godkjenning trengs. Tokenet lagres kryptert
             (AES-256-GCM) og kan slettes når som helst.
           </p>

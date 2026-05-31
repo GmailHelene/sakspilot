@@ -88,12 +88,12 @@ function buildSakContextText(ctx: NonNullable<Awaited<ReturnType<typeof loadSakC
   // men IKKE e-post eller telefon. AI-modellen trenger ikke kontaktinfo
   // for å skrive utkast — bruker fyller inn selv før sending.
   // Dette reduserer risiko ved Anthropics 30-dagers retention betraktelig.
-  return `## Saksinformasjon
+  return `## Prosjektinformasjon
 
 Tittel: ${sak.title}
 Status: ${sak.status}
-Saksnummer: ${sak.saksnummer || "—"}
-Klient: ${sak.client?.name || "(intern sak)"}
+Prosjektnummer: ${sak.saksnummer || "—"}
+Klient: ${sak.client?.name || "(internt prosjekt)"}
 Frist: ${fmt(sak.deadline)}
 Opprettet: ${fmt(sak.createdAt)}
 ${sak.closedAt ? `Avsluttet: ${fmt(sak.closedAt)}` : ""}
@@ -120,7 +120,7 @@ Du svarer på norsk (bokmål), med mindre brukeren ber om noe annet. Du er konsi
 Når du skriver e-poster:
 - Bruk profesjonell, men varm tone
 - Inkluder hilsen, kort hovedbudskap, klar oppfordring til handling, og avslutning
-- Aldri lov noe konkret om datoer eller pris uten at det står i saks-konteksten
+- Aldri lov noe konkret om datoer eller pris uten at det står i prosjekt-konteksten
 - Hvis du mangler info: bruk plassholder som [DIN_INFO] som brukeren kan fylle ut
 
 Du har ikke tilgang til e-postintegrasjoner — du lager kun utkast som brukeren selv sender.`;
@@ -176,7 +176,7 @@ router.post("/sak/:id/ask", async (req: Request, res: Response) => {
   }
 
   const ctx = await loadSakContext(req.params.id, session.organizationId);
-  if (!ctx) return res.status(404).json({ error: "Sak ikke funnet" });
+  if (!ctx) return res.status(404).json({ error: "Prosjekt ikke funnet" });
 
   // Hent siste N meldinger for denne sak+bruker, sortert kronologisk
   // (eldste først, slik Claude forventer message-arrayer).
@@ -275,7 +275,7 @@ router.get("/sak/:id/history", async (req: Request, res: Response) => {
     where: { id: req.params.id, organizationId: session.organizationId },
     select: { id: true },
   });
-  if (!sak) return res.status(404).json({ error: "Sak ikke funnet" });
+  if (!sak) return res.status(404).json({ error: "Prosjekt ikke funnet" });
 
   const messages = await prisma.aiChatMessage.findMany({
     where: { sakId: req.params.id, userId: session.userId },
@@ -302,7 +302,7 @@ router.delete("/sak/:id/history", async (req: Request, res: Response) => {
     where: { id: req.params.id, organizationId: session.organizationId },
     select: { id: true },
   });
-  if (!sak) return res.status(404).json({ error: "Sak ikke funnet" });
+  if (!sak) return res.status(404).json({ error: "Prosjekt ikke funnet" });
 
   const result = await prisma.aiChatMessage.deleteMany({
     where: { sakId: req.params.id, userId: session.userId },
@@ -331,7 +331,7 @@ router.post("/sak/:id/summary", async (req: Request, res: Response) => {
   }
 
   const ctx = await loadSakContext(req.params.id, session.organizationId);
-  if (!ctx) return res.status(404).json({ error: "Sak ikke funnet" });
+  if (!ctx) return res.status(404).json({ error: "Prosjekt ikke funnet" });
 
   try {
     const response = await client.messages.create({
@@ -349,7 +349,7 @@ router.post("/sak/:id/summary", async (req: Request, res: Response) => {
         {
           role: "user",
           content:
-            "Gi en kort oppsummering av saken (3-5 setninger). Inkluder: nåværende status, neste viktige milepæl/frist, og om noe ser ut til å være forsinket eller krever oppmerksomhet. Ikke gjenta saks-tittelen — den vises allerede.",
+            "Gi en kort oppsummering av prosjektet (3-5 setninger). Inkluder: nåværende status, neste viktige milepæl/frist, og om noe ser ut til å være forsinket eller krever oppmerksomhet. Ikke gjenta prosjekt-tittelen — den vises allerede.",
         },
       ],
     });
@@ -398,11 +398,11 @@ router.post("/sak/:id/draft-email", async (req: Request, res: Response) => {
   }
 
   const ctx = await loadSakContext(req.params.id, session.organizationId);
-  if (!ctx) return res.status(404).json({ error: "Sak ikke funnet" });
+  if (!ctx) return res.status(404).json({ error: "Prosjekt ikke funnet" });
 
   const typeInstructions: Record<string, string> = {
     "status-oppdatering":
-      "Skriv en kort statusoppdatering til klienten. Nevn hvor saken står nå og hvilke neste steg vi venter på.",
+      "Skriv en kort statusoppdatering til klienten. Nevn hvor prosjektet står nå og hvilke neste steg vi venter på.",
     "frist-utsettelse":
       "Skriv en e-post som ber klienten godkjenne en utsettelse av fristen. Vær ærlig om at det krever litt mer tid, men forklar at det blir bedre kvalitet. Foreslå en konkret ny dato (du kan bruke [NY_DATO] som plassholder).",
     faktura:

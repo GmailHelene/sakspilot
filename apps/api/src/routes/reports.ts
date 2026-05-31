@@ -258,7 +258,7 @@ router.get("/month.csv", async (req: Request, res: Response) => {
       "Slutt",
       "Varighet (timer)",
       "Klient",
-      "Sak",
+      "Prosjekt",
       "App / vindu",
       "Notat",
       "Fakturerbar",
@@ -540,7 +540,7 @@ router.post("/pdf", async (req: Request, res: Response) => {
   doc
     .fontSize(9)
     .fillColor("#5E6C84")
-    .text("Sak", s_colSak, y)
+    .text("Prosjekt", s_colSak, y)
     .text("Klient", s_colClient, y)
     .text("Timer", s_colHours, y, { width: 55, align: "right" })
     .text("Fakt.bar", s_colBillable, y, { width: 60, align: "right" })

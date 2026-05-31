@@ -68,7 +68,7 @@ export default function DeltSakPage() {
           return;
         }
         if (!res.ok) {
-          setError('Kunne ikke laste saken.');
+          setError('Kunne ikke laste prosjektet.');
           return;
         }
         const d = await res.json();

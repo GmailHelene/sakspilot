@@ -47,7 +47,7 @@ export default function TeamPage() {
           </h1>
           <p style={{ color: tokens.color.textMuted, fontSize: 14, marginTop: 4 }}>
             Inviter team-medlemmer til organisasjonen. Alle medlemmer ser
-            samme saker, klienter og kalender — tilgangskontroll skjer på
+            samme prosjekter, klienter og kalender — tilgangskontroll skjer på
             organisasjons-nivå.
           </p>
         </div>
@@ -138,7 +138,7 @@ function TeamContent() {
   async function handleRemoveMember(member: Member) {
     if (
       !confirm(
-        `Fjerne ${member.name} (${member.email}) fra teamet? Brukerens data slettes også (tidsregistreringer, klistrelapper). Saker og klienter beholdes (de tilhører organisasjonen).`
+        `Fjerne ${member.name} (${member.email}) fra teamet? Brukerens data slettes også (tidsregistreringer, klistrelapper). Prosjekter og klienter beholdes (de tilhører organisasjonen).`
       )
     ) {
       return;

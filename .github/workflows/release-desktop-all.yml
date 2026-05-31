@@ -1,0 +1,93 @@
+name: Release Desktop (Windows + macOS + Linux)
+
+# Cross-platform build via matrix-runner. Erstatter release-desktop.yml
+# på sikt — beholder begge så vi kan fase over kontrollert.
+#
+# Triggers:
+#   - Manuell workflow_dispatch
+#   - Tag på formen v*-desktop (f.eks. v0.2.0-desktop)
+
+on:
+  push:
+    tags:
+      - 'v*-desktop'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false   # ikke abort hele matrisen hvis én plattform feiler
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            build_script: build:exe
+            artifact_glob: 'apps/desktop/release/Sakspilot-*-win-x64.zip'
+          - os: macos-latest
+            platform: darwin
+            arch: arm64   # macos-latest = Apple Silicon. Bruk macos-13 for Intel x64.
+            build_script: build:exe:mac-arm
+            artifact_glob: 'apps/desktop/release/Sakspilot-*-mac-arm64.zip'
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            build_script: build:exe:linux
+            artifact_glob: 'apps/desktop/release/Sakspilot-*-linux-x64.tar.gz'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install root deps
+        run: npm ci --workspaces --include-workspace-root
+
+      - name: Install desktop deps (incl. native active-win)
+        working-directory: apps/desktop
+        run: npm install --no-audit --no-fund
+
+      # active-win på Linux trenger xprop fra X11-utils for å fungere ved kjøretid.
+      # Vi installerer på CI så build ikke feiler hvis active-win prøver å validere.
+      - name: Install Linux runtime-deps for active-win
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y libx11-dev libxss-dev x11-utils
+
+      - name: Build (${{ matrix.platform }}/${{ matrix.arch }})
+        working-directory: apps/desktop
+        run: npm run ${{ matrix.build_script }}
+
+      # TODO: macOS code-signing + notarization
+      # Krever Apple Developer ID cert (~$99/år). Konfigurer secrets:
+      #   APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID, OSX_SIGN_IDENTITY
+      # Uten signering må mac-brukere høyreklikke → Åpne (Gatekeeper-bypass).
+      #
+      # - name: Codesign + notarize (macOS)
+      #   if: matrix.os == 'macos-latest'
+      #   env:
+      #     APPLE_ID: ${{ secrets.APPLE_ID }}
+      #     APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      #     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      #     OSX_SIGN_IDENTITY: ${{ secrets.OSX_SIGN_IDENTITY }}
+      #   run: echo "signing handled inside build-portable.js when env-vars satt"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sakspilot-desktop-${{ matrix.platform }}-${{ matrix.arch }}
+          path: ${{ matrix.artifact_glob }}
+          retention-days: 90
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v') && endsWith(github.ref, '-desktop')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Sakspilot Desktop ${{ github.ref_name }}
+          files: ${{ matrix.artifact_glob }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -120,7 +120,7 @@ export default function KalenderPage() {
           <div>
             <h1 style={{ fontSize: 26, color: tokens.color.navy }}>Kalender</h1>
             <p style={{ color: tokens.color.textMuted, fontSize: 14, marginTop: 4 }}>
-              Alle frister og milepæler på tvers av sakene dine
+              Alle frister og milepæler på tvers av prosjektene dine
             </p>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -281,7 +281,7 @@ export default function KalenderPage() {
 
         {/* Legende */}
         <div style={{ display: 'flex', gap: 16, marginTop: 16, fontSize: 12, color: tokens.color.textMuted }}>
-          <LegendItem color={tokens.color.red} label="Sak-frist" />
+          <LegendItem color={tokens.color.red} label="Prosjekt-frist" />
           <LegendItem color={tokens.color.gold} label="Milepæl" />
           <LegendItem color={tokens.color.textSubtle} label="Fullført" />
           <span style={{ marginLeft: 'auto', fontStyle: 'italic' }}>
@@ -388,8 +388,8 @@ function CreateMilestoneModal({
                 lineHeight: 1.5,
               }}
             >
-              Du må opprette en sak først før du kan legge til milepæler.
-              Milepæler hører alltid til en sak.
+              Du må opprette et prosjekt først før du kan legge til milepæler.
+              Milepæler hører alltid til et prosjekt.
             </div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button onClick={onClose} style={ghostBtn}>Lukk</button>
@@ -402,7 +402,7 @@ function CreateMilestoneModal({
                   alignItems: 'center',
                 }}
               >
-                + Opprett sak
+                + Opprett prosjekt
               </Link>
             </div>
           </>
@@ -423,7 +423,7 @@ function CreateMilestoneModal({
               </div>
             )}
 
-            <label style={labelStyle}>Sak</label>
+            <label style={labelStyle}>Prosjekt</label>
             <select
               value={sakId}
               onChange={(e) => setSakId(e.target.value)}

@@ -218,7 +218,7 @@ export default function AiAssistantSection({ sakId }: { sakId: string }) {
           disabled={summaryLoading}
           style={aiBtnStyle}
         >
-          {summaryLoading ? '⏳ Tenker…' : '📝 Oppsummer saken'}
+          {summaryLoading ? '⏳ Tenker…' : '📝 Oppsummer prosjektet'}
         </button>
         {EMAIL_TYPES.map((t) => (
           <button
@@ -354,7 +354,7 @@ export default function AiAssistantSection({ sakId }: { sakId: string }) {
           {!historyLoading && chat.length === 0 && (
             <div style={{ fontSize: 13, color: tokens.color.textMuted, padding: '8px 0' }}>
               Ingen meldinger ennå — still et spørsmål under for å starte en samtale.
-              AI-en husker konteksten innenfor denne saken.
+              AI-en husker konteksten innenfor dette prosjektet.
             </div>
           )}
 

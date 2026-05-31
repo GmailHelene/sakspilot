@@ -82,7 +82,7 @@ export default function NySakPage() {
             href="/saker"
             style={{ color: tokens.color.textMuted, fontSize: 14, marginBottom: 12, display: 'inline-block' }}
           >
-            ← Tilbake til saker
+            ← Tilbake til prosjekter
           </Link>
 
           <div
@@ -100,7 +100,7 @@ export default function NySakPage() {
             {error && <div style={errorBoxStyle}>{error}</div>}
 
             <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 16 }}>
-              <Field label="Sakstittel" required>
+              <Field label="Prosjekttittel" required>
                 <input
                   style={inputStyle}
                   type="text"
@@ -118,7 +118,7 @@ export default function NySakPage() {
                   value={clientId}
                   onChange={(e) => setClientId(e.target.value)}
                 >
-                  <option value="">— Ingen / intern sak —</option>
+                  <option value="">— Ingen / internt prosjekt —</option>
                   {clients.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -136,7 +136,7 @@ export default function NySakPage() {
               </Field>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <Field label="Saksnummer (valgfritt)">
+                <Field label="Prosjektnummer (valgfritt)">
                   <input
                     style={inputStyle}
                     type="text"
@@ -188,7 +188,7 @@ export default function NySakPage() {
 
               <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
                 <button type="submit" disabled={saving} style={primaryButtonStyle}>
-                  {saving ? 'Lagrer…' : 'Opprett sak'}
+                  {saving ? 'Lagrer…' : 'Opprett prosjekt'}
                 </button>
                 <Link href="/saker" style={secondaryButtonStyle}>
                   Avbryt

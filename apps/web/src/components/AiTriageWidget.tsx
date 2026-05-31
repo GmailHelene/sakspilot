@@ -162,7 +162,7 @@ export default function AiTriageWidget() {
             cursor: running ? 'wait' : 'pointer',
             fontFamily: 'inherit',
           }}
-          title="Send ukategoriserte tidsregistreringer til Claude og få sak-forslag"
+          title="Send ukategoriserte tidsregistreringer til Claude og få prosjekt-forslag"
         >
           <RefreshCw size={12} strokeWidth={2.5} style={running ? { animation: 'spin 1s linear infinite' } : undefined} />
           {running ? 'Foreslår…' : 'Foreslå med AI'}
@@ -202,7 +202,7 @@ export default function AiTriageWidget() {
 
         {!hasItems && !lastRun && (
           <p style={{ fontSize: 13, color: tokens.color.textMuted, lineHeight: 1.45, margin: 0 }}>
-            Når desktop-agenten logger arbeidsøkter som ikke matcher noen sak, kan Claude foreslå riktig sak basert på vindustittel. Trykk <strong>Foreslå med AI</strong> for å starte.
+            Når desktop-agenten logger arbeidsøkter som ikke matcher noe prosjekt, kan Claude foreslå riktig prosjekt basert på vindustittel. Trykk <strong>Foreslå med AI</strong> for å starte.
           </p>
         )}
 
@@ -307,7 +307,7 @@ function SuggestionRow({
           }}
           title={item.suggestedSak?.title ?? ''}
         >
-          → {item.suggestedSak?.title || '(sak slettet)'}
+          → {item.suggestedSak?.title || '(prosjekt slettet)'}
           {item.suggestedSak?.clientName && (
             <span style={{ color: tokens.color.textMuted, fontWeight: 400 }}>
               {' '}({item.suggestedSak.clientName})

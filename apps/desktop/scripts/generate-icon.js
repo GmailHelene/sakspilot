@@ -5,6 +5,20 @@
  * ingen eksterne avhengigheter. Lager både 16x16 og 32x32 versjon.
  *
  * Kjøres automatisk av "npm install" via postinstall-skriptet.
+ *
+ * ── macOS-tray-ikoner (TODO) ──────────────────────────────────
+ * macOS forventer "template images" for menubar — svart silhuett på
+ * transparent bakgrunn, navngitt med suffix "Template" så macOS
+ * auto-tinter dem for lys/mørk meny-bar:
+ *   - tray-iconTemplate.png       (16x16, svart på transparent)
+ *   - tray-iconTemplate@2x.png    (32x32, retina)
+ *
+ * I main.js (Tray-konstruktøren): tray.setImage(icon) — Electron
+ * detekterer Template-suffix automatisk. Vårt nåværende charcoal-bg-ikon
+ * fungerer, men ser "fast" ut på mac. Lag template-versjon før mac-release.
+ *
+ * Linux bruker standard PNG (tray-icon-32.png eller -64.png), ingen
+ * spesielt navngivning kreves.
  */
 const fs = require('node:fs');
 const path = require('node:path');

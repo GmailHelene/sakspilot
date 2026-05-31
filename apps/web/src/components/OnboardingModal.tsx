@@ -331,14 +331,14 @@ export default function OnboardingModal() {
                 href="/agenter"
                 number="3"
                 title="Aktiver en agent"
-                desc="«Faktura-påminnelse» eller «Klistrelapp ved ny sak»"
+                desc="«Faktura-påminnelse» eller «Klistrelapp ved nytt prosjekt»"
                 onClick={finish}
               />
               <NextStepLink
                 href="/innstillinger/integrasjoner"
                 number="4"
                 title="Koble til Outlook"
-                desc="E-poster knyttes automatisk til saker"
+                desc="E-poster knyttes automatisk til prosjekter"
                 onClick={finish}
               />
             </div>

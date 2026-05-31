@@ -23,10 +23,11 @@ const readline = require('node:readline');
 (async () => {
   let activeWindow;
   try {
-    const mod = await import('get-windows');
-    activeWindow = mod.activeWindow;
+    // active-win er cross-platform (win + mac + linux). Default-export er fn.
+    const mod = await import('active-win');
+    activeWindow = mod.default;
   } catch (err) {
-    console.error('Kunne ikke laste get-windows:', err.message);
+    console.error('Kunne ikke laste active-win:', err.message);
     process.exit(1);
   }
 

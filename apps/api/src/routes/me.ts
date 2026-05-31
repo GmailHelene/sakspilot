@@ -8,6 +8,7 @@
  */
 import { Router, Request, Response } from "express";
 import { z } from "zod";
+import crypto from "crypto";
 import prisma from "../lib/prisma";
 import { requireAuth } from "../middleware/auth";
 import { verifyPassword } from "../services/auth";
@@ -438,6 +439,113 @@ router.get("/goals/progress", async (req: Request, res: Response) => {
     month: buildPeriod(user.monthlyHoursGoal, monthLogged, monthElapsedMs, monthTotalMs, monthDaysIn, daysInMonth),
     goalType: user.goalType,
   });
+});
+
+// ──────────────────────────────────────────────────────────────
+// iCal-feed — brukeren kan abonnere på sine frister/milepæler
+// fra Google Calendar / Apple Calendar / Outlook via en URL.
+// Token er random hex (16 bytes = 128 bits entropy), unikt per user.
+// Selve feeden serveres av PUBLIC routen /ical/:token (icalFeed.ts).
+// ──────────────────────────────────────────────────────────────
+
+/**
+ * Bygg den offentlige iCal-URL-en. Bruker API_PUBLIC_URL hvis satt
+ * (prod: https://api.sakspilot.no), fallback til request-origin
+ * for dev/lokal kjøring.
+ */
+function buildIcalUrl(req: Request, token: string): string {
+  const base =
+    process.env.API_PUBLIC_URL?.replace(/\/$/, "") ||
+    `${req.protocol}://${req.get("host")}`;
+  return `${base}/ical/${token}`;
+}
+
+/**
+ * GET /me/ical
+ * Returnerer status på brukerens iCal-feed. Vi sender med selve URL-en
+ * hvis aktivert — den er ikke hemmelig på samme måte som passord-hash,
+ * og brukeren trenger den for å vise i UI / kopiere på nytt.
+ */
+router.get("/ical", async (req: Request, res: Response) => {
+  const { userId } = req.session!;
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { icalToken: true },
+  });
+  if (!user) return res.status(404).json({ error: "Bruker ikke funnet" });
+  if (!user.icalToken) {
+    return res.json({ hasToken: false });
+  }
+  return res.json({
+    hasToken: true,
+    icalUrl: buildIcalUrl(req, user.icalToken),
+  });
+});
+
+/**
+ * POST /me/ical/generate
+ * Genererer (eller regenererer) iCal-token. Hvis brukeren allerede har
+ * en URL aktivert blir den UGYLDIG umiddelbart — gammelt token erstattes.
+ * Returnerer full URL + advarsel om at hvem som helst med lenken kan se
+ * brukerens frister.
+ *
+ * Vi logger handlingen i audit-loggen (skrive-handling) — men IKKE selve
+ * tokenet. Bare "ical.generated" + userId.
+ */
+router.post("/ical/generate", async (req: Request, res: Response) => {
+  const { userId, organizationId } = req.session!;
+  // 16 bytes = 32 hex tegn = 128 bits entropy → upraktisk å brute-force.
+  const newToken = crypto.randomBytes(16).toString("hex");
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { icalToken: newToken },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId,
+      organizationId,
+      action: "ical.generated",
+      entityType: "user",
+      entityId: userId,
+    },
+  });
+
+  return res.json({
+    icalUrl: buildIcalUrl(req, newToken),
+    warning:
+      "Hvem som helst med denne URL-en kan se dine åpne frister og saksnavn. Ikke del med uvedkommende.",
+  });
+});
+
+/**
+ * DELETE /me/ical
+ * Nullstiller tokenet — kalender-abonnement slutter umiddelbart å virke
+ * (neste poll fra Google/Apple/Outlook får 404). Brukes hvis URL-en har
+ * lekket eller brukeren vil deaktivere feeden.
+ */
+router.delete("/ical", async (req: Request, res: Response) => {
+  const { userId, organizationId } = req.session!;
+  // Sett til null direkte — Prisma håndterer unique-constraint korrekt
+  // (flere brukere kan ha null icalToken siden NULL ikke regnes som dupe
+  // i Postgres unique-indekser).
+  await prisma.user.update({
+    where: { id: userId },
+    data: { icalToken: null },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId,
+      organizationId,
+      action: "ical.revoked",
+      entityType: "user",
+      entityId: userId,
+    },
+  });
+
+  return res.json({ ok: true });
 });
 
 export default router;

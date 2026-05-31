@@ -77,7 +77,7 @@ function buildRuleTemplates(sak: Sak) {
   return [
     {
       id: 'auto-title-flex',
-      label: '⚡ Auto: match sakens navn (fleksibel)',
+      label: '⚡ Auto: match prosjektets navn (fleksibel)',
       type: 'title' as const,
       pattern: autoFlexPattern,
       hint: `Matcher uansett rekkefølge — f.eks. "${significantWords.join(' ')}" treffer både "${significantWords.join('-')}.docx", "${[...significantWords].reverse().join(' ')}.dwg" og "Notater om ${significantWords.join(' ')}.pdf"`,
@@ -91,12 +91,12 @@ function buildRuleTemplates(sak: Sak) {
     },
     {
       id: 'folder',
-      label: '📁 Filer i lokal sak-mappe',
+      label: '📁 Filer i lokal prosjekt-mappe',
       type: 'path' as const,
       pattern: sak.folderPath
         ? sak.folderPath.replace(/[/\\]/g, '[\\\\/]').replace(/\./g, '\\.')
-        : 'C:\\\\Jobb\\\\Sak-mappe',
-      hint: sak.folderPath ? `Bruker saken sin mappe-sti` : 'Sett "Lokal mappe" på saken først',
+        : 'C:\\\\Jobb\\\\Prosjekt-mappe',
+      hint: sak.folderPath ? `Bruker prosjektets mappe-sti` : 'Sett "Lokal mappe" på prosjektet først',
       disabled: !sak.folderPath,
     },
     {
@@ -132,14 +132,14 @@ function buildRuleTemplates(sak: Sak) {
       label: '📧 Outlook (hele appen)',
       type: 'app' as const,
       pattern: '^outlook',
-      hint: 'All tid i Outlook teller — kombiner med e-postregel for sak-spesifikt',
+      hint: 'All tid i Outlook teller — kombiner med e-postregel for prosjekt-spesifikt',
     },
     {
       id: 'email-subject',
-      label: '📧 E-post om saken (emne)',
+      label: '📧 E-post om prosjektet (emne)',
       type: 'title' as const,
       pattern: titleWords.split('[\\s\\-_]*').slice(0, 2).join('.*'),
-      hint: 'Outlook-vinduer med saksrelaterte emner',
+      hint: 'Outlook-vinduer med prosjektrelaterte emner',
     },
     {
       id: 'holte',
@@ -166,17 +166,17 @@ function buildRuleTemplates(sak: Sak) {
     // ─── For utviklere / freelance designere ───
     {
       id: 'vscode',
-      label: '💻 VS Code / Cursor (auto fra sakens navn)',
+      label: '💻 VS Code / Cursor (auto fra prosjektets navn)',
       type: 'title' as const,
       pattern: titleWords + '.*\\b(Visual Studio Code|Cursor)\\b',
-      hint: 'Editor-vinduer som har sakens navn i tittel — mappenavn eller fil',
+      hint: 'Editor-vinduer som har prosjektets navn i tittel — mappenavn eller fil',
     },
     {
       id: 'github',
       label: '🐙 GitHub-repo (browser-tab)',
       type: 'title' as const,
       pattern: titleWords + '.*github',
-      hint: 'Chrome-tab på GitHub repo som matcher sakens navn',
+      hint: 'Chrome-tab på GitHub repo som matcher prosjektets navn',
     },
     {
       id: 'wp-admin',
@@ -187,24 +187,24 @@ function buildRuleTemplates(sak: Sak) {
     },
     {
       id: 'figma',
-      label: '🎨 Figma med sakens navn',
+      label: '🎨 Figma med prosjektets navn',
       type: 'title' as const,
       pattern: titleWords + '.*figma|figma.*' + titleWords,
       hint: 'Designarbeid i Figma',
     },
     {
       id: 'terminal',
-      label: '⌨️  Terminal i sak-mappa',
+      label: '⌨️  Terminal i prosjekt-mappa',
       type: 'title' as const,
       pattern: '(Windows Terminal|PowerShell|cmd).*' + (sak.folderPath?.split(/[\\/]/).pop()?.toLowerCase() || titleWords),
       hint: sak.folderPath ? 'Terminal med mappenavn i tittel' : 'Sett folderPath for bedre treff',
     },
     {
       id: 'claude-code',
-      label: '🤖 Claude Code (i sak-mappa)',
+      label: '🤖 Claude Code (i prosjekt-mappa)',
       type: 'title' as const,
       pattern: 'Claude.*' + titleWords,
-      hint: 'Claude Code-økt for denne saken',
+      hint: 'Claude Code-økt for dette prosjektet',
     },
     {
       id: 'teams-meet',
@@ -319,8 +319,8 @@ export default function MatchingRulesSection({
         }}
       >
         💡 Når desktop-agenten ser et vindu som matcher en av reglene under,
-        kobles tiden automatisk til denne saken. Klikk <strong>⚡ Velg mal</strong>{' '}
-        for vanlige mønstre (Word, Outlook, sakens navn, etc.), eller{' '}
+        kobles tiden automatisk til dette prosjektet. Klikk <strong>⚡ Velg mal</strong>{' '}
+        for vanlige mønstre (Word, Outlook, prosjektets navn, etc.), eller{' '}
         <strong>+ Manuell regel</strong> for full regex-kontroll.
       </div>
 
@@ -456,7 +456,7 @@ export default function MatchingRulesSection({
 
       {sak.matchingRules.length === 0 && !showForm ? (
         <div style={{ color: tokens.color.textSubtle, fontSize: 13, padding: '8px 0' }}>
-          Ingen regler enda. Desktop-agenten kobler ikke tid til denne saken automatisk
+          Ingen regler enda. Desktop-agenten kobler ikke tid til dette prosjektet automatisk
           før du har lagt til minst én regel.
         </div>
       ) : (

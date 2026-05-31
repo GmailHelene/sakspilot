@@ -140,7 +140,7 @@ router.post("/suggest", async (req: Request, res: Response) => {
       skipped: entries.length,
       quotaUsed: quota.used,
       quotaLimit: quota.limit,
-      message: "Ingen åpne saker å foreslå mot. Opprett en sak først.",
+      message: "Ingen åpne prosjekter å foreslå mot. Opprett et prosjekt først.",
     });
   }
 
@@ -255,7 +255,7 @@ router.post("/accept/:timeEntryId", async (req: Request, res: Response) => {
     select: { id: true },
   });
   if (!sak) {
-    return res.status(400).json({ error: "Foreslått sak finnes ikke lenger" });
+    return res.status(400).json({ error: "Foreslått prosjekt finnes ikke lenger" });
   }
 
   await prisma.timeEntry.update({

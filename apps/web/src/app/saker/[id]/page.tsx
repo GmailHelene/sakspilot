@@ -73,7 +73,7 @@ export default function SakDetailPage() {
   async function handleDelete() {
     if (
       !confirm(
-        'Sletter saken permanent. Time-entries beholdes (frikoblet). Sikker?'
+        'Sletter prosjektet permanent. Time-entries beholdes (frikoblet). Sikker?'
       )
     )
       return;
@@ -97,7 +97,7 @@ export default function SakDetailPage() {
       <>
         <Header />
         <main style={pageStyle}>
-          <div style={{ padding: 24, color: tokens.color.textMuted }}>Henter sak…</div>
+          <div style={{ padding: 24, color: tokens.color.textMuted }}>Henter prosjekt…</div>
         </main>
       </>
     );
@@ -112,7 +112,7 @@ export default function SakDetailPage() {
             href="/saker"
             style={{ color: tokens.color.textMuted, fontSize: 14, display: 'inline-block', marginBottom: 12 }}
           >
-            ← Tilbake til saker
+            ← Tilbake til prosjekter
           </Link>
 
           {/* ── Hovedheader ── */}
@@ -157,7 +157,7 @@ export default function SakDetailPage() {
                 }}
               >
                 Ingen tid logget enda. Installer desktop-agenten — den fyller dette automatisk
-                når den oppdager at du jobber på saken (matching-regler avgjør koblingen).
+                når den oppdager at du jobber på prosjektet (matching-regler avgjør koblingen).
               </div>
             ) : null}
           </SectionCard>

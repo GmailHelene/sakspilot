@@ -133,7 +133,7 @@ export default function SakerPage() {
           <div>
             <h1 style={{ fontSize: 26, color: tokens.color.navy }}>Prosjekter</h1>
             <p style={{ color: tokens.color.textMuted, fontSize: 14, marginTop: 4 }}>
-              {saker ? `${saker.length} ${saker.length === 1 ? 'aktiv sak' : 'aktive saker'}` : 'Henter…'}
+              {saker ? `${saker.length} ${saker.length === 1 ? 'aktivt prosjekt' : 'aktive prosjekter'}` : 'Henter…'}
             </p>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -145,7 +145,7 @@ export default function SakerPage() {
         {error && <div style={errorStyle}>Feil: {error}</div>}
 
         {!saker ? (
-          <div style={{ padding: 24, color: tokens.color.textMuted }}>Henter saker…</div>
+          <div style={{ padding: 24, color: tokens.color.textMuted }}>Henter prosjekter…</div>
         ) : saker.length === 0 ? (
           <EmptyState />
         ) : view === 'kanban' ? (
@@ -485,7 +485,7 @@ function TabellView({ saker }: { saker: Sak[] }) {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
           <thead>
             <tr style={{ background: tokens.color.bgAlt }}>
-              <SortableTH label="Sak" sortKey="title" current={sortKey} dir={sortDir} onClick={toggleSort} />
+              <SortableTH label="Prosjekt" sortKey="title" current={sortKey} dir={sortDir} onClick={toggleSort} />
               <SortableTH label="Klient" sortKey="client" current={sortKey} dir={sortDir} onClick={toggleSort} />
               <SortableTH label="Status" sortKey="status" current={sortKey} dir={sortDir} onClick={toggleSort} />
               <SortableTH label="Frist" sortKey="deadline" current={sortKey} dir={sortDir} onClick={toggleSort} />

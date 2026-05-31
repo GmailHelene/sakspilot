@@ -134,7 +134,7 @@ export default function PortalDashboard() {
                     </div>
                     {s.saksnummer && (
                       <div style={{ fontSize: 12, color: tokens.color.textSubtle, marginBottom: 8 }}>
-                        Sak {s.saksnummer}
+                        Prosjekt {s.saksnummer}
                       </div>
                     )}
                     <span

@@ -226,7 +226,7 @@ export default function InvoicePdfButton({ sakId }: { sakId: string }) {
               </label>
 
               <p style={{ fontSize: 12, color: tokens.color.textMuted, margin: 0 }}>
-                La periode-feltene være tomme for å ta med alle timer på saken.
+                La periode-feltene være tomme for å ta med alle timer på prosjektet.
                 MVA settes til 25 % (norsk standardsats), forfall til 14 dager.
               </p>
 
