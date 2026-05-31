@@ -16,6 +16,12 @@ import Anthropic from "@anthropic-ai/sdk";
 import prisma from "../lib/prisma";
 import { requireAuth } from "../middleware/auth";
 import { getAIClient, getActiveModel, getProviderInfo } from "../lib/aiProvider";
+import {
+  checkAiQuota,
+  recordAiUsage,
+  quotaExceededResponse,
+  setQuotaHeaders,
+} from "../lib/aiQuota";
 
 const router = Router();
 router.use(requireAuth);
@@ -126,6 +132,16 @@ router.get("/provider", (_req: Request, res: Response) => {
   return res.json(getProviderInfo());
 });
 
+// ── GET /ai/quota ────────────────────────────────────────────────
+// Returnerer gjeldende AI-kvote-status for innlogget brukers organisasjon.
+// Brukes av frontend for å vise "X av Y kall brukt"-indikator.
+router.get("/quota", async (req: Request, res: Response) => {
+  const session = req.session!;
+  const quota = await checkAiQuota(session.organizationId);
+  setQuotaHeaders(res, quota);
+  return res.json(quota);
+});
+
 // ── POST /ai/sak/:id/ask ─────────────────────────────────────────
 
 const AskSchema = z.object({
@@ -146,6 +162,14 @@ router.post("/sak/:id/ask", async (req: Request, res: Response) => {
   }
 
   const session = req.session!;
+
+  // Sjekk AI-kvote FØR vi gjør noe DB-arbeid (billig sjekk)
+  const quota = await checkAiQuota(session.organizationId);
+  setQuotaHeaders(res, quota);
+  if (!quota.allowed) {
+    return res.status(429).json(quotaExceededResponse(quota));
+  }
+
   const ctx = await loadSakContext(req.params.id, session.organizationId);
   if (!ctx) return res.status(404).json({ error: "Sak ikke funnet" });
 
@@ -163,6 +187,8 @@ router.post("/sak/:id/ask", async (req: Request, res: Response) => {
       ],
       messages: [{ role: "user", content: parsed.data.question }],
     });
+
+    await recordAiUsage(session.organizationId, response.usage);
 
     const text = response.content
       .filter((c): c is Anthropic.TextBlock => c.type === "text")
@@ -197,6 +223,14 @@ router.post("/sak/:id/summary", async (req: Request, res: Response) => {
   }
 
   const session = req.session!;
+
+  // Sjekk AI-kvote
+  const quota = await checkAiQuota(session.organizationId);
+  setQuotaHeaders(res, quota);
+  if (!quota.allowed) {
+    return res.status(429).json(quotaExceededResponse(quota));
+  }
+
   const ctx = await loadSakContext(req.params.id, session.organizationId);
   if (!ctx) return res.status(404).json({ error: "Sak ikke funnet" });
 
@@ -220,6 +254,8 @@ router.post("/sak/:id/summary", async (req: Request, res: Response) => {
         },
       ],
     });
+
+    await recordAiUsage(session.organizationId, response.usage);
 
     const text = response.content
       .filter((c): c is Anthropic.TextBlock => c.type === "text")
@@ -254,6 +290,14 @@ router.post("/sak/:id/draft-email", async (req: Request, res: Response) => {
   }
 
   const session = req.session!;
+
+  // Sjekk AI-kvote
+  const quota = await checkAiQuota(session.organizationId);
+  setQuotaHeaders(res, quota);
+  if (!quota.allowed) {
+    return res.status(429).json(quotaExceededResponse(quota));
+  }
+
   const ctx = await loadSakContext(req.params.id, session.organizationId);
   if (!ctx) return res.status(404).json({ error: "Sak ikke funnet" });
 
@@ -288,6 +332,8 @@ router.post("/sak/:id/draft-email", async (req: Request, res: Response) => {
         },
       ],
     });
+
+    await recordAiUsage(session.organizationId, response.usage);
 
     const text = response.content
       .filter((c): c is Anthropic.TextBlock => c.type === "text")

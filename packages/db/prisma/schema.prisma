@@ -87,6 +87,12 @@ model Organization {
   /// uansett trial-status på User. Settes manuelt (eller via seed).
   /// Default: alle nye org i pilotfasen settes til 2026-12-31 av registreringskoden.
   pilotUntil      DateTime? @map("pilot_until")
+  /// AI-kvote per måned. Resettes når aiMonthStartedAt er > 30 dager gammel.
+  /// Default-kvote: 500 kall/mnd (hard cap). Pilot-orgs (pilotUntil > now)
+  /// får 10x kvote = 5000. Soft warning ved 80% bruk via response header.
+  aiCallsThisMonth Int      @default(0) @map("ai_calls_this_month")
+  aiTokensThisMonth Int     @default(0) @map("ai_tokens_this_month") // input + output, for fremtidig cost-basert
+  aiMonthStartedAt DateTime @default(now()) @map("ai_month_started_at")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
