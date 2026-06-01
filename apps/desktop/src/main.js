@@ -83,6 +83,11 @@ let deviceId = null;            // stabil per installasjon
 let pomodoroState = null;
 let pomodoroCompletedCount = 0; // antall fullførte work-faser i denne sesjonen
 
+// Settes til true når sync får 401 → notif + dashboard åpnes ÉN gang.
+// Nullstilles av login-handleren når bruker har re-logget. Hindrer at
+// dashboard pop-up'er hvert 30. sek mens tokenet er utløpt.
+let authExpiredHandled = false;
+
 // ── Single-instance lock ────────────────────────────────────────
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
@@ -661,25 +666,26 @@ async function syncSessions() {
     // Legg dem tilbake — neste sync-tick prøver igjen
     pendingSessions.unshift(...batch);
 
-    // 401 = utløpt JWT — bruker må logge inn på nytt. Åpne dashbordet og
-    // vis tydelig notification med pekepinn til hva de skal gjøre.
+    // 401 = utløpt JWT — bruker må logge inn på nytt. Åpne dashbordet
+    // ÉN gang og vis tydelig notification. authExpiredHandled-flagget
+    // resettes ved neste vellykkede login (i auth:login-IPC under).
     const is401 = /\b401\b/.test(err.message) || /Ikke innlogget/i.test(err.message);
     if (is401) {
-      // Token er ubrukelig — la ikke flere sync-runder fyre 401
-      // (bruker må eksplisitt logge inn på nytt, da fjernes token og
-      //  ny token settes av login-flyten i settings.js)
-      const lastNotif = store.get('lastAuthExpiredNotif') || 0;
-      if (Notification.isSupported() && Date.now() - lastNotif > 600_000) {
-        new Notification({
-          title: 'Sakspilot — logg inn på nytt',
-          body: 'Sesjonen din har utløpt. Åpner Sakspilot — logg inn der så fortsetter alt automatisk.',
-          urgency: 'critical',
-        }).show();
-        store.set('lastAuthExpiredNotif', Date.now());
+      if (!authExpiredHandled) {
+        authExpiredHandled = true; // ikke gjenta før neste login
+        if (Notification.isSupported()) {
+          new Notification({
+            title: 'Sakspilot — logg inn på nytt',
+            body: 'Sesjonen din har utløpt. Logg inn i Sakspilot-vinduet så fortsetter alt automatisk.',
+            urgency: 'critical',
+          }).show();
+        }
+        // Åpne dashboard så bruker kan logge inn igjen
+        try { openDashboardWindow(); } catch {}
       }
-      // Åpne dashboard så bruker kan logge inn igjen (frontend redirecter
-      // til /login når den får 401 fra eget /auth/me-kall)
-      try { openDashboardWindow(); } catch {}
+      // Stopper sync-loopen midlertidig — vi prøver ikke igjen før bruker
+      // har re-logget. Dette unngår at agenten kontinuerlig fyrer 401
+      // i bakgrunnen og holder dashboard på topp.
       updateTrayMenu();
       return;
     }
@@ -1099,9 +1105,13 @@ async function login(apiUrl, email, password) {
     organizationId: data.user.organizationId,
     organizationName: data.user.organizationName || '',
   });
+  // Nullstill 401-debounce — ny token er gyldig, sync skal prøve igjen
+  authExpiredHandled = false;
   initializeAgent();
   updateTrayMenu();
   notify('Sakspilot', `Logget inn som ${data.user.name}`);
+  // Trigg sync umiddelbart så etterslepne sessions kommer inn med en gang
+  setTimeout(() => syncSessions(), 1000);
   // Lukk settings-vindu + åpne dashboard automatisk så bruker ikke må
   // klikke gjennom tray-menyen manuelt
   if (settingsWindow && !settingsWindow.isDestroyed()) settingsWindow.close();
