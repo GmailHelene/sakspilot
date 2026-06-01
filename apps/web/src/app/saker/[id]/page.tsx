@@ -15,6 +15,7 @@ import MilestonesSection from './_sections/MilestonesSection';
 import AiAssistantSection from './_sections/AiAssistantSection';
 import TimeEntriesSection from './_sections/TimeEntriesSection';
 import FikenInvoiceButton from './_sections/FikenInvoiceButton';
+import TripletexInvoiceButton from './_sections/TripletexInvoiceButton';
 import InvoicePdfButton from './_sections/InvoicePdfButton';
 
 export default function SakDetailPage() {
@@ -140,6 +141,13 @@ export default function SakDetailPage() {
                 <InvoicePdfButton sakId={sak.id} />
                 <div style={{ marginTop: -16 }}>
                   <FikenInvoiceButton
+                    sakId={sak.id}
+                    hours={summary.billableHours}
+                    amount={summary.totalAmount}
+                  />
+                </div>
+                <div style={{ marginTop: -16 }}>
+                  <TripletexInvoiceButton
                     sakId={sak.id}
                     hours={summary.billableHours}
                     amount={summary.totalAmount}

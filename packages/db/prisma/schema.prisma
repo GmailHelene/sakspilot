@@ -111,6 +111,7 @@ model Organization {
   automations Automation[]
   subscription Subscription?
   fikenIntegration FikenIntegration?
+  tripletexIntegration TripletexIntegration?
   feedbacks Feedback[]
   teamInvites TeamInvite[]
   customDomains CustomDomain[]
@@ -179,6 +180,38 @@ model FikenIntegration {
   updatedAt       DateTime @updatedAt @map("updated_at")
 
   @@map("fiken_integrations")
+}
+
+/// Tripletex-integrasjon per organisasjon.
+/// Sakspilot er Partner hos Tripletex (Consumer Token i env-var TRIPLETEX_CONSUMER_TOKEN).
+/// Hver kundes admin genererer en EmployeeToken i sin Tripletex og limer inn her.
+/// Backend bygger en SessionToken (1-times levetid) dynamisk fra Consumer + Employee.
+/// EmployeeToken lagres kryptert (AES-256-GCM, samme nøkkel som FikenIntegration).
+model TripletexIntegration {
+  id                     String   @id @default(uuid())
+  organizationId         String   @unique @map("organization_id")
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// Employee-token — kryptert med AES-256-GCM (samme som FikenIntegration)
+  encryptedEmployeeToken String   @map("encrypted_employee_token")
+  /// Tripletex Company ID — verifiseres via /v2/company API på connect
+  companyId              Int?     @map("company_id")
+  /// Tripletex Employee ID — settes når token verifiseres
+  employeeId             Int?     @map("employee_id")
+  /// Visningsnavn for selskapet (cached fra Tripletex' /company-respons)
+  companyName            String?  @map("company_name")
+  /// Visningsnavn for den ansatte tokenet representerer
+  employeeName           String?  @map("employee_name")
+  /// Sann hvis brukeren har valgt test-miljøet (api-test.tripletex.tech)
+  useTestEnv             Boolean  @default(false) @map("use_test_env")
+  /// Når token sist ble verifisert mot Tripletex API
+  lastVerifiedAt         DateTime? @map("last_verified_at")
+  /// Antall fakturaer/timer pushet via denne integrasjonen
+  invoicesPushed         Int      @default(0) @map("invoices_pushed")
+  hoursPushed            Int      @default(0) @map("hours_pushed")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  @@map("tripletex_integrations")
 }
 
 /// Subscription per organisasjon. Null = ingen aktiv subscription (trial eller pilot).

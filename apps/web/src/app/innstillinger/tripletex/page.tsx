@@ -1,21 +1,115 @@
 'use client';
 
 /**
- * Tripletex/Fiken — info-side med CSV-import-veiledning.
+ * Tripletex — direkte API-integrasjon via Sakspilot's Partner Consumer Token.
  *
- * Full OAuth-integrasjon krever app-registrering hos Tripletex/Fiken
- * (uker av godkjenningsprosess). Inntil videre: CSV-eksport fungerer
- * perfekt mot import-funksjonene i begge systemer.
+ * Brukeren genererer en EmployeeToken i Tripletex og limer inn her. Sakspilot
+ * lagrer den kryptert (AES-256-GCM) og bygger SessionTokens på serveren ved
+ * behov. Ingen tokens vises noensinne tilbake til frontend.
+ *
+ * Veiledning: https://hjelp.tripletex.no/hc/no/articles/4409557117841
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Download, FileText, ExternalLink, Check, AlertTriangle, ArrowLeft } from 'lucide-react';
+import {
+  ArrowLeft,
+  CheckCircle2,
+  AlertCircle,
+  Unlink,
+  ExternalLink,
+  FileText,
+  Receipt,
+} from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
+import { api } from '@/lib/api';
+
+interface TripletexStatus {
+  connected: boolean;
+  companyId?: number;
+  companyName?: string;
+  employeeId?: number;
+  employeeName?: string;
+  useTestEnv?: boolean;
+  lastVerifiedAt?: string | null;
+  invoicesPushed?: number;
+  hoursPushed?: number;
+  connectedAt?: string;
+  docsUrl?: string;
+  hint?: string;
+}
 
 export default function TripletexPage() {
-  const [system, setSystem] = useState<'tripletex' | 'fiken'>('tripletex');
+  const [status, setStatus] = useState<TripletexStatus | null>(null);
+  const [employeeToken, setEmployeeToken] = useState('');
+  const [useTestEnv, setUseTestEnv] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+
+  async function load() {
+    try {
+      const s = await api<TripletexStatus>('/integrations/tripletex/status');
+      setStatus(s);
+    } catch (err) {
+      setMessage({
+        kind: 'err',
+        text: err instanceof Error ? err.message : 'Kunne ikke hente status',
+      });
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function connect() {
+    if (!employeeToken.trim()) {
+      setMessage({ kind: 'err', text: 'EmployeeToken må fylles ut.' });
+      return;
+    }
+    setBusy(true);
+    setMessage(null);
+    try {
+      const r = await api<{ ok: boolean; companyName: string; employeeName: string }>(
+        '/integrations/tripletex/connect',
+        {
+          method: 'POST',
+          body: { employeeToken: employeeToken.trim(), useTestEnv },
+        }
+      );
+      setMessage({
+        kind: 'ok',
+        text: `Tripletex koblet til: ${r.companyName} (${r.employeeName})`,
+      });
+      setEmployeeToken('');
+      await load();
+    } catch (err) {
+      setMessage({
+        kind: 'err',
+        text: err instanceof Error ? err.message : 'Tilkobling feilet',
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function disconnect() {
+    if (!confirm('Koble fra Tripletex? EmployeeToken slettes fra Sakspilot.')) return;
+    setBusy(true);
+    try {
+      await api('/integrations/tripletex/disconnect', { method: 'DELETE' });
+      await load();
+      setMessage({ kind: 'ok', text: 'Tripletex er koblet fra.' });
+    } catch (err) {
+      setMessage({
+        kind: 'err',
+        text: err instanceof Error ? err.message : 'Kunne ikke koble fra',
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <AppLayout>
@@ -35,195 +129,147 @@ export default function TripletexPage() {
           <ArrowLeft size={14} /> Tilbake til integrasjoner
         </Link>
 
-        <h1 style={{ fontSize: 28, color: tokens.color.navy, marginBottom: 6 }}>
-          Tripletex & Fiken
-        </h1>
-        <p style={{ color: tokens.color.textMuted, marginBottom: 24, lineHeight: 1.5 }}>
-          Direkte API-integrasjon kommer snart. Inntil videre: bruk CSV-eksport fra
-          <Link href="/rapport" style={{ color: tokens.color.navy, fontWeight: 500 }}> Rapport-siden</Link>{' '}
-          for å sende fakturagrunnlag rett inn i regnskapssystemet ditt.
-        </p>
-
-        {/* System-velger */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-          {(['tripletex', 'fiken'] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setSystem(s)}
-              style={{
-                padding: '10px 18px',
-                background: system === s ? tokens.gradient.navy : tokens.color.white,
-                color: system === s ? tokens.color.white : tokens.color.text,
-                border: `1px solid ${system === s ? tokens.color.navy : tokens.color.border}`,
-                borderRadius: tokens.radius.md,
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontSize: 14,
-                boxShadow: system === s ? tokens.shadow.colored(tokens.color.navy) : 'none',
-              }}
-            >
-              {s === 'tripletex' ? 'Tripletex' : 'Fiken'}
-            </button>
-          ))}
-        </div>
-
-        {/* Hoved-instruksjon */}
-        <div style={cardStyle}>
-          <h2 style={{ fontSize: 18, color: tokens.color.navy, marginBottom: 16 }}>
-            Slik importerer du timer til {system === 'tripletex' ? 'Tripletex' : 'Fiken'}
-          </h2>
-
-          <Step
-            n={1}
-            title="Last ned CSV fra Sakspilot"
-            body={
-              <>
-                Gå til <Link href="/rapport" style={linkStyle}>Rapport</Link> →
-                velg måned → klikk <strong>Last ned CSV</strong>. Filen får navn som
-                {' '}<code style={codeStyle}>sakspilot-2026-05.csv</code>.
-              </>
-            }
-            icon={<Download size={18} />}
-          />
-
-          {system === 'tripletex' ? (
-            <>
-              <Step
-                n={2}
-                title="Logg inn på Tripletex"
-                body={
-                  <>
-                    Gå til <a href="https://tripletex.no" target="_blank" rel="noopener noreferrer" style={linkStyle}>
-                      tripletex.no <ExternalLink size={11} style={{ verticalAlign: 'middle' }} />
-                    </a> og logg inn.
-                  </>
-                }
-              />
-              <Step
-                n={3}
-                title="Naviger til Timer → Importer"
-                body={
-                  <>
-                    Hovedmeny: <strong>Timer</strong> → <strong>Verktøy</strong> →
-                    <strong> Importer timer fra fil</strong>.
-                  </>
-                }
-              />
-              <Step
-                n={4}
-                title="Velg filformat og kolonner"
-                body={
-                  <>
-                    Velg <strong>CSV</strong> som format og <strong>semikolon (;)</strong> som skille-tegn.
-                    Map kolonnene slik:
-                    <ColumnMap
-                      mapping={[
-                        ['Dato', 'Dato'],
-                        ['Varighet (timer)', 'Antall timer'],
-                        ['Klient', 'Kunde'],
-                        ['Prosjekt', 'Prosjekt eller Aktivitet'],
-                        ['Notat', 'Kommentar'],
-                      ]}
-                    />
-                  </>
-                }
-              />
-              <Step
-                n={5}
-                title="Bekreft import"
-                body={
-                  <>
-                    Klikk <strong>Importer</strong>. Tripletex sjekker dataene mot prosjekter og kunder.
-                    Hvis noen ikke finnes, opprett dem først eller hopp over de linjene.
-                  </>
-                }
-              />
-            </>
-          ) : (
-            <>
-              <Step
-                n={2}
-                title="Logg inn på Fiken"
-                body={
-                  <>
-                    Gå til <a href="https://fiken.no" target="_blank" rel="noopener noreferrer" style={linkStyle}>
-                      fiken.no <ExternalLink size={11} style={{ verticalAlign: 'middle' }} />
-                    </a> og logg inn.
-                  </>
-                }
-              />
-              <Step
-                n={3}
-                title="Lag faktura manuelt"
-                body={
-                  <>
-                    Fiken har ikke direkte timer-import — men du kan bruke CSV-en som
-                    grunnlag når du lager fakturalinjer manuelt.
-                    <br />Gå til <strong>Salg</strong> → <strong>Ny faktura</strong> →
-                    legg til linjer basert på CSV-summen per kunde.
-                  </>
-                }
-              />
-              <Step
-                n={4}
-                title="Tips: én faktura per måned per kunde"
-                body={
-                  <>
-                    Vår CSV grupperer timer per prosjekt og kunde. Lag én Fiken-faktura per
-                    kunde med fakturerbare timer × timesats fra CSV-en.
-                  </>
-                }
-              />
-            </>
-          )}
-        </div>
-
-        {/* CSV-format */}
-        <div style={cardStyle}>
-          <h2 style={{ fontSize: 18, color: tokens.color.navy, marginBottom: 12 }}>
-            Vårt CSV-format
-          </h2>
-          <p style={{ color: tokens.color.textMuted, fontSize: 13, marginBottom: 12 }}>
-            UTF-8 med BOM (Excel-vennlig), semikolon som skille-tegn, norsk dato- og tallformat.
-          </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 6 }}>
           <div
             style={{
-              background: '#1A1A1A',
-              color: '#E5E5E5',
-              padding: 14,
+              width: 48,
+              height: 48,
               borderRadius: tokens.radius.md,
-              fontFamily: tokens.font.mono,
-              fontSize: 12,
-              overflowX: 'auto',
-              lineHeight: 1.6,
+              background: '#1B73B8',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 22,
+              fontWeight: 700,
+              boxShadow: tokens.shadow.colored('#1B73B8'),
+              flexShrink: 0,
             }}
           >
-            <div style={{ color: '#7FD9C0' }}>
-              Dato;Start;Slutt;Varighet (timer);Klient;Prosjekt;App / vindu;Notat;Fakturerbar;Timesats;Beløp
-            </div>
-            <div>
-              28.05.2026;09:00;11:30;2,50;Nordvik & Co. AS;Rebranding 2026;Figma;Logo-skisse;Ja;1450 kr;3 625 kr
-            </div>
-            <div>
-              28.05.2026;13:15;14:45;1,50;Berg Eiendom AS;Skatteoppgjør 2025;Excel;Avstemming;Ja;1800 kr;2 700 kr
-            </div>
-            <div style={{ color: '#A1A1A1', marginTop: 6 }}>
-              ...
-            </div>
-            <div style={{ color: '#F7B500' }}>
-              ;;;14,50;;;;;SUM FAKTURERBART;;26 100 kr
-            </div>
+            T
+          </div>
+          <h1 style={{ fontSize: 28, color: tokens.color.navy }}>Tripletex</h1>
+          {status?.connected && (
+            <span style={badgeStyle()}>
+              <CheckCircle2 size={12} /> Tilkoblet
+            </span>
+          )}
+        </div>
+        <p style={{ color: tokens.color.textMuted, marginBottom: 24, lineHeight: 1.5 }}>
+          Push billable timer og opprett fakturadraft direkte i Tripletex fra
+          Sakspilot. EmployeeToken-en din lagres kryptert (AES-256-GCM) og kan
+          slettes når som helst.
+        </p>
+
+        {message && (
+          <div
+            style={{
+              padding: 14,
+              borderRadius: tokens.radius.md,
+              marginBottom: 16,
+              background: message.kind === 'ok' ? tokens.color.greenSoft : tokens.color.redSoft,
+              color: message.kind === 'ok' ? tokens.color.green : tokens.color.red,
+              fontSize: 14,
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            {message.kind === 'ok' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+            {message.text}
+          </div>
+        )}
+
+        {status?.connected ? (
+          <ConnectedCard status={status} onDisconnect={disconnect} busy={busy} />
+        ) : (
+          <ConnectForm
+            employeeToken={employeeToken}
+            setEmployeeToken={setEmployeeToken}
+            useTestEnv={useTestEnv}
+            setUseTestEnv={setUseTestEnv}
+            busy={busy}
+            onConnect={connect}
+          />
+        )}
+
+        {/* Veiledning */}
+        <div style={cardStyle}>
+          <h2 style={{ fontSize: 18, color: tokens.color.navy, marginBottom: 12 }}>
+            Slik genererer du EmployeeToken
+          </h2>
+          <Step
+            n={1}
+            title="Logg inn på Tripletex som administrator"
+            body={
+              <>
+                Gå til{' '}
+                <a
+                  href="https://tripletex.no"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={linkStyle}
+                >
+                  tripletex.no <ExternalLink size={11} style={{ verticalAlign: 'middle' }} />
+                </a>{' '}
+                og logg inn med en bruker som har tilgang til API-innstillinger.
+              </>
+            }
+          />
+          <Step
+            n={2}
+            title="Naviger til API-løsning"
+            body={
+              <>
+                Hovedmeny: <strong>Mitt firma</strong> → <strong>Vår API-løsning</strong>.
+              </>
+            }
+          />
+          <Step
+            n={3}
+            title="Generer ny token"
+            body={
+              <>
+                Velg <strong>Generer ny token</strong>, og pek på integrasjonen{' '}
+                <strong>Sakspilot</strong> i nedtrekksmenyen.
+              </>
+            }
+          />
+          <Step
+            n={4}
+            title="Kopier tokenet og lim inn over"
+            body={
+              <>
+                Tokenet vises bare én gang. Lim det inn i feltet øverst på denne siden
+                og klikk <strong>Koble til Tripletex</strong>. Vi verifiserer mot Tripletex
+                og lagrer det kryptert.
+              </>
+            }
+          />
+          <div
+            style={{
+              marginTop: 12,
+              paddingTop: 12,
+              borderTop: `1px solid ${tokens.color.border}`,
+              fontSize: 12,
+              color: tokens.color.textMuted,
+            }}
+          >
+            Full veiledning fra Tripletex:{' '}
+            <a
+              href="https://hjelp.tripletex.no/hc/no/articles/4409557117841"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={linkStyle}
+            >
+              hjelp.tripletex.no <ExternalLink size={11} style={{ verticalAlign: 'middle' }} />
+            </a>
           </div>
         </div>
 
-        {/* Direkte API kommer */}
-        <div
-          style={{
-            ...cardStyle,
-            background: tokens.color.blueSoft,
-            borderColor: tokens.color.blue,
-          }}
-        >
+        {/* CSV-alternativ fortsatt tilgjengelig */}
+        <div style={{ ...cardStyle, background: tokens.color.blueSoft, borderColor: tokens.color.blue }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
             <div
               style={{
@@ -242,19 +288,15 @@ export default function TripletexPage() {
             </div>
             <div>
               <h3 style={{ fontSize: 15, fontWeight: 600, color: tokens.color.navy, marginBottom: 4 }}>
-                Direkte API-integrasjon kommer
+                Foretrekker du CSV-eksport?
               </h3>
               <p style={{ fontSize: 13, color: tokens.color.text, lineHeight: 1.5 }}>
-                Når du har koblet til Tripletex/Fiken via OAuth, sender Sakspilot
-                fakturagrunnlaget direkte uten manuell CSV-import. Vi venter på
-                godkjenning av Sakspilot-appen hos Tripletex (~ 2-4 uker etter første
-                pilot-kunde). <strong>Vil du varsles?</strong>{' '}
-                <a
-                  href="mailto:helene@helene.cloud?subject=Tripletex-integrasjon%20-%20vil%20bli%20varslet"
-                  style={{ color: tokens.color.navy, fontWeight: 500 }}
-                >
-                  Send oss en e-post
-                </a>.
+                Du kan fortsatt eksportere månedsrapport som CSV og importere
+                manuelt i Tripletex —{' '}
+                <Link href="/rapport" style={linkStyle}>
+                  åpne rapport-siden
+                </Link>
+                .
               </p>
             </div>
           </div>
@@ -264,24 +306,199 @@ export default function TripletexPage() {
   );
 }
 
+// ── Connected card ────────────────────────────────────────────────
+
+function ConnectedCard({
+  status,
+  onDisconnect,
+  busy,
+}: {
+  status: TripletexStatus;
+  onDisconnect: () => void;
+  busy: boolean;
+}) {
+  return (
+    <div style={cardStyle}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+        <div
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: tokens.radius.md,
+            background: tokens.color.greenSoft,
+            color: tokens.color.green,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <Receipt size={24} strokeWidth={2.5} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={accountInfoStyle}>
+            <div>
+              <strong>{status.companyName}</strong>
+              {status.useTestEnv && (
+                <span
+                  style={{
+                    marginLeft: 8,
+                    fontSize: 11,
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    background: tokens.color.yellowSoft,
+                    color: '#8B6F00',
+                    fontWeight: 600,
+                  }}
+                >
+                  TEST-MILJØ
+                </span>
+              )}
+            </div>
+            <div style={{ fontSize: 12, color: tokens.color.textMuted, marginTop: 2 }}>
+              Bruker: {status.employeeName}
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                gap: 24,
+                marginTop: 10,
+                paddingTop: 10,
+                borderTop: `1px solid ${tokens.color.border}`,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 11, color: tokens.color.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Fakturaer pushet
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: tokens.color.navy }}>
+                  {status.invoicesPushed ?? 0}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: tokens.color.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Timesheet-entries
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: tokens.color.navy }}>
+                  {status.hoursPushed ?? 0}
+                </div>
+              </div>
+              {status.lastVerifiedAt && (
+                <div>
+                  <div style={{ fontSize: 11, color: tokens.color.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    Sist brukt
+                  </div>
+                  <div style={{ fontSize: 13, color: tokens.color.text }}>
+                    {new Date(status.lastVerifiedAt).toLocaleString('nb-NO')}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <a
+              href={
+                status.useTestEnv
+                  ? 'https://api-test.tripletex.tech'
+                  : 'https://tripletex.no'
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                ...primaryBtn,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <ExternalLink size={14} /> Åpne Tripletex
+            </a>
+            <button onClick={onDisconnect} disabled={busy} style={secondaryBtn}>
+              <Unlink size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              Koble fra
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Connect form ──────────────────────────────────────────────────
+
+function ConnectForm({
+  employeeToken,
+  setEmployeeToken,
+  useTestEnv,
+  setUseTestEnv,
+  busy,
+  onConnect,
+}: {
+  employeeToken: string;
+  setEmployeeToken: (s: string) => void;
+  useTestEnv: boolean;
+  setUseTestEnv: (b: boolean) => void;
+  busy: boolean;
+  onConnect: () => void;
+}) {
+  return (
+    <div style={cardStyle}>
+      <h2 style={{ fontSize: 18, color: tokens.color.navy, marginBottom: 12 }}>
+        Koble til Tripletex
+      </h2>
+      <div style={{ display: 'grid', gap: 10, marginBottom: 12 }}>
+        <input
+          type="password"
+          value={employeeToken}
+          onChange={(e) => setEmployeeToken(e.target.value)}
+          placeholder="EmployeeToken (limes inn fra Tripletex)"
+          style={inputStyle}
+          autoComplete="off"
+        />
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 13,
+            color: tokens.color.textMuted,
+            cursor: 'pointer',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={useTestEnv}
+            onChange={(e) => setUseTestEnv(e.target.checked)}
+          />
+          Bruk Tripletex test-miljø (api-test.tripletex.tech)
+        </label>
+      </div>
+      <button onClick={onConnect} disabled={busy} style={ctaBtn}>
+        {busy ? 'Verifiserer…' : 'Koble til Tripletex'}
+      </button>
+    </div>
+  );
+}
+
+// ── Step ──────────────────────────────────────────────────────────
+
 function Step({
   n,
   title,
   body,
-  icon,
 }: {
   n: number;
   title: string;
   body: React.ReactNode;
-  icon?: React.ReactNode;
 }) {
   return (
-    <div style={{ display: 'flex', gap: 14, marginBottom: 16, alignItems: 'flex-start' }}>
+    <div style={{ display: 'flex', gap: 14, marginBottom: 12, alignItems: 'flex-start' }}>
       <div
         style={{
-          width: 32,
-          height: 32,
-          borderRadius: 16,
+          width: 28,
+          height: 28,
+          borderRadius: 14,
           background: tokens.gradient.navy,
           color: 'white',
           fontWeight: 700,
@@ -292,13 +509,13 @@ function Step({
           flexShrink: 0,
         }}
       >
-        {icon || n}
+        {n}
       </div>
-      <div style={{ flex: 1, paddingTop: 4 }}>
-        <div style={{ fontWeight: 600, color: tokens.color.navy, marginBottom: 4 }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 600, color: tokens.color.navy, marginBottom: 2 }}>
           {title}
         </div>
-        <div style={{ fontSize: 14, color: tokens.color.textMuted, lineHeight: 1.6 }}>
+        <div style={{ fontSize: 13, color: tokens.color.textMuted, lineHeight: 1.5 }}>
           {body}
         </div>
       </div>
@@ -306,39 +523,7 @@ function Step({
   );
 }
 
-function ColumnMap({ mapping }: { mapping: [string, string][] }) {
-  return (
-    <table
-      style={{
-        width: '100%',
-        marginTop: 8,
-        borderCollapse: 'collapse',
-        fontSize: 13,
-        background: tokens.color.bgAlt,
-        borderRadius: tokens.radius.sm,
-        overflow: 'hidden',
-      }}
-    >
-      <thead>
-        <tr>
-          <th style={mapThStyle}>Sakspilot CSV-kolonne</th>
-          <th style={mapThStyle}>Tripletex-felt</th>
-        </tr>
-      </thead>
-      <tbody>
-        {mapping.map(([a, b]) => (
-          <tr key={a}>
-            <td style={mapTdStyle}>
-              <Check size={12} style={{ verticalAlign: 'middle', marginRight: 4, color: tokens.color.green }} />
-              {a}
-            </td>
-            <td style={mapTdStyle}>→ {b}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
+// ── Styles ────────────────────────────────────────────────────────
 
 const cardStyle: React.CSSProperties = {
   background: tokens.color.white,
@@ -349,6 +534,57 @@ const cardStyle: React.CSSProperties = {
   boxShadow: tokens.shadow.sm,
 };
 
+const inputStyle: React.CSSProperties = {
+  padding: '10px 12px',
+  border: `1px solid ${tokens.color.border}`,
+  borderRadius: tokens.radius.sm,
+  fontSize: 14,
+  fontFamily: 'inherit',
+  width: '100%',
+};
+
+const accountInfoStyle: React.CSSProperties = {
+  padding: 14,
+  background: tokens.color.bgAlt,
+  borderRadius: tokens.radius.md,
+  fontSize: 14,
+  lineHeight: 1.5,
+};
+
+const ctaBtn: React.CSSProperties = {
+  padding: '10px 20px',
+  background: tokens.gradient.blue,
+  color: 'white',
+  border: 'none',
+  borderRadius: tokens.radius.md,
+  fontWeight: 600,
+  fontSize: 14,
+  cursor: 'pointer',
+  boxShadow: tokens.shadow.colored('#0086CC'),
+};
+
+const primaryBtn: React.CSSProperties = {
+  padding: '8px 16px',
+  background: tokens.color.navy,
+  color: 'white',
+  border: 'none',
+  borderRadius: tokens.radius.sm,
+  fontWeight: 600,
+  fontSize: 13,
+  cursor: 'pointer',
+};
+
+const secondaryBtn: React.CSSProperties = {
+  padding: '8px 16px',
+  background: 'transparent',
+  color: tokens.color.red,
+  border: `1px solid ${tokens.color.red}`,
+  borderRadius: tokens.radius.sm,
+  fontWeight: 500,
+  fontSize: 13,
+  cursor: 'pointer',
+};
+
 const linkStyle: React.CSSProperties = {
   color: tokens.color.navy,
   fontWeight: 500,
@@ -356,23 +592,19 @@ const linkStyle: React.CSSProperties = {
   textUnderlineOffset: 2,
 };
 
-const codeStyle: React.CSSProperties = {
-  fontFamily: tokens.font.mono,
-  fontSize: 12,
-  background: tokens.color.bgAlt,
-  padding: '1px 6px',
-  borderRadius: 4,
-};
-
-const mapThStyle: React.CSSProperties = {
-  padding: '8px 12px',
-  textAlign: 'left',
-  fontWeight: 600,
-  color: tokens.color.navy,
-  borderBottom: `1px solid ${tokens.color.border}`,
-};
-
-const mapTdStyle: React.CSSProperties = {
-  padding: '8px 12px',
-  color: tokens.color.text,
-};
+function badgeStyle(): React.CSSProperties {
+  return {
+    fontSize: 11,
+    fontWeight: 700,
+    padding: '4px 10px',
+    borderRadius: tokens.radius.pill,
+    background: tokens.color.greenSoft,
+    color: tokens.color.green,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginLeft: 8,
+  };
+}
