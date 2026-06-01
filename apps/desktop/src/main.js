@@ -70,6 +70,11 @@ let reminderTimer = null;
 let workSessionActive = false;
 let workSessionStart = null;
 let workSessionSessions = [];   // sessions samlet i pågående arbeidsøkt
+// Pause-tracking: total tid (ms) i pause i denne arbeidsøkten, og
+// timestamp for når nåværende pause startet (null hvis ikke i pause).
+// Brukes for å vise REELL arbeidstid i widget — ekskl. pauser.
+let workSessionPausedTotalMs = 0;
+let workSessionPausedAt = null;
 const pendingSessions = [];     // sessions klare for sync til backend
 let deviceId = null;            // stabil per installasjon
 
@@ -427,6 +432,8 @@ function startWorkSession(opts = {}) {
   workSessionActive = true;
   workSessionStart = Date.now();
   workSessionSessions = [];
+  workSessionPausedTotalMs = 0;
+  workSessionPausedAt = null;
   poller.resume();
   updateTrayMenu();
   if (!opts.silent) {
@@ -570,9 +577,16 @@ async function stopWorkSession() {
 function togglePause() {
   if (!poller) return;
   if (poller.paused) {
+    // Fortsetter — legg til varigheten av forrige pause til totalen
+    if (workSessionPausedAt) {
+      workSessionPausedTotalMs += Date.now() - workSessionPausedAt;
+      workSessionPausedAt = null;
+    }
     poller.resume();
     notify('Sakspilot', 'Logging er på igjen');
   } else {
+    // Pauser — registrer når pausen startet
+    workSessionPausedAt = Date.now();
     poller.pause();
     notify('Sakspilot', 'Logging pauset (arbeidsøkt fortsetter)');
   }
@@ -1117,6 +1131,11 @@ ipcMain.handle('agent:status', () => {
     active: workSessionActive,
     paused: !!pollerStatus.paused,
     startedAt: workSessionStart ? new Date(workSessionStart).getTime() : null,
+    // Pause-tracking — widget bruker disse til å beregne REELL arbeidstid
+    // (ekskl. pauser). pausedTotalMs = sum av tidligere fullførte pauser.
+    // pausedAt = timestamp for nåværende pause hvis paused, ellers null.
+    pausedTotalMs: workSessionPausedTotalMs,
+    pausedAt: workSessionPausedAt,
     sessionCount: workSessionSessions.length,
     pendingCount: pendingSessions.length,
     // Auto-track-state for web-widgeten

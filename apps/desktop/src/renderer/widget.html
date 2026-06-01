@@ -107,7 +107,11 @@
 
     if (state.active && state.startedAt) {
       $('time').style.display = 'block';
-      $('time').textContent = fmt(now - state.startedAt);
+      // Reell arbeidstid = totalt forløpt - tidligere pauser - nåværende pause
+      // (hvis vi er i pause akkurat nå, fryser klokken effektivt).
+      const pausedNowMs = state.pausedAt ? (now - state.pausedAt) : 0;
+      const elapsedMs = now - state.startedAt - (state.pausedTotalMs || 0) - pausedNowMs;
+      $('time').textContent = fmt(Math.max(0, elapsedMs));
     } else {
       $('time').style.display = 'none';
     }
