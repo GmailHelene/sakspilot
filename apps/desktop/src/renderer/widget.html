@@ -116,12 +116,12 @@
       $('time').style.display = 'none';
     }
 
+    // Vi viser kun antall sessions — sync skjer automatisk i bakgrunnen og
+    // bruker trenger ikke tenke på det. Hvis sync feiler, vises egen
+    // notification fra main.js.
     let meta = '';
     if (state.active && state.sessionCount > 0) {
       meta = state.sessionCount + ' sessions logget';
-      if (state.pendingCount > 0) meta += ' · ' + state.pendingCount + ' venter på sync';
-    } else if (state.pendingCount > 0) {
-      meta = state.pendingCount + ' venter på sync';
     }
     $('meta').textContent = meta;
     $('meta').style.display = meta ? 'block' : 'none';

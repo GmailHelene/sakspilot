@@ -63,7 +63,13 @@ const AgentSessionSchema = z.object({
   app: z.string().max(255).optional(),
   title: z.string().max(1000).optional(),
   sakId: z.string().uuid().nullable().optional(),
-  matchedOn: z.enum(["title", "path", "app", "email"]).nullable().optional(),
+  // matchedOn — utvidet med "auto-track" + "active-sak" fra auto-spor-flyten
+  // (Sakspilot-snarveier som åpnes via Launcher) og fallback-attribusjon når
+  // ingen matching-regel matcher men "aktiv sak" er satt.
+  matchedOn: z
+    .enum(["title", "path", "app", "email", "auto-track", "active-sak"])
+    .nullable()
+    .optional(),
   deviceId: z.string().max(120).optional(),
 });
 

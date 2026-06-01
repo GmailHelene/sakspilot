@@ -174,6 +174,10 @@ function initializeAgent() {
         workSessionSessions.push(sess);
       }
       pendingSessions.push(sess);
+      // Trigg sync umiddelbart (ikke vent på timer-intervall) — gjør at
+      // rapport-siden alltid har ferskeste data. Hvis sync feiler legges
+      // sessions tilbake og prøves igjen ved neste tick.
+      syncSessions();
     });
 
     poller.on('error', (err) => console.error('[Poller] feil:', err.message));
@@ -676,7 +680,10 @@ async function syncSessions() {
 
 function scheduleSync() {
   if (syncTimer) clearInterval(syncTimer);
-  syncTimer = setInterval(syncSessions, 5 * 60 * 1000);
+  // Sync hvert 30. sek — alle endringer trender naturlig mot å være synket
+  // innen et halvt minutt. Lavere tall ville hamre på API-en når ingenting
+  // er nytt; sync-funksjonen er allerede no-op ved tom kø.
+  syncTimer = setInterval(syncSessions, 30 * 1000);
 }
 
 function scheduleRulesRefresh() {
