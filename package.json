@@ -17,7 +17,8 @@
     "db:generate": "npm run generate --workspace=packages/db",
     "db:push": "npm run push --workspace=packages/db",
     "db:migrate": "npm run migrate --workspace=packages/db",
-    "db:studio": "npm run studio --workspace=packages/db"
+    "db:studio": "npm run studio --workspace=packages/db",
+    "db:seed-personal": "npm run seed-personal --workspace=packages/db"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

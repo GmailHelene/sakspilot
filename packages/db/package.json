@@ -9,12 +9,15 @@
     "migrate": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
     "studio": "prisma studio",
-    "format": "prisma format"
+    "format": "prisma format",
+    "seed-personal": "prisma generate && tsx prisma/seed-personal-projects.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.14.0"
   },
   "devDependencies": {
-    "prisma": "^5.14.0"
+    "prisma": "^5.14.0",
+    "tsx": "^4.7.0",
+    "@types/node": "^20.10.0"
   }
 }

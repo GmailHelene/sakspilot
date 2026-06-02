@@ -6,11 +6,12 @@ DENNE UKA (kritisk)
 - [ ] Post på LinkedIn (docs/linkedin-post.md, versjon A — founder-story)
 - [ ] Post i WordPress Norge FB-gruppe (docs/post-fb-wp-norge.md)
 - [ ] Sjekk at /last-ned faktisk laster ned siste exe (versjonsløs URL)
-- [ ] Rotér Fiken Client Secret + Brevo SMTP-key (begge ble delt i chat)
 - [ ] Test demo-video på sakspilot.no (er nå live, 65 MB)
 - [ ] Test ny Sakspilot.exe (pomodoro, voice notes, alle nye features)
 
+
 FERDIG SISTE UKE (29. mai - 1. juni)
+- Tripletex testintegrasjon er OK
 - [x] Brevo SMTP for glemt-passord
 - [x] Sentry aktivert (EU-region)
 - [x] Auto-spor (én bryter)

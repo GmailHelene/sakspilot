@@ -282,9 +282,16 @@ function openPersonalCloudHub() {
 
 // ── Tray ────────────────────────────────────────────────────────
 function createTray() {
-  const iconPath = path.join(__dirname, '..', 'assets', 'tray-icon.png');
+  // macOS menubar bruker template-ikon (svart silhuett på transparent
+  // bakgrunn). macOS auto-tinter det basert på lys/mørk meny-bar.
+  // Filnavnet MÅ ende på "Template.png" så Electron aktiverer dette.
+  // Windows/Linux bruker det vanlige fargeikonet vårt.
+  const iconFile = process.platform === 'darwin'
+    ? 'tray-iconTemplate.png'
+    : 'tray-icon.png';
+  const iconPath = path.join(__dirname, '..', 'assets', iconFile);
   if (!fs.existsSync(iconPath)) {
-    console.error('Tray-ikon mangler. Kjør "npm install" eller "node scripts/generate-icon.js"');
+    console.error(`Tray-ikon mangler (${iconFile}). Kjør "npm install" eller "node scripts/generate-icon.js"`);
     app.quit();
     return;
   }

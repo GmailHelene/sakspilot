@@ -179,3 +179,69 @@ console.log('✓ icon.png (256x256 hovedikon)');
     console.warn('   .exe vil falle tilbake til Electron-default-ikon i taskbar.');
   }
 })();
+
+// ── macOS .icns + template tray-ikon ──────────────────────────
+// .icns er Apples ikon-format for app-bundles (.app/Contents/Resources/).
+// Bruker png2icons (zero-deps, fungerer cross-platform — vi trenger
+// IKKE å bygge på Mac for å generere .icns).
+(async () => {
+  try {
+    const png2icons = require('png2icons');
+    // Bruk vårt 1024x1024-ekvivalent som kilde (skalert opp fra 256)
+    // for å gi Apple full retina-oppløsning. png2icons skalerer ned
+    // til alle nødvendige varianter (16, 32, 64, 128, 256, 512, 1024).
+    const source1024 = createSakspilotIconPNG(1024);
+    const icnsBuffer = png2icons.createICNS(source1024, png2icons.BILINEAR, 0);
+    if (icnsBuffer) {
+      fs.writeFileSync(path.join(outDir, 'icon.icns'), icnsBuffer);
+      console.log(`✓ icon.icns (${icnsBuffer.length} bytes)`);
+    } else {
+      console.warn('⚠  png2icons.createICNS returnerte null — hopper over icon.icns');
+    }
+  } catch (err) {
+    console.warn('⚠  Kunne ikke generere icon.icns:', err.message);
+    console.warn('   .app-bundlet faller tilbake til icon.png — fungerer, men ser litt fast ut i Dock.');
+  }
+})();
+
+// macOS menubar template-ikon: svart silhuett på transparent bakgrunn.
+// Når filnavnet ender på "Template.png" auto-tinter macOS det basert på
+// lys/mørk meny-bar (hvit på mørk modus, svart på lys modus). Uten
+// dette får vi en knall navy/charcoal firkant som ikke matcher menubaren.
+function createTemplateIconPNG(size) {
+  // Samme S-form, men: svart der det er S, transparent ellers
+  const pixels = Buffer.alloc(size * size * 4);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const px = (y * size + x) * 4;
+      const color = pickColor(x, y, size);
+      // Hvis pikselen er hvit (S-formen), gjør den svart-på-opaque.
+      // Hvis navy (bakgrunn), gjør den 100% transparent.
+      const isSPart = color === WHITE;
+      pixels[px] = 0;
+      pixels[px + 1] = 0;
+      pixels[px + 2] = 0;
+      pixels[px + 3] = isSPart ? 255 : 0;
+    }
+  }
+  const filtered = Buffer.alloc(size * (1 + size * 4));
+  for (let y = 0; y < size; y++) {
+    const inOff = y * size * 4;
+    const outOff = y * (1 + size * 4);
+    filtered[outOff] = 0;
+    pixels.copy(filtered, outOff + 1, inOff, inOff + size * 4);
+  }
+  return buildPNG(size, size, filtered);
+}
+
+// Skriv template-ikoner — main.js skal bruke disse på darwin (se TODO der).
+// Vanlig 16x16 + retina 32x32 (@2x suffix er Apples konvensjon).
+fs.writeFileSync(
+  path.join(outDir, 'tray-iconTemplate.png'),
+  createTemplateIconPNG(16)
+);
+fs.writeFileSync(
+  path.join(outDir, 'tray-iconTemplate@2x.png'),
+  createTemplateIconPNG(32)
+);
+console.log('✓ tray-iconTemplate.png + @2x (macOS menubar)');

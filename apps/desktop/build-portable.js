@@ -7,15 +7,19 @@
  * bugger som har stoppet både electron-builder og @electron/packager.
  *
  * Usage:
- *   node build-portable.js                     # current platform, x64
- *   node build-portable.js --platform=darwin   # macOS x64
- *   node build-portable.js --platform=darwin --arch=arm64   # Apple Silicon
- *   node build-portable.js --platform=linux    # Linux x64 (.tar.gz)
+ *   node build-portable.js                          # current platform, x64
+ *   node build-portable.js --platform=darwin                # macOS Intel
+ *   node build-portable.js --platform=darwin --arch=arm64   # Apple Silicon (M1/M2/M3)
+ *   node build-portable.js --platform=linux                 # Linux x64 (.tar.gz)
  *
  * Output:
  *   Windows:  release/Sakspilot-win32-x64/Sakspilot.exe + .zip
- *   macOS:    release/Sakspilot-darwin-x64/Sakspilot.app + .zip
+ *   macOS:    release/Sakspilot-darwin-{arch}/Sakspilot.app + .zip + .dmg*
  *   Linux:    release/Sakspilot-linux-x64/Sakspilot + .tar.gz
+ *
+ *   * .dmg lages bare når host-OS er macOS (krever hdiutil — Apple-only).
+ *     På Windows/Linux-host kan vi bygge .app + .zip cross-platform, men
+ *     må kjøre GitHub Actions macos-latest for å få .dmg.
  */
 const path = require('node:path');
 const fs = require('node:fs');
@@ -286,7 +290,8 @@ async function main() {
   const readmeContent = makeReadme(pkg.version);
   fs.writeFileSync(path.join(appDir, 'LES-MEG-FØRST.txt'), readmeContent);
 
-  // Arkiv-navn følger plattform: .zip for Windows/Mac, .tar.gz for Linux
+  // Arkiv-navn følger plattform: .zip for Windows/Mac, .tar.gz for Linux.
+  // På mac lager vi BÅDE .zip OG .dmg (sistnevnte krever Mac-host pga hdiutil).
   const archiveExt = IS_LINUX ? 'tar.gz' : 'zip';
   const archiveName = `Sakspilot-${pkg.version}-${PLATFORM_LABEL}-${BUILD.arch}.${archiveExt}`;
   const archivePath = path.join(RELEASE_DIR, archiveName);
@@ -299,6 +304,30 @@ async function main() {
   }
   const archiveSize = (fs.statSync(archivePath).size / 1024 / 1024).toFixed(1);
   console.log(`      ✓ ${archiveName} (${archiveSize} MB)`);
+
+  // ── .dmg-bygging (kun macOS-host) ─────────────────────────
+  // hdiutil er innebygd i macOS — finnes ikke på Windows/Linux.
+  // GitHub Actions matrix kjører dette steget på macos-latest runner.
+  // En .dmg gir Mac-brukere drag-to-Applications-vinduet de forventer
+  // og er den de facto standarden for Mac-distribusjon.
+  if (IS_MAC && process.platform === 'darwin') {
+    const dmgName = `Sakspilot-${pkg.version}-${PLATFORM_LABEL}-${BUILD.arch}.dmg`;
+    const dmgPath = path.join(RELEASE_DIR, dmgName);
+    try {
+      await buildDmg({
+        appPath: execPath,         // /path/to/Sakspilot.app
+        dmgPath,
+        volumeName: `Sakspilot ${pkg.version}`,
+      });
+      const dmgSize = (fs.statSync(dmgPath).size / 1024 / 1024).toFixed(1);
+      console.log(`      ✓ ${dmgName} (${dmgSize} MB)`);
+    } catch (err) {
+      console.warn(`      ⚠ .dmg-bygging feilet (ikke fatal): ${err.message}`);
+      console.warn(`        Brukere kan fortsatt installere via .zip-en.`);
+    }
+  } else if (IS_MAC) {
+    console.log(`      ⓘ .dmg hoppes over — krever macOS-host (hdiutil). Bygg via GitHub Actions for å få .dmg.`);
+  }
 
   // ── Steg 6: rydd temp ─────────────────────────────────────
   step(6, 6, 'Rydder temp-mappe...');
@@ -456,6 +485,48 @@ function zipDirectory(sourceDir, outPath) {
     archive.directory(sourceDir, 'Sakspilot');
     archive.finalize();
   });
+}
+
+/**
+ * Bygg .dmg-fil ved hjelp av hdiutil (Apple-only).
+ *
+ * Strategi: lag en midlertidig mappe som inneholder bare Sakspilot.app +
+ * en symlink til /Applications (standard Mac drag-to-install-pattern),
+ * og kjør hdiutil create på den.
+ *
+ * Resultat: når brukeren åpner .dmg-en får de et vindu med Sakspilot.app
+ * til venstre og en "Applications"-snarvei til høyre. De drar ikonet over.
+ *
+ * @param {Object} opts
+ * @param {string} opts.appPath    Absolutt path til Sakspilot.app
+ * @param {string} opts.dmgPath    Hvor .dmg-en skal skrives
+ * @param {string} opts.volumeName Vises som vindustittel når brukeren mounter
+ */
+async function buildDmg({ appPath, dmgPath, volumeName }) {
+  const stagingDir = path.join(os.tmpdir(), 'sakspilot-dmg-staging-' + Date.now());
+  fs.mkdirSync(stagingDir, { recursive: true });
+
+  try {
+    // Kopier (rsync bevarer symlinks + permissions i .app-bundlet)
+    execSync(`cp -R "${appPath}" "${stagingDir}/"`, { stdio: 'inherit' });
+
+    // Symlink til /Applications så brukeren bare drar over
+    fs.symlinkSync('/Applications', path.join(stagingDir, 'Applications'));
+
+    // Slett gammel .dmg om den finnes (hdiutil feiler ellers)
+    if (fs.existsSync(dmgPath)) fs.unlinkSync(dmgPath);
+
+    // -format UDZO = komprimert (zlib). UDRW = read/write (større, ikke nødvendig).
+    // -volname blir vindustittelen i Finder.
+    // Hvis vi senere vil ha bakgrunnsbilde + ikon-posisjoner: legg til
+    // create-dmg eller appdmg som dep. Foreløpig: minimalistisk drag-vindu.
+    execSync(
+      `hdiutil create -volname "${volumeName}" -srcfolder "${stagingDir}" -ov -format UDZO "${dmgPath}"`,
+      { stdio: 'inherit' }
+    );
+  } finally {
+    try { fs.rmSync(stagingDir, { recursive: true, force: true }); } catch {}
+  }
 }
 
 function tarGzDirectory(sourceDir, outPath) {

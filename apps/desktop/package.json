@@ -34,7 +34,8 @@
     "@electron/packager": "^18.3.6",
     "electron": "^30.5.1",
     "electron-builder": "^25.0.5",
-    "png-to-ico": "^3.0.1"
+    "png-to-ico": "^3.0.1",
+    "png2icons": "^2.0.1"
   },
   "build": {
     "appId": "no.helene.sakspilot",
