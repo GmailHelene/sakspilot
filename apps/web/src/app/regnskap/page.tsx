@@ -15,8 +15,8 @@
 import { useEffect, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
-import { api } from '@/lib/api';
-import { Plus, X, Trash2 } from 'lucide-react';
+import { api, downloadPdf } from '@/lib/api';
+import { Plus, X, Trash2, FileDown } from 'lucide-react';
 
 interface Utgift {
   id: string;
@@ -112,11 +112,19 @@ export default function RegnskapPage() {
               Forenklet kontant-oversikt. For komplett bokføring eksporter til Fiken via Innstillinger.
             </p>
           </div>
-          <select value={year} onChange={(e) => setYear(parseInt(e.target.value))} style={selectStyle}>
-            {[currentYear, currentYear - 1, currentYear - 2].map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              onClick={() => downloadPdf(`/pdf-reports/regnskap?year=${year}`, `regnskap-${year}.pdf`).catch((e) => setError(e.message))}
+              style={{ ...btnStyle, background: '#f1f5f9', color: '#334155', display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              <FileDown size={14} /> PDF
+            </button>
+            <select value={year} onChange={(e) => setYear(parseInt(e.target.value))} style={selectStyle}>
+              {[currentYear, currentYear - 1, currentYear - 2].map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {error && <div style={errBox}>{error}</div>}

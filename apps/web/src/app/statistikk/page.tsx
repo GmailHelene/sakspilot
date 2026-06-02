@@ -19,7 +19,8 @@
 import { useEffect, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
-import { api } from '@/lib/api';
+import { api, downloadPdf } from '@/lib/api';
+import { FileDown } from 'lucide-react';
 
 interface ForesporselSummary {
   foresporsler: Array<{
@@ -122,11 +123,23 @@ export default function StatistikkPage() {
               Tverrgående KPIer for virksomheten din.
             </p>
           </div>
-          <select value={year} onChange={(e) => setYear(parseInt(e.target.value))} style={selectStyle}>
-            {[currentYear, currentYear - 1, currentYear - 2].map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              onClick={() => downloadPdf(`/pdf-reports/statistikk?year=${year}`, `statistikk-${year}.pdf`).catch((e) => setError(e.message))}
+              style={{
+                padding: '6px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600,
+                background: '#f1f5f9', color: '#334155', border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 6,
+              }}
+            >
+              <FileDown size={14} /> PDF
+            </button>
+            <select value={year} onChange={(e) => setYear(parseInt(e.target.value))} style={selectStyle}>
+              {[currentYear, currentYear - 1, currentYear - 2].map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {error && <div style={errBox}>{error}</div>}

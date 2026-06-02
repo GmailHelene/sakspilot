@@ -59,6 +59,9 @@ export default function ForesporslerPage() {
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<Foresporsel | null>(null);
   const [includeArchived, setIncludeArchived] = useState(false);
+  // DnD-state: hvilken kolonne kortet hovrer over (for visuell feedback).
+  // dragOverStatus settes på dragEnter + tømmes på dragLeave/drop.
+  const [dragOverStatus, setDragOverStatus] = useState<Status | null>(null);
 
   async function load() {
     try {
@@ -77,6 +80,52 @@ export default function ForesporslerPage() {
     await api(`/foresporsler/${id}`, { method: 'PATCH', body: { status: newStatus } });
     load();
     setSelected(null);
+  }
+
+  // ── Drag-and-drop ────────────────────────────────────────
+  // Optimistisk oppdatering: vi flytter kortet visuelt umiddelbart,
+  // sender PATCH i bakgrunn, og rull tilbake hvis API feiler.
+  function onDragStart(e: React.DragEvent, foresporsel: Foresporsel) {
+    e.dataTransfer.setData('text/plain', foresporsel.id);
+    e.dataTransfer.effectAllowed = 'move';
+  }
+
+  function onDragOver(e: React.DragEvent, status: Status) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverStatus(status);
+  }
+
+  function onDragLeave() {
+    setDragOverStatus(null);
+  }
+
+  async function onDrop(e: React.DragEvent, newStatus: Status) {
+    e.preventDefault();
+    setDragOverStatus(null);
+    const id = e.dataTransfer.getData('text/plain');
+    if (!id || !data) return;
+
+    const f = data.foresporsler.find((x) => x.id === id);
+    if (!f || f.status === newStatus) return;
+
+    // Optimistisk: oppdater UI nå
+    const oldStatus = f.status;
+    setData({
+      ...data,
+      foresporsler: data.foresporsler.map((x) => (x.id === id ? { ...x, status: newStatus } : x)),
+    });
+
+    try {
+      await api(`/foresporsler/${id}`, { method: 'PATCH', body: { status: newStatus } });
+      load(); // re-fetch for å få oppdatert closedAt og countsByStatus
+    } catch (err) {
+      // Roll-back ved feil
+      setData((d) =>
+        d ? { ...d, foresporsler: d.foresporsler.map((x) => (x.id === id ? { ...x, status: oldStatus } : x)) } : d
+      );
+      setError(err instanceof Error ? err.message : 'Kunne ikke endre status');
+    }
   }
 
   async function convertToClient(f: Foresporsel) {
@@ -138,8 +187,22 @@ export default function ForesporslerPage() {
               const meta = STATUS_META[s];
               const items = byStatus[s];
               if (s === 'arkivert' && !includeArchived) return null;
+              const isDropTarget = dragOverStatus === s;
               return (
-                <div key={s} style={{ background: '#f8fafc', borderRadius: 12, padding: 12, minHeight: 200 }}>
+                <div
+                  key={s}
+                  onDragOver={(e) => onDragOver(e, s)}
+                  onDragLeave={onDragLeave}
+                  onDrop={(e) => onDrop(e, s)}
+                  style={{
+                    background: isDropTarget ? '#dbeafe' : '#f8fafc',
+                    borderRadius: 12,
+                    padding: 12,
+                    minHeight: 200,
+                    border: isDropTarget ? '2px dashed #3b82f6' : '2px dashed transparent',
+                    transition: 'background 0.15s, border 0.15s',
+                  }}
+                >
                   <div style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     marginBottom: 10, padding: '4px 6px',
@@ -153,17 +216,21 @@ export default function ForesporslerPage() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {items.length === 0 && (
                       <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: 16 }}>
-                        Ingen
+                        {isDropTarget ? 'Slipp her' : 'Ingen'}
                       </div>
                     )}
                     {items.map((f) => (
-                      <button
+                      <div
                         key={f.id}
+                        draggable
+                        onDragStart={(e) => onDragStart(e, f)}
                         onClick={() => setSelected(f)}
+                        title="Dra til en annen kolonne for å endre status, eller klikk for detaljer"
                         style={{
                           background: 'white', border: '1px solid #e2e8f0',
-                          borderRadius: 8, padding: 10, textAlign: 'left', cursor: 'pointer',
+                          borderRadius: 8, padding: 10, textAlign: 'left', cursor: 'grab',
                           display: 'flex', flexDirection: 'column', gap: 4,
+                          userSelect: 'none',
                         }}
                       >
                         <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{f.name}</div>
@@ -181,7 +248,7 @@ export default function ForesporslerPage() {
                         {f.source && (
                           <div style={{ fontSize: 10, color: '#94a3b8' }}>Kilde: {f.source}</div>
                         )}
-                      </button>
+                      </div>
                     ))}
                   </div>
                 </div>

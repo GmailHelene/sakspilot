@@ -148,6 +148,85 @@ router.get("/:id", async (req: Request, res: Response) => {
   return res.json(invoice);
 });
 
+/**
+ * POST /invoices
+ * Opprett en manuell faktura med linjer. Status settes alltid til 'draft'
+ * — eksport til Fiken/Tripletex skjer separat via /accounting eller /tripletex.
+ *
+ * Validering:
+ *   - Linjer kreves (min 1, sum > 0 ikke krevd — kreditnota har negative beløp)
+ *   - Hvis sakId er satt, valideres at saken tilhører organisasjonen
+ *   - Hvis sakId IKKE er satt, MÅ customerName settes
+ */
+router.post("/", async (req: Request, res: Response) => {
+  const parsed = CreateInvoiceSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: "Ugyldig input",
+      details: parsed.error.flatten().fieldErrors,
+    });
+  }
+  const d = parsed.data;
+  const session = req.session!;
+
+  if (!d.sakId && !d.customerName) {
+    return res.status(400).json({
+      error: "Enten sakId eller customerName må settes (kan ikke ha faktura uten mottaker)",
+    });
+  }
+
+  // Hvis sakId: verifiser at saken finnes i denne org
+  if (d.sakId) {
+    const sak = await prisma.sak.findFirst({
+      where: { id: d.sakId, organizationId: session.organizationId },
+      select: { id: true },
+    });
+    if (!sak) return res.status(400).json({ error: "Sak ikke funnet i din organisasjon" });
+  }
+
+  // Beregn totaler fra linjer
+  const totalAmount = d.lineItems.reduce((s, li) => s + li.unitPrice * li.quantity, 0);
+  // Hvis alle linjer er beskrevet som timer (heuristikk: quantity er antall timer),
+  // bruker vi det. Ellers er totalHours bare en informasjons-aggregering.
+  const totalHours = d.lineItems.reduce((s, li) => s + li.quantity, 0);
+
+  const invoice = await prisma.invoice.create({
+    data: {
+      organizationId: session.organizationId,
+      sakId: d.sakId ?? null,
+      customerName: d.customerName ?? null,
+      customerAddress: d.customerAddress ?? null,
+      invoiceNumber: d.invoiceNumber ?? null,
+      periodStart: new Date(d.periodStart),
+      periodEnd: new Date(d.periodEnd),
+      dueDate: d.dueDate ? new Date(d.dueDate) : null,
+      totalHours,
+      totalAmount,
+      currency: d.currency,
+      status: "draft",
+      lineItems: d.lineItems.map((li) => ({
+        description: li.description,
+        quantity: li.quantity,
+        unitPrice: li.unitPrice,
+        sum: li.unitPrice * li.quantity,
+      })),
+      note: d.note ?? null,
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId: session.userId,
+      organizationId: session.organizationId,
+      action: "invoice.created",
+      entityType: "invoice",
+      entityId: invoice.id,
+    },
+  });
+
+  return res.status(201).json(invoice);
+});
+
 router.patch("/:id", async (req: Request, res: Response) => {
   const parsed = UpdateInvoiceSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -175,9 +254,18 @@ router.patch("/:id", async (req: Request, res: Response) => {
     });
   }
 
+  // Bygg data-objekt og konverter datofelter
+  const data: Record<string, unknown> = { ...parsed.data };
+  if (parsed.data.paidAt !== undefined) {
+    data.paidAt = parsed.data.paidAt ? new Date(parsed.data.paidAt) : null;
+  }
+  if (parsed.data.dueDate !== undefined) {
+    data.dueDate = parsed.data.dueDate ? new Date(parsed.data.dueDate) : null;
+  }
+
   const invoice = await prisma.invoice.update({
     where: { id: req.params.id },
-    data: parsed.data,
+    data,
   });
 
   await prisma.auditLog.create({

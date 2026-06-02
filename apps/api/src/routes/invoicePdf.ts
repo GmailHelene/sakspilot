@@ -440,4 +440,147 @@ router.post("/sak/:sakId", async (req: Request, res: Response) => {
   return res.send(pdfBuffer);
 });
 
+/**
+ * GET /invoice-pdf/invoice/:invoiceId
+ *
+ * Generer PDF fra en lagret Invoice-record (med lineItems).
+ * Brukes for manuelle fakturaer opprettet via /fakturaer-UI eller importert
+ * fra portal-hub. Forskjellig fra POST /sak/:sakId som genererer fra timer.
+ *
+ * Hvis lineItems mangler (gamle invoices generert via /accounting/fiken),
+ * faller vi tilbake til en aggregert linje basert på totalHours × hourlyRate.
+ */
+router.get("/invoice/:invoiceId", async (req: Request, res: Response) => {
+  const session = req.session!;
+  const invoice = await prisma.invoice.findFirst({
+    where: { id: req.params.invoiceId, organizationId: session.organizationId },
+    include: {
+      sak: { include: { client: true } },
+      organization: true,
+    },
+  });
+  if (!invoice) return res.status(404).json({ error: "Faktura ikke funnet" });
+
+  const org = invoice.organization;
+  const client = invoice.sak?.client;
+  const customerName = client?.name || invoice.customerName || "(uten kunde)";
+  const customerAddress = client?.address || invoice.customerAddress || "";
+
+  const invNum = invoice.invoiceNumber || generateInvoiceNumber();
+  const issuedAt = invoice.periodEnd;
+  const dueAt = invoice.dueDate || new Date(issuedAt.getTime() + DUE_DAYS * 86400000);
+
+  // lineItems lagres som Json — bruk type-cast for å unngå any
+  const lineItems = Array.isArray(invoice.lineItems)
+    ? (invoice.lineItems as Array<{ description: string; quantity: number; unitPrice: number; sum?: number }>)
+    : null;
+
+  const doc = new PDFDocument({
+    size: "A4", margin: 50,
+    info: { Title: `Faktura ${invNum}`, Author: org.name, Creator: "Sakspilot" },
+  });
+  const chunks: Buffer[] = [];
+  doc.on("data", (c: Buffer) => chunks.push(c));
+
+  // Header (forenklet versjon av sak-PDF)
+  doc.fontSize(18).fillColor("#1E3A5F").text(org.name, 50, 50, { width: 280 });
+  doc.fontSize(9).fillColor("#5E6C84").text(fmtOrgNumber(org.orgNumber), 50, doc.y + 2);
+  if (org.address) doc.text(org.address, 50, doc.y + 2);
+  const cityLine = [org.postalCode, org.city].filter(Boolean).join(" ");
+  if (cityLine) doc.text(cityLine, 50, doc.y + 2);
+
+  doc.fontSize(28).fillColor("#172B4D").text("FAKTURA", 350, 50, { width: 200, align: "right" });
+  doc.fontSize(10).fillColor("#172B4D")
+    .text(`Fakturanr: ${invNum}`, 350, doc.y + 6, { width: 200, align: "right" })
+    .text(`Fakturadato: ${fmtDate(issuedAt)}`, 350, doc.y + 2, { width: 200, align: "right" })
+    .text(`Forfall: ${fmtDate(dueAt)}`, 350, doc.y + 2, { width: 200, align: "right" });
+
+  let y = 180;
+  doc.fontSize(10).fillColor("#5E6C84").text("Faktura til:", 50, y);
+  y += 14;
+  doc.fontSize(12).fillColor("#172B4D").text(customerName, 50, y);
+  y = doc.y + 4;
+  if (customerAddress) {
+    doc.fontSize(9).fillColor("#5E6C84").text(customerAddress, 50, y, { width: 280 });
+    y = doc.y + 4;
+  }
+  y += 20;
+
+  // Tabell-header
+  doc.fontSize(9).fillColor("#5E6C84")
+    .text("Beskrivelse", 50, y)
+    .text("Antall", 360, y, { width: 50, align: "right" })
+    .text("Pris", 415, y, { width: 60, align: "right" })
+    .text("Sum", 480, y, { width: 65, align: "right" });
+  y += 12;
+  doc.moveTo(50, y).lineTo(545, y).strokeColor("#E6E9EF").stroke();
+  y += 6;
+
+  // Linjer
+  let subtotal = 0;
+  if (lineItems && lineItems.length > 0) {
+    for (const li of lineItems) {
+      const sum = li.sum ?? li.quantity * li.unitPrice;
+      subtotal += sum;
+      doc.fontSize(9).fillColor("#172B4D")
+        .text(li.description, 50, y, { width: 300 })
+        .text(String(li.quantity), 360, y, { width: 50, align: "right" })
+        .text(fmtKr(li.unitPrice), 415, y, { width: 60, align: "right" })
+        .text(fmtKr(sum), 480, y, { width: 65, align: "right" });
+      y = Math.max(doc.y, y) + 6;
+    }
+  } else {
+    // Fallback: én linje basert på totaler
+    subtotal = Number(invoice.totalAmount);
+    doc.fontSize(9).fillColor("#172B4D")
+      .text(`Tjenester ${fmtDate(invoice.periodStart)} – ${fmtDate(invoice.periodEnd)}`, 50, y, { width: 300 })
+      .text(String(invoice.totalHours), 360, y, { width: 50, align: "right" })
+      .text("—", 415, y, { width: 60, align: "right" })
+      .text(fmtKr(subtotal), 480, y, { width: 65, align: "right" });
+    y = doc.y + 6;
+  }
+
+  y += 12;
+  doc.moveTo(360, y).lineTo(545, y).strokeColor("#cbd5e1").lineWidth(1.5).stroke();
+  y += 8;
+
+  // Totaler (MVA er allerede inkl. i unitPrice for manuelle fakturaer —
+  // dette er hub-konvensjonen. Hvis vi senere håndterer MVA separat, må
+  // CreateInvoiceSchema få et flag for det.)
+  doc.fontSize(11).fillColor("#172B4D").font("Helvetica-Bold")
+    .text("Total:", 360, y, { width: 115, align: "right" })
+    .text(`${fmtKr(subtotal)}`, 480, y, { width: 65, align: "right" });
+  doc.font("Helvetica");
+
+  y += 32;
+  // Betalingsinfo
+  if (org.bankAccount) {
+    doc.fontSize(9).fillColor("#5E6C84")
+      .text(`Innbetales til: ${org.bankAccount}`, 50, y)
+      .text(`Forfall: ${fmtDate(dueAt)}`, 50, doc.y + 4);
+  }
+
+  // Status-stempel for ferdige fakturaer
+  if (invoice.paidAt) {
+    doc.fontSize(36).fillColor("#22c55e").opacity(0.3)
+      .text("BETALT", 200, 400, { width: 200, align: "center" }).opacity(1);
+  } else if (invoice.status === "cancelled") {
+    doc.fontSize(36).fillColor("#dc2626").opacity(0.3)
+      .text("ANNULLERT", 180, 400, { width: 240, align: "center" }).opacity(1);
+  }
+
+  if (invoice.note) {
+    doc.fontSize(8).fillColor("#94a3b8").text(invoice.note, 50, 770, { width: 495 });
+  }
+
+  doc.end();
+  await new Promise<void>((resolve) => doc.on("end", () => resolve()));
+  const pdfBuffer = Buffer.concat(chunks);
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="faktura-${invNum}.pdf"`);
+  res.setHeader("Content-Length", String(pdfBuffer.length));
+  return res.send(pdfBuffer);
+});
+
 export default router;

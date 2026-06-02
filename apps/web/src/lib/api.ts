@@ -47,6 +47,46 @@ interface ApiOptions {
   signal?: AbortSignal;
 }
 
+/**
+ * Last ned en PDF (eller annen binær blob) fra et auth-beskyttet endpoint.
+ *
+ * Strategi: fetch med Bearer-header, motta blob, opprett midlertidig
+ * objectURL og trigge anchor.click() for "Lagre som"-dialog. Vi kan ikke
+ * bare bruke window.open() fordi det ikke sender Authorization-headeren.
+ *
+ * filename: hvis ikke gitt, leses fra Content-Disposition header.
+ */
+export async function downloadPdf(path: string, filename?: string): Promise<void> {
+  const token = getToken();
+  const res = await fetch(`/api${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    throw new ApiError(`Nedlasting feilet (${res.status})`, res.status, txt);
+  }
+  const blob = await res.blob();
+
+  // Fallback: hent filnavn fra Content-Disposition om vi ikke fikk det
+  let fname = filename;
+  if (!fname) {
+    const cd = res.headers.get('content-disposition') || '';
+    const m = cd.match(/filename="?([^";]+)"?/);
+    fname = m?.[1] || 'rapport.pdf';
+  }
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  // Frigjør blob etter litt — Chrome trenger objectURL aktiv mens download starter
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 export class ApiError extends Error {
   status: number;
   details: unknown;

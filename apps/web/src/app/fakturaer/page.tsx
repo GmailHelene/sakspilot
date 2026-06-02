@@ -18,8 +18,8 @@
 import { useEffect, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
-import { api } from '@/lib/api';
-import { Download, ExternalLink, X, Check, Trash2 } from 'lucide-react';
+import { api, downloadPdf } from '@/lib/api';
+import { Download, ExternalLink, X, Check, Trash2, Plus, FileDown } from 'lucide-react';
 
 interface LineItem {
   description: string;
@@ -70,7 +70,22 @@ export default function FakturaerPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'exported' | 'cancelled'>('all');
   const [data, setData] = useState<ApiResponse | null>(null);
   const [selected, setSelected] = useState<Invoice | null>(null);
+  const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+  async function downloadListPdf() {
+    setDownloadingPdf(true);
+    try {
+      const qs = new URLSearchParams({ year: String(year) });
+      if (statusFilter !== 'all') qs.set('status', statusFilter);
+      await downloadPdf(`/pdf-reports/fakturaer?${qs}`, `fakturaer-${year}${statusFilter !== 'all' ? `-${statusFilter}` : ''}.pdf`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'PDF-nedlasting feilet');
+    } finally {
+      setDownloadingPdf(false);
+    }
+  }
 
   async function load() {
     try {
@@ -104,11 +119,28 @@ export default function FakturaerPage() {
   return (
     <AppLayout>
       <div style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ marginBottom: 16 }}>
-          <h1 style={{ fontSize: 26, color: tokens.color.navy, margin: 0 }}>Fakturaer</h1>
-          <p style={{ color: '#64748b', fontSize: 14, margin: '4px 0 0' }}>
-            Oversikt over utstedte fakturaer. Eksport skjer via Fiken/Tripletex i Innstillinger.
-          </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 }}>
+          <div>
+            <h1 style={{ fontSize: 26, color: tokens.color.navy, margin: 0 }}>Fakturaer</h1>
+            <p style={{ color: '#64748b', fontSize: 14, margin: '4px 0 0' }}>
+              Oversikt over utstedte fakturaer. Eksport skjer via Fiken/Tripletex i Innstillinger.
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={downloadListPdf}
+              disabled={downloadingPdf}
+              style={{ ...btnStyle, background: '#f1f5f9', color: '#334155', display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              <FileDown size={14} /> {downloadingPdf ? 'Laster…' : 'PDF-liste'}
+            </button>
+            <button
+              onClick={() => setCreating(true)}
+              style={{ ...btnStyle, background: tokens.color.navy, color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              <Plus size={14} /> Ny faktura
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -203,9 +235,223 @@ export default function FakturaerPage() {
           onDelete={() => deleteDraft(selected.id)}
         />
       )}
+      {creating && (
+        <CreateInvoiceModal
+          onClose={() => setCreating(false)}
+          onCreated={() => { setCreating(false); load(); }}
+        />
+      )}
     </AppLayout>
   );
 }
+
+// ── Opprett-modal ──────────────────────────────────────────────────
+interface SakOption { id: string; title: string; client: { id: string; name: string } | null }
+interface ClientOption { id: string; name: string }
+
+function CreateInvoiceModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [saker, setSaker] = useState<SakOption[]>([]);
+  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [sakId, setSakId] = useState<string>('');
+  const [customerName, setCustomerName] = useState('');
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [periodStart, setPeriodStart] = useState(new Date().toISOString().slice(0, 10));
+  const [periodEnd, setPeriodEnd] = useState(new Date().toISOString().slice(0, 10));
+  const [dueDate, setDueDate] = useState(() => {
+    const d = new Date(); d.setDate(d.getDate() + 14); return d.toISOString().slice(0, 10);
+  });
+  const [note, setNote] = useState('');
+  const [lines, setLines] = useState<Array<{ description: string; quantity: string; unitPrice: string }>>([
+    { description: '', quantity: '1', unitPrice: '' },
+  ]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api<{ saker?: SakOption[] }>('/saker').then((r) => setSaker(r.saker || [])).catch(() => {});
+    api<{ clients?: ClientOption[] }>('/klienter').then((r) => setClients(r.clients || [])).catch(() => {});
+  }, []);
+
+  const total = lines.reduce((s, l) => {
+    const q = parseFloat(l.quantity) || 0;
+    const p = parseFloat(l.unitPrice) || 0;
+    return s + q * p;
+  }, 0);
+
+  function updateLine(idx: number, key: 'description' | 'quantity' | 'unitPrice', value: string) {
+    setLines((prev) => prev.map((l, i) => (i === idx ? { ...l, [key]: value } : l)));
+  }
+  function addLine() { setLines((p) => [...p, { description: '', quantity: '1', unitPrice: '' }]); }
+  function removeLine(idx: number) { setLines((p) => p.filter((_, i) => i !== idx)); }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    const validLines = lines
+      .filter((l) => l.description.trim() && l.quantity && l.unitPrice)
+      .map((l) => ({
+        description: l.description.trim(),
+        quantity: parseFloat(l.quantity),
+        unitPrice: parseFloat(l.unitPrice),
+      }));
+    if (validLines.length === 0) {
+      setError('Minst én komplett linje kreves (beskrivelse + antall + pris)');
+      return;
+    }
+    if (!sakId && !customerName.trim()) {
+      setError('Velg sak ELLER skriv inn kundenavn');
+      return;
+    }
+    setSaving(true);
+    try {
+      await api('/invoices', {
+        method: 'POST',
+        body: {
+          sakId: sakId || undefined,
+          customerName: customerName.trim() || undefined,
+          invoiceNumber: invoiceNumber.trim() || undefined,
+          periodStart,
+          periodEnd,
+          dueDate,
+          lineItems: validLines,
+          note: note.trim() || undefined,
+        },
+      });
+      onCreated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Kunne ikke opprette');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', zIndex: 100,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        background: 'white', borderRadius: 12, padding: 24, maxWidth: 720, width: '100%',
+        maxHeight: '90vh', overflowY: 'auto',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h2 style={{ fontSize: 20, color: tokens.color.navy, margin: 0 }}>Ny faktura</h2>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+        </div>
+
+        {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 6, marginBottom: 12, fontSize: 13 }}>{error}</div>}
+
+        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Mottaker */}
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
+              Tilknyttet sak (anbefalt)
+            </label>
+            <select value={sakId} onChange={(e) => setSakId(e.target.value)} style={modalInput}>
+              <option value="">— Ingen sak (manuell faktura) —</option>
+              {saker.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.title} {s.client ? `(${s.client.name})` : '— ingen klient'}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {!sakId && (
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
+                Kundenavn (når ingen sak er valgt) *
+              </label>
+              <input
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                list="client-names"
+                placeholder="Skriv eller velg eksisterende klient"
+                style={modalInput}
+              />
+              <datalist id="client-names">
+                {clients.map((c) => <option key={c.id} value={c.name} />)}
+              </datalist>
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+            <Field label="Fakturanr."><input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="Auto" style={modalInput} /></Field>
+            <Field label="Fakturadato" required><input type="date" required value={periodEnd} onChange={(e) => { setPeriodEnd(e.target.value); setPeriodStart(e.target.value); }} style={modalInput} /></Field>
+            <Field label="Forfall"><input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} style={modalInput} /></Field>
+          </div>
+
+          {/* Linjer */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>Linjer *</span>
+              <button type="button" onClick={addLine} style={{ ...modalBtn, background: '#f1f5f9', color: '#334155', fontSize: 12, padding: '4px 10px' }}>
+                + Legg til linje
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 100px 100px 30px', gap: 8, fontSize: 11, color: '#64748b', fontWeight: 600 }}>
+                <span>Beskrivelse</span><span style={{ textAlign: 'right' }}>Antall</span><span style={{ textAlign: 'right' }}>Pris</span><span style={{ textAlign: 'right' }}>Sum</span><span />
+              </div>
+              {lines.map((l, i) => {
+                const sum = (parseFloat(l.quantity) || 0) * (parseFloat(l.unitPrice) || 0);
+                return (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 100px 100px 30px', gap: 8 }}>
+                    <input value={l.description} onChange={(e) => updateLine(i, 'description', e.target.value)} placeholder="f.eks. Konsulenttimer" style={modalInput} />
+                    <input type="number" step="0.5" value={l.quantity} onChange={(e) => updateLine(i, 'quantity', e.target.value)} style={{ ...modalInput, textAlign: 'right' }} />
+                    <input type="number" step="0.01" value={l.unitPrice} onChange={(e) => updateLine(i, 'unitPrice', e.target.value)} style={{ ...modalInput, textAlign: 'right' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', fontWeight: 600, color: '#0f172a', fontSize: 13 }}>
+                      {sum > 0 ? sum.toLocaleString('nb-NO') : '—'}
+                    </div>
+                    <button type="button" onClick={() => removeLine(i)} disabled={lines.length === 1}
+                            style={{ background: 'transparent', border: 'none', cursor: lines.length === 1 ? 'not-allowed' : 'pointer', color: '#dc2626', opacity: lines.length === 1 ? 0.3 : 1 }}>
+                      <X size={14} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ borderTop: '2px solid #cbd5e1', marginTop: 12, paddingTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
+              <span style={{ fontSize: 16, fontWeight: 700, color: tokens.color.navy }}>
+                Totalt: {total.toLocaleString('nb-NO')} NOK
+              </span>
+            </div>
+          </div>
+
+          <Field label="Notat (vises nederst på PDF)">
+            <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} style={{ ...modalInput, fontFamily: 'inherit' }} />
+          </Field>
+
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            <button type="button" onClick={onClose} style={{ ...modalBtn, background: '#f1f5f9', color: '#334155' }}>Avbryt</button>
+            <button type="submit" disabled={saving} style={{ ...modalBtn, background: tokens.color.navy, color: 'white' }}>
+              {saving ? 'Lagrer…' : 'Opprett som utkast'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+  return (
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <span style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>
+        {label}{required && <span style={{ color: '#dc2626' }}> *</span>}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+const modalInput: React.CSSProperties = {
+  padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13,
+  width: '100%', boxSizing: 'border-box',
+};
+const modalBtn: React.CSSProperties = {
+  padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer',
+};
 
 function DetailModal({
   invoice: inv, onClose, onMarkPaid, onDelete,
@@ -291,14 +537,12 @@ function DetailModal({
 
         {/* Aksjoner */}
         <div style={{ display: 'flex', gap: 8, marginTop: 20, flexWrap: 'wrap' }}>
-          <a
-            href={`${process.env.NEXT_PUBLIC_API_URL || ''}/invoice-pdf/${inv.id}`}
-            target="_blank"
-            rel="noopener"
-            style={{ ...btnStyle, background: '#f1f5f9', color: '#334155', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}
+          <button
+            onClick={() => downloadPdf(`/invoice-pdf/invoice/${inv.id}`, `faktura-${inv.invoiceNumber || inv.id.slice(0, 8)}.pdf`)}
+            style={{ ...btnStyle, background: '#f1f5f9', color: '#334155', display: 'flex', alignItems: 'center', gap: 6 }}
           >
             <Download size={14} /> Last ned PDF
-          </a>
+          </button>
           {!inv.paidAt && inv.status !== 'cancelled' && (
             <button onClick={onMarkPaid} style={{ ...btnStyle, background: '#14532d', color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Check size={14} /> Marker betalt
