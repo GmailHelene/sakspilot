@@ -13,6 +13,12 @@ on:
       - 'v*-desktop'
   workflow_dispatch:
 
+# softprops/action-gh-release trenger contents:write for å lage Release og
+# laste opp .zip/.dmg/.tar.gz som assets. Standard GITHUB_TOKEN er read-only
+# for forks/PRs men trenger eksplisitt grant her for push-trigger.
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build (${{ matrix.os }})
