@@ -237,32 +237,50 @@ export async function verifyEmployeeToken(
 ): Promise<VerifyResult> {
   const tempOrgId = `verify-${Math.random().toString(36).slice(2)}`;
   try {
-    // 1. whoAmI gir oss employee-id + companyId
-    const whoAmI = await tripletexFetch<{
-      value: {
-        employeeId: number;
+    // Tripletex har INGEN /token/session/whoAmI-endpoint (verken test eller
+    // prod). Riktig vei: GET /v2/employee?count=1 returnerer current employee
+    // inkludert companyId i full-feltet. Sparer oss for et eget /company-kall.
+    const employeeList = await tripletexFetch<{
+      values: Array<{
+        id: number;
+        firstName: string;
+        lastName: string;
+        displayName?: string;
         companyId: number;
-      };
-    }>(tempOrgId, employeeToken, useTestEnv, "/token/session/whoAmI");
+      }>;
+    }>(
+      tempOrgId,
+      employeeToken,
+      useTestEnv,
+      "/employee?count=1&fields=id,firstName,lastName,displayName,companyId"
+    );
 
-    const employeeId = whoAmI.value.employeeId;
-    const companyId = whoAmI.value.companyId;
+    const employee = employeeList.values[0];
+    if (!employee) {
+      throw new TripletexError(
+        "Tripletex returnerte ingen employee — sjekk at EmployeeToken er aktivt",
+        502
+      );
+    }
 
-    // 2. Hent firmanavn
+    const companyId = employee.companyId;
+    const employeeId = employee.id;
+
+    // Hent firmanavn — separat kall siden companyId-relasjonen ikke har name inline
     const company = await tripletexFetch<{
       value: { id: number; name: string };
-    }>(tempOrgId, employeeToken, useTestEnv, "/company");
+    }>(tempOrgId, employeeToken, useTestEnv, `/company/${companyId}`);
 
-    // 3. Hent employee-navn
-    const employee = await tripletexFetch<{
-      value: { id: number; firstName: string; lastName: string };
-    }>(tempOrgId, employeeToken, useTestEnv, `/employee/${employeeId}`);
+    const employeeName =
+      employee.displayName ||
+      `${employee.firstName ?? ""} ${employee.lastName ?? ""}`.trim() ||
+      `Employee ${employeeId}`;
 
     return {
       companyId,
       companyName: company.value.name,
       employeeId,
-      employeeName: `${employee.value.firstName} ${employee.value.lastName}`.trim(),
+      employeeName,
     };
   } finally {
     clearSessionCache(tempOrgId);
