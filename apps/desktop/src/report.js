@@ -30,13 +30,24 @@ function buildWorkSessionReport({ workSessionStart, workSessionEnd, sessions, us
   const wb = XLSX.utils.book_new();
 
   const totalSec = sessions.reduce((s, e) => s + e.durationSec, 0);
+
+  // Fakturerbart = enten matchet en sak (sakId satt) ELLER ble logget via
+  // auto-spor-flyten (matchedOn='auto-track' eller 'active-sak').
+  // Grunn: når bruker har "auto-spor PÅ" betyr det at de fakturerer alt
+  // de gjør i Sakspilot — selv om de ikke har attribuert til en spesifikk
+  // sak ennå. Det kan kategoriseres senere via AI-triage eller manuelt.
+  const isBillable = (e) =>
+    !!e.sakId ||
+    e.matchedOn === "auto-track" ||
+    e.matchedOn === "active-sak";
+
   const billableSec = sessions
-    .filter((e) => e.sakId)
+    .filter(isBillable)
     .reduce((s, e) => s + e.durationSec, 0);
   const nonBillableSec = totalSec - billableSec;
 
   const totalAmount = sessions
-    .filter((e) => e.sakId && e.sakHourlyRate)
+    .filter((e) => isBillable(e) && e.sakHourlyRate)
     .reduce((s, e) => s + (e.durationSec / 3600) * (e.sakHourlyRate || 0), 0);
 
   // ── Ark 1: Sammendrag ──────────────────────────────────────
@@ -54,7 +65,7 @@ function buildWorkSessionReport({ workSessionStart, workSessionEnd, sessions, us
     [],
     ['Logget tid'],
     ['Totalt registrert', formatDuration(totalSec)],
-    ['Fakturerbart (matchet sak)', formatDuration(billableSec)],
+    ['Fakturerbart', formatDuration(billableSec)],
     ['Ikke-fakturerbart', formatDuration(nonBillableSec)],
     ['Antall sessions', sessions.length],
     [],
@@ -65,12 +76,21 @@ function buildWorkSessionReport({ workSessionStart, workSessionEnd, sessions, us
   wsSum['!cols'] = [{ wch: 28 }, { wch: 30 }, { wch: 6 }];
   XLSX.utils.book_append_sheet(wb, wsSum, 'Sammendrag');
 
-  // ── Ark 2: Per sak ─────────────────────────────────────────
+  // ── Ark 2: Per prosjekt ────────────────────────────────────
+  // Bruker bucket-nøkkel basert på (sakId ELLER auto-spor-flagg) så
+  // auto-tracked sessions uten sakId havner i "Ukategorisert"-bøtta
+  // istedenfor "(ikke-matchet)" som var forvirrende.
   const perSakMap = new Map();
   for (const s of sessions) {
-    const key = s.sakId || '(ikke-matchet)';
+    const isAutoTracked = !s.sakId && (s.matchedOn === 'auto-track' || s.matchedOn === 'active-sak');
+    const key = s.sakId || (isAutoTracked ? '__auto__' : '__none__');
+    const defaultTitle = s.sakId
+      ? s.sakTitle
+      : isAutoTracked
+      ? 'Ukategorisert (auto-sporet — fordel til prosjekt i Sakspilot)'
+      : 'Ukategorisert (ingen match — fordel til prosjekt i Sakspilot)';
     const existing = perSakMap.get(key) || {
-      sakTitle: s.sakTitle || '(ikke-matchet — kategoriser manuelt i Sakspilot)',
+      sakTitle: defaultTitle,
       hourlyRate: s.sakHourlyRate || 0,
       sec: 0,
       sessions: 0,
@@ -79,7 +99,7 @@ function buildWorkSessionReport({ workSessionStart, workSessionEnd, sessions, us
     existing.sessions += 1;
     perSakMap.set(key, existing);
   }
-  const perSak = [['Sak', 'Timer', 'Timesats (kr/t)', 'Beløp (kr)', 'Sessions']];
+  const perSak = [['Prosjekt', 'Timer', 'Timesats (kr/t)', 'Beløp (kr)', 'Sessions']];
   for (const [, v] of [...perSakMap].sort((a, b) => b[1].sec - a[1].sec)) {
     const hours = round2(v.sec / 3600);
     const amount = v.hourlyRate ? round2(hours * v.hourlyRate) : '';
@@ -95,7 +115,7 @@ function buildWorkSessionReport({ workSessionStart, workSessionEnd, sessions, us
   ]);
   const wsSak = XLSX.utils.aoa_to_sheet(perSak);
   wsSak['!cols'] = [{ wch: 50 }, { wch: 10 }, { wch: 16 }, { wch: 14 }, { wch: 10 }];
-  XLSX.utils.book_append_sheet(wb, wsSak, 'Per sak');
+  XLSX.utils.book_append_sheet(wb, wsSak, 'Per prosjekt');
 
   // ── Ark 3: Per applikasjon ─────────────────────────────────
   const perAppMap = new Map();
@@ -115,7 +135,7 @@ function buildWorkSessionReport({ workSessionStart, workSessionEnd, sessions, us
   XLSX.utils.book_append_sheet(wb, wsApp, 'Per applikasjon');
 
   // ── Ark 4: Detaljer ────────────────────────────────────────
-  const detalj = [['Start', 'Slutt', 'Varighet', 'Sek', 'Sak', 'Applikasjon', 'Vindustittel', 'Matchet på']];
+  const detalj = [['Start', 'Slutt', 'Varighet', 'Sek', 'Prosjekt', 'Applikasjon', 'Vindustittel', 'Matchet på']];
   for (const s of [...sessions].sort((a, b) => new Date(a.startedAt) - new Date(b.startedAt))) {
     detalj.push([
       formatDateTime(s.startedAt),
