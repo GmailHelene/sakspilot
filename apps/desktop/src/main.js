@@ -66,6 +66,15 @@ let syncTimer = null;
 let rulesRefreshTimer = null;
 let reminderTimer = null;
 
+// ── Personlig hub (kun for Helene) ──────────────────────────────
+// Tray-menyitems som peker på Helenes private dashboard-filer/URLer.
+// Gated på e-post — usynlig for alle andre brukere.
+const PERSONAL_USER_EMAIL = 'helene721@gmail.com';
+const PERSONAL_HUB_FILE = 'C:\\Users\\helen\\Desktop\\prosjekt-oversikt.html';
+const PERSONAL_HUB_URL = 'https://helene.cloud/hub/hjem-aB3xK9p2qZ.html';
+let personalHubWindow = null;
+let personalCloudHubWindow = null;
+
 // Arbeidsøkt-state (kun i minnet — ny etter restart)
 let workSessionActive = false;
 let workSessionStart = null;
@@ -210,6 +219,67 @@ function initializeAgent() {
   checkStickyReminders();
 }
 
+// ── Personlig hub (kun Helene) — hjelpefunksjoner ───────────────
+
+/**
+ * Åpne lokal prosjekt-oversikt.html i eget BrowserWindow.
+ * Loader fra desktop-stien dynamisk så Helene kan oppdatere fila uten rebuild.
+ * Hvis fila ikke finnes: vis feilmelding.
+ */
+function openPersonalHub() {
+  if (personalHubWindow && !personalHubWindow.isDestroyed()) {
+    personalHubWindow.show();
+    personalHubWindow.focus();
+    return;
+  }
+  if (!fs.existsSync(PERSONAL_HUB_FILE)) {
+    dialog.showErrorBox(
+      'Prosjekt-oversikt mangler',
+      `Fant ikke filen:\n${PERSONAL_HUB_FILE}\n\nSjekk at den ligger på skrivebordet.`
+    );
+    return;
+  }
+  personalHubWindow = new BrowserWindow({
+    width: 1400,
+    height: 900,
+    title: 'Prosjekt-oversikt — Helene',
+    autoHideMenuBar: true,
+    backgroundColor: '#0f1115',
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+  personalHubWindow.loadFile(PERSONAL_HUB_FILE);
+  personalHubWindow.on('closed', () => { personalHubWindow = null; });
+}
+
+/**
+ * Åpne helene.cloud privat hub i eget BrowserWindow.
+ * Bruker egen partition for å holde session adskilt fra snarvei-systemet.
+ */
+function openPersonalCloudHub() {
+  if (personalCloudHubWindow && !personalCloudHubWindow.isDestroyed()) {
+    personalCloudHubWindow.show();
+    personalCloudHubWindow.focus();
+    return;
+  }
+  personalCloudHubWindow = new BrowserWindow({
+    width: 1400,
+    height: 900,
+    title: 'Helene Hub — helene.cloud',
+    autoHideMenuBar: true,
+    backgroundColor: '#0f1115',
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      partition: 'persist:personal-hub',
+    },
+  });
+  personalCloudHubWindow.loadURL(PERSONAL_HUB_URL);
+  personalCloudHubWindow.on('closed', () => { personalCloudHubWindow = null; });
+}
+
 // ── Tray ────────────────────────────────────────────────────────
 function createTray() {
   const iconPath = path.join(__dirname, '..', 'assets', 'tray-icon.png');
@@ -293,6 +363,20 @@ function updateTrayMenu() {
       items.push({ label: '⏹  Ingen arbeidsøkt — klikk Start for å logge', enabled: false });
       items.push({ type: 'separator' });
       items.push({ label: '▶  Start arbeidsøkt', click: () => startWorkSession() });
+    }
+
+    // Personlig hub — kun synlig for Helene (gated på e-post)
+    if (store.get('userEmail') === PERSONAL_USER_EMAIL) {
+      items.push({ type: 'separator' });
+      items.push({ label: '🔒 Personlig', enabled: false });
+      items.push({
+        label: '   📋 Prosjekt-oversikt (lokal)',
+        click: () => openPersonalHub(),
+      });
+      items.push({
+        label: '   ☁  Helene Hub (helene.cloud)',
+        click: () => openPersonalCloudHub(),
+      });
     }
 
     items.push({ type: 'separator' });
