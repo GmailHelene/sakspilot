@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   Home, LayoutGrid, Users, Calendar, CalendarClock, GanttChartSquare, Plus, X,
   ExternalLink, Trash2, StickyNote, FolderOpen, Folder, Shield, Zap, BarChart3, Plug, Palette,
-  MessageSquare, UserCog, Globe, Inbox, FileText, Wallet, PieChart,
+  MessageSquare, UserCog, Globe, Inbox, FileText, Wallet, PieChart, Receipt,
   type LucideIcon,
 } from 'lucide-react';
 import { tokens } from '@/lib/tokens';
@@ -220,6 +220,7 @@ export default function Sidebar() {
     { id: 'klienter', href: '/klienter', label: 'Klienter', Icon: Users },
     { id: 'fakturaer', href: '/fakturaer', label: 'Fakturaer', Icon: FileText },
     { id: 'regnskap', href: '/regnskap', label: 'Regnskap', Icon: Wallet },
+    { id: 'mva-rapport', href: '/mva-rapport', label: 'MVA-rapport', Icon: Receipt },
     { id: 'statistikk', href: '/statistikk', label: 'Statistikk', Icon: PieChart },
     { id: 'kalender', href: '/kalender', label: 'Kalender', Icon: Calendar },
     { id: 'tidslinje', href: '/gantt', label: 'Tidslinje', Icon: GanttChartSquare },

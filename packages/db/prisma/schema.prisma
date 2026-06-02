@@ -700,6 +700,16 @@ model Invoice {
   /// Brukes for ekte faktura-PDF + import fra portal-hub. Ikke alle fakturaer
   /// har linjer (timesbaserte aggregeres fra timeEntries) — derfor nullable.
   lineItems       Json?               @map("line_items")
+  /// MVA-sats brukt på fakturaen. 25 = standard, 15 = mat, 12 = transport,
+  /// 0 = ingen (utenlands, fritak). Default 25 fordi det er norsk standardsats.
+  /// Frilansere under MVA-grensen (50k/år) skal sette dette til null på alle
+  /// fakturaer FRA innstillingene — vi tvinger ikke det fra DB.
+  mvaSats         Int?                @default(25) @map("mva_sats")
+  /// Om totalAmount/lineItems.unitPrice er INKLUSIV MVA (true) eller eksklusiv (false).
+  /// true = hub-konvensjon (pris inkl. MVA, MVA beregnes ut fra total)
+  /// false = vanlig fakturering hvor MVA legges på toppen
+  /// Default true matcher hva som importeres fra portal-hub.
+  mvaInkludert    Boolean             @default(true) @map("mva_inkludert")
   createdAt       DateTime            @default(now()) @map("created_at")
   updatedAt       DateTime            @updatedAt @map("updated_at")
 

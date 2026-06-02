@@ -438,4 +438,174 @@ router.get("/fakturaer", async (req: Request, res: Response) => {
   doc.end();
 });
 
+// ── 4. MVA-rapport (PDF) ─────────────────────────────────────────
+// Speiler logikken i mvaRapport.ts (kvartal/halvår/år), men rendrer PDF.
+// Vi dupliserer beregning isf å importere fordi mvaRapport.ts er Express-
+// router og det blir kjedelig å trekke ut + dele state. Hvis denne diverger
+// med JSON-versjonen, fix begge.
+router.get("/mva", async (req: Request, res: Response) => {
+  const { organizationId } = req.session!;
+  const yr = parseInt((req.query.year as string) || String(new Date().getFullYear()), 10);
+  const periode = (req.query.periode as string) || "year";
+
+  // Periode-grenser (samme logikk som mvaRapport.ts)
+  const utc = (y: number, m: number, d: number) => new Date(Date.UTC(y, m, d));
+  let start: Date, end: Date, label: string;
+  switch (periode) {
+    case "Q1": start = utc(yr, 0, 1);  end = utc(yr, 3, 1);  label = `Q1 ${yr}`; break;
+    case "Q2": start = utc(yr, 3, 1);  end = utc(yr, 6, 1);  label = `Q2 ${yr}`; break;
+    case "Q3": start = utc(yr, 6, 1);  end = utc(yr, 9, 1);  label = `Q3 ${yr}`; break;
+    case "Q4": start = utc(yr, 9, 1);  end = utc(yr + 1, 0, 1); label = `Q4 ${yr}`; break;
+    case "H1": start = utc(yr, 0, 1);  end = utc(yr, 6, 1);  label = `H1 ${yr}`; break;
+    case "H2": start = utc(yr, 6, 1);  end = utc(yr + 1, 0, 1); label = `H2 ${yr}`; break;
+    default:   start = utc(yr, 0, 1);  end = utc(yr + 1, 0, 1); label = `${yr}`;
+  }
+
+  const [org, invoices, utgifter] = await Promise.all([
+    prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { name: true, orgNumber: true, address: true, postalCode: true, city: true },
+    }),
+    prisma.invoice.findMany({
+      where: { organizationId, status: { in: ["exported", "draft"] }, periodEnd: { gte: start, lt: end } },
+      select: { totalAmount: true, mvaSats: true, mvaInkludert: true, status: true },
+    }),
+    prisma.utgift.findMany({
+      where: { organizationId, dato: { gte: start, lt: end } },
+      select: { belopInkMva: true, mvaSats: true },
+    }),
+  ]);
+  if (!org) return res.status(404).json({ error: "Organisasjon ikke funnet" });
+
+  // Beregn buckets — samme algoritme som mvaRapport.ts
+  function calcMva(total: number, sats: number, inkludert: boolean): { netto: number; mva: number } {
+    if (sats === 0) return { netto: total, mva: 0 };
+    if (inkludert) {
+      const mva = (total * sats) / (100 + sats);
+      return { netto: total - mva, mva };
+    }
+    return { netto: total, mva: (total * sats) / 100 };
+  }
+
+  type Bucket = { grunnlag: number; mva: number };
+  const utgaaende = { totalt: 0, "25": { grunnlag: 0, mva: 0 } as Bucket, "15": { grunnlag: 0, mva: 0 } as Bucket, "12": { grunnlag: 0, mva: 0 } as Bucket, fritak: { grunnlag: 0, mva: 0 } as Bucket };
+  const inngaaende = { totalt: 0, "25": { grunnlag: 0, mva: 0 } as Bucket, "15": { grunnlag: 0, mva: 0 } as Bucket, "12": { grunnlag: 0, mva: 0 } as Bucket, fritak: { grunnlag: 0, mva: 0 } as Bucket };
+
+  for (const inv of invoices) {
+    const total = Number(inv.totalAmount);
+    const sats = inv.mvaSats ?? 25;
+    const { netto, mva } = calcMva(total, sats, inv.mvaInkludert);
+    const key = sats === 25 ? "25" : sats === 15 ? "15" : sats === 12 ? "12" : "fritak";
+    utgaaende[key].grunnlag += netto;
+    utgaaende[key].mva += mva;
+    utgaaende.totalt += mva;
+  }
+  for (const u of utgifter) {
+    const total = Number(u.belopInkMva);
+    if (u.mvaSats === null) {
+      inngaaende.fritak.grunnlag += total;
+      continue;
+    }
+    const { netto, mva } = calcMva(total, u.mvaSats, true);
+    const key = u.mvaSats === 25 ? "25" : u.mvaSats === 15 ? "15" : u.mvaSats === 12 ? "12" : "fritak";
+    inngaaende[key].grunnlag += netto;
+    inngaaende[key].mva += mva;
+    inngaaende.totalt += mva;
+  }
+  const netto = utgaaende.totalt - inngaaende.totalt;
+
+  // Bygg PDF
+  const doc = new PDFDocument({ size: "A4", margin: 50, info: { Title: `MVA-rapport ${label}`, Author: org.name, Creator: "Sakspilot" } });
+  const buffers: Buffer[] = [];
+  doc.on("data", (b) => buffers.push(b));
+  doc.on("end", () => {
+    const buffer = Buffer.concat(buffers);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="mva-${periode}-${yr}.pdf"`);
+    res.setHeader("Content-Length", String(buffer.length));
+    res.end(buffer);
+  });
+
+  let y = writeHeader(doc, org, `MVA-rapport ${label}`, `${start.toISOString().slice(0, 10)} – ${new Date(end.getTime() - 86400000).toISOString().slice(0, 10)}`);
+
+  // KPI-rad: utgående / inngående / netto
+  y = drawKpiRow(doc, y, [
+    { label: "Utgående MVA (på salg)", value: fmtKrShort(utgaaende.totalt), color: "#14532d" },
+    { label: "Inngående MVA (på kjøp)", value: fmtKrShort(inngaaende.totalt), color: "#1e3a8a" },
+    { label: netto >= 0 ? "Skyldig Skatteetaten" : "Få igjen", value: fmtKrShort(Math.abs(netto)), color: netto >= 0 ? "#7f1d1d" : "#14532d" },
+    { label: "Antall bilag", value: `${invoices.length} fak. + ${utgifter.length} utg.` },
+  ]);
+
+  // Utgående MVA-tabell
+  doc.fontSize(12).fillColor("#1e293b").text("Utgående MVA (krevd inn fra kunder)", 50, y);
+  y += 18;
+  doc.fontSize(9).fillColor("#64748b");
+  doc.text("MVA-sats", 50, y).text("Grunnlag", 250, y, { width: 120, align: "right" }).text("MVA", 380, y, { width: 120, align: "right" });
+  y += 14;
+  doc.moveTo(50, y - 4).lineTo(545, y - 4).strokeColor("#e2e8f0").stroke();
+
+  for (const sats of ["25", "15", "12", "fritak"] as const) {
+    const b = utgaaende[sats];
+    if (b.grunnlag === 0 && b.mva === 0) continue;
+    const label = sats === "fritak" ? "0 % / fritak" : `${sats} %`;
+    doc.fontSize(10).fillColor("#0f172a")
+      .text(label, 50, y)
+      .text(fmtKr(b.grunnlag), 250, y, { width: 120, align: "right" })
+      .text(fmtKr(b.mva), 380, y, { width: 120, align: "right" });
+    y += 14;
+  }
+  y += 4;
+  doc.moveTo(50, y).lineTo(545, y).strokeColor("#cbd5e1").lineWidth(2).stroke();
+  y += 6;
+  doc.fontSize(10).fillColor("#1e293b").font("Helvetica-Bold")
+    .text("Sum utgående", 50, y).text(fmtKr(utgaaende.totalt), 380, y, { width: 120, align: "right" });
+  doc.font("Helvetica");
+  y += 24;
+
+  // Inngående MVA-tabell
+  doc.fontSize(12).fillColor("#1e293b").text("Inngående MVA (fradragsberettiget på kjøp)", 50, y);
+  y += 18;
+  doc.fontSize(9).fillColor("#64748b");
+  doc.text("MVA-sats", 50, y).text("Grunnlag", 250, y, { width: 120, align: "right" }).text("MVA", 380, y, { width: 120, align: "right" });
+  y += 14;
+  doc.moveTo(50, y - 4).lineTo(545, y - 4).strokeColor("#e2e8f0").stroke();
+  for (const sats of ["25", "15", "12", "fritak"] as const) {
+    const b = inngaaende[sats];
+    if (b.grunnlag === 0 && b.mva === 0) continue;
+    const label = sats === "fritak" ? "0 % / uten sats" : `${sats} %`;
+    doc.fontSize(10).fillColor("#0f172a")
+      .text(label, 50, y)
+      .text(fmtKr(b.grunnlag), 250, y, { width: 120, align: "right" })
+      .text(fmtKr(b.mva), 380, y, { width: 120, align: "right" });
+    y += 14;
+  }
+  y += 4;
+  doc.moveTo(50, y).lineTo(545, y).strokeColor("#cbd5e1").lineWidth(2).stroke();
+  y += 6;
+  doc.fontSize(10).fillColor("#1e293b").font("Helvetica-Bold")
+    .text("Sum inngående", 50, y).text(fmtKr(inngaaende.totalt), 380, y, { width: 120, align: "right" });
+  doc.font("Helvetica");
+  y += 28;
+
+  // Netto-konklusjon
+  const nettoBoxColor = netto >= 0 ? "#fef2f2" : "#f0fdf4";
+  const nettoTextColor = netto >= 0 ? "#7f1d1d" : "#14532d";
+  doc.roundedRect(50, y, 495, 60, 8).fillAndStroke(nettoBoxColor, "#cbd5e1");
+  doc.fontSize(11).fillColor("#64748b")
+    .text(netto >= 0 ? "TIL INNBETALING TIL SKATTEETATEN" : "TIL UTBETALING FRA SKATTEETATEN", 60, y + 12);
+  doc.fontSize(24).fillColor(nettoTextColor).font("Helvetica-Bold")
+    .text(fmtKr(Math.abs(netto)), 60, y + 28);
+  doc.font("Helvetica");
+  y += 80;
+
+  // Disclaimer
+  doc.fontSize(8).fillColor("#94a3b8").text(
+    "Forenklet MVA-rapport — gir et bilde av status, men er ikke en MVA-melding. " +
+    "For innlevering til Skatteetaten må du føre tallene inn i Altinn-skjemaet RF-0002, eller eksportere til Fiken/Tripletex.",
+    50, y, { width: 495 }
+  );
+
+  doc.end();
+});
+
 export default router;
