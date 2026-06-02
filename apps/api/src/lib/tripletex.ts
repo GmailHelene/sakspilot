@@ -42,7 +42,27 @@ function getApiUrl(useTestEnv: boolean): string {
   return useTestEnv ? TEST_API_URL : PROD_API_URL;
 }
 
-function getConsumerToken(): string {
+/**
+ * Test-miljøet til Tripletex har EGEN consumer token, separat fra prod.
+ * Hver org velger om de vil bruke test- eller prod-miljø via useTestEnv-
+ * flagget på TripletexIntegration. Vi henter riktig token basert på det.
+ *
+ * Env-vars:
+ *   TRIPLETEX_CONSUMER_TOKEN       — prod (fra partner-godkjenning)
+ *   TRIPLETEX_TEST_CONSUMER_TOKEN  — test (fra api-test.tripletex.tech)
+ */
+function getConsumerToken(useTestEnv: boolean): string {
+  if (useTestEnv) {
+    const t = process.env.TRIPLETEX_TEST_CONSUMER_TOKEN;
+    if (!t) {
+      throw new Error(
+        "TRIPLETEX_TEST_CONSUMER_TOKEN mangler i env. Sett den på Render " +
+          "med Consumer Token fra api-test.tripletex.tech (test-konto), eller " +
+          "skru av 'Bruk test-miljø' i /innstillinger/tripletex for å bruke prod."
+      );
+    }
+    return t;
+  }
   const t = process.env.TRIPLETEX_CONSUMER_TOKEN;
   if (!t) {
     throw new Error(
@@ -84,7 +104,7 @@ export async function getSessionToken(
   }
 
   const apiUrl = getApiUrl(useTestEnv);
-  const consumerToken = getConsumerToken();
+  const consumerToken = getConsumerToken(useTestEnv);
 
   // Tripletex' session-create vil ha expirationDate som YYYY-MM-DD.
   // Vi ber om gyldighet til i morgen — Tripletex gir en token med ca 1
