@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   Home, LayoutGrid, Users, Calendar, CalendarClock, GanttChartSquare, Plus, X,
   ExternalLink, Trash2, StickyNote, FolderOpen, Folder, Shield, Zap, BarChart3, Plug, Palette,
-  MessageSquare, UserCog, Globe,
+  MessageSquare, UserCog, Globe, Inbox, FileText, Wallet, PieChart,
   type LucideIcon,
 } from 'lucide-react';
 import { tokens } from '@/lib/tokens';
@@ -215,8 +215,12 @@ export default function Sidebar() {
   // Default: alle synlige. Hver bruker kan toggle via Sidebar-settings (kommer).
   const ALL_NAV: { id: string; href: string; label: string; Icon: LucideIcon }[] = [
     { id: 'hjem', href: '/hjem', label: 'Hjem', Icon: Home },
+    { id: 'forespørsler', href: '/foresporsler', label: 'Forespørsler', Icon: Inbox },
     { id: 'prosjekter', href: '/saker', label: 'Prosjekter', Icon: LayoutGrid },
     { id: 'klienter', href: '/klienter', label: 'Klienter', Icon: Users },
+    { id: 'fakturaer', href: '/fakturaer', label: 'Fakturaer', Icon: FileText },
+    { id: 'regnskap', href: '/regnskap', label: 'Regnskap', Icon: Wallet },
+    { id: 'statistikk', href: '/statistikk', label: 'Statistikk', Icon: PieChart },
     { id: 'kalender', href: '/kalender', label: 'Kalender', Icon: Calendar },
     { id: 'tidslinje', href: '/gantt', label: 'Tidslinje', Icon: GanttChartSquare },
     { id: 'rapport', href: '/rapport', label: 'Rapport', Icon: BarChart3 },

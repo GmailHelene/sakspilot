@@ -71,6 +71,19 @@ enum AgentPlatform {
   linux
 }
 
+/// Foresporsel-status (UI viser "Forespørsel"): lead-pipeline fra første
+/// kontakt til konvertering. Bevisst kort og oversiktlig — kan utvides
+/// hvis vi senere trenger mer granular tracking (f.eks. proposalSent).
+/// NB: Prisma-identifikatorer må være ASCII (ingen æ/ø/å), derfor
+/// "Foresporsel" i koden men "forespørsler" i DB-tabellnavn (via @@map).
+enum ForesporselStatus {
+  ny              // nettopp mottatt, ikke behandlet
+  i_dialog        // pågående samtaler / tilbud sendt
+  vunnet          // konvertert til klient + sak
+  tapt            // kunden valgte noen andre / ble aldri kunde
+  arkivert        // gammel, ikke aktuell
+}
+
 // ────────────────────────────────────────────────────────────────
 // Modeller
 // ────────────────────────────────────────────────────────────────
@@ -115,6 +128,8 @@ model Organization {
   feedbacks Feedback[]
   teamInvites TeamInvite[]
   customDomains CustomDomain[]
+  foresporsler  Foresporsel[]
+  utgifter      Utgift[]
 
   @@map("organizations")
 }
@@ -390,6 +405,82 @@ model Client {
   @@map("clients")
 }
 
+/// Foresporsel = inkommen lead/inquiry FØR den blir en betalende klient.
+/// Lever utenfor Client-tabellen fordi en lead ikke nødvendigvis har
+/// org-nummer / kontakt-info komplett enda, og fordi vi vil måle
+/// konverteringsrate (vunnet / (vunnet+tapt)) som meningsfull statistikk.
+///
+/// Når status → vunnet: vi konverterer til Client (manuelt via UI-knapp).
+/// convertedToClientId peker tilbake til den genererte klienten.
+///
+/// NB: Norsk "Forespørsel" i UI, men ASCII-navn "Foresporsel" i Prisma
+/// fordi Prisma-identifikatorer ikke støtter æ/ø/å.
+model Foresporsel {
+  id                     String              @id @default(uuid())
+  organizationId         String              @map("organization_id")
+  organization           Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// Kontaktnavn — personnavn ELLER firmanavn (vi vet ikke alltid forskjell på lead-stadiet)
+  name                   String
+  /// Kontakt-epost — frivillig, men minst én av (email, phone) bør finnes
+  email                  String?
+  phone                  String?
+  /// Hvor leaden kom fra: "facebook-gruppe X", "henvist av Y", "google-søk", "linkedin", "befaring"…
+  /// Fritekst, ingen enum — for fleksibilitet (analytics kan grupperes senere)
+  source                 String?
+  /// Beskrivelse av hva de spør om / behov — kopiert fra e-post, meldingsfeltet på nettsiden, eller notater
+  message                String?             @db.Text
+  status                 ForesporselStatus   @default(ny)
+  /// Estimert verdi i NOK hvis leaden konverterer (for pipeline-statistikk)
+  estimatedValue         Int?                @map("estimated_value")
+  /// Når regner du med å lukke denne (vunnet eller tapt)? Brukes til "ventende pipeline"-rapport
+  expectedCloseDate      DateTime?           @map("expected_close_date")
+  /// Når leaden faktisk ble vunnet/tapt
+  closedAt               DateTime?           @map("closed_at")
+  /// Hvis konvertert: peker på opprettet Client
+  convertedToClientId    String?             @map("converted_to_client_id")
+  /// Hvis konvertert: peker på første opprettet Sak
+  convertedToSakId       String?             @map("converted_to_sak_id")
+  notes                  String?             @db.Text
+  createdAt              DateTime            @default(now()) @map("created_at")
+  updatedAt              DateTime            @updatedAt @map("updated_at")
+
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@map("foresporsler")
+}
+
+/// Utgift = bedriftsutgift (kjøp, abonnement, tjeneste, kilometergodtgjørelse).
+/// Brukes til regnskap, MVA-rapport og innsikt i kostnadsbasen.
+/// Vedlegg (kvittering) lagres som URL — kan peke på S3, Drive, eller lokal fil
+/// referert via /assets/api-router (kommer senere).
+model Utgift {
+  id              String       @id @default(uuid())
+  organizationId  String       @map("organization_id")
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// Dato for utgiften (når den ble pådratt — ikke når registrert)
+  dato            DateTime
+  /// Hva utgiften gjaldt — fritekst, vises i lister og rapporter
+  beskrivelse     String
+  /// Beløp inkl. MVA, i kroner. Bruker Decimal pga finansdata.
+  belopInkMva     Decimal      @map("belop_ink_mva") @db.Decimal(12, 2)
+  /// MVA-sats brukt (0 = ingen MVA, 25 = ordinær). Frivillig — null = ikke håndtert
+  mvaSats         Int?         @map("mva_sats")
+  /// Kategori (drift, kontor, reise, abonnement, programvare, annet) — fritekst
+  /// for fleksibilitet. UI tilbyr forslag basert på tidligere bruk.
+  kategori        String?
+  /// Leverandør (Adobe, Google, NSB, etc.) — fritekst
+  leverandor      String?
+  /// URL til kvittering (PDF/bilde). Null = ingen kvittering vedlagt.
+  kvitteringUrl   String?      @map("kvittering_url")
+  notes           String?      @db.Text
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  @@index([organizationId, dato])
+  @@index([organizationId, kategori])
+  @@map("utgifter")
+}
+
 /// Invitasjon fra frilanser til klient om å aktivere klient-portal-login.
 /// Tokenet sendes på e-post; vi lagrer bcrypt-hashen så DB-lekkasje ikke
 /// gir aksept-tilgang. Én aktiv invite per klient (clientId @unique). Hvis
@@ -593,6 +684,22 @@ model Invoice {
   exportedAt      DateTime?           @map("exported_at")
   externalRef     String?             @map("external_ref")  // f.eks. Tripletex-ordrenummer
   note            String?             @db.Text
+  // ── Felter for ekte faktura-utstedelse + import fra portal-hub ─────
+  /// Fakturanummer (intern sekvens, f.eks. "3001"). Frivillig fordi
+  /// noen orgs lar Fiken/Tripletex generere det og bare lagrer externalRef.
+  invoiceNumber   String?             @map("invoice_number")
+  /// Forfallsdato — vises på PDF og brukes av betalingspåminnelser
+  dueDate         DateTime?           @map("due_date")
+  /// Når fakturaen ble betalt (manuelt registrert eller via bankavstemming)
+  paidAt          DateTime?           @map("paid_at")
+  /// Kunde-navn snapshot — brukes når sakId/clientId er null (legacy/imported)
+  customerName    String?             @map("customer_name")
+  /// Kunde-adresse snapshot (kun for legacy import)
+  customerAddress String?             @map("customer_address")
+  /// Faktura-linjer som JSON: [{ description, quantity, unitPrice, sum }]
+  /// Brukes for ekte faktura-PDF + import fra portal-hub. Ikke alle fakturaer
+  /// har linjer (timesbaserte aggregeres fra timeEntries) — derfor nullable.
+  lineItems       Json?               @map("line_items")
   createdAt       DateTime            @default(now()) @map("created_at")
   updatedAt       DateTime            @updatedAt @map("updated_at")
 
@@ -601,6 +708,7 @@ model Invoice {
   timeEntries  TimeEntry[]
 
   @@index([organizationId, periodStart])
+  @@index([organizationId, paidAt])
   @@map("invoices")
 }
 

@@ -10,7 +10,8 @@
     "migrate:deploy": "prisma migrate deploy",
     "studio": "prisma studio",
     "format": "prisma format",
-    "seed-personal": "prisma generate && tsx prisma/seed-personal-projects.ts"
+    "seed-personal": "prisma generate && tsx prisma/seed-personal-projects.ts",
+    "seed-personal-hub": "prisma generate && tsx prisma/seed-personal-hub.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.14.0"
