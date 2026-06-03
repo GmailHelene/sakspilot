@@ -23,7 +23,10 @@ const StatusSchema = z.enum(["draft", "exported", "cancelled"]);
 
 const LineItemSchema = z.object({
   description: z.string().min(1).max(500),
-  quantity: z.number().min(0).max(100000),
+  // Krev positiv quantity. 0-linjer er meningsløse og forvirrer rapporter.
+  // Tillater desimal (0.5 timer er normalt).
+  quantity: z.number().gt(0, "Antall må være større enn 0").max(100000),
+  // unitPrice tillates negativ for kreditnota-linjer
   unitPrice: z.number().min(-1_000_000).max(10_000_000),
 });
 

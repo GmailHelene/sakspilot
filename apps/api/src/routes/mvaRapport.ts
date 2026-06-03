@@ -40,79 +40,12 @@
 import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
 import { requireAuth } from "../middleware/auth";
+import {
+  parsePeriode, periodeRange, calcMva, addToBucket, emptyMvaSide,
+} from "../lib/mva";
 
 const router = Router();
 router.use(requireAuth);
-
-type Periode = "Q1" | "Q2" | "Q3" | "Q4" | "H1" | "H2" | "year";
-
-function parsePeriode(p?: string): Periode {
-  if (p === "Q1" || p === "Q2" || p === "Q3" || p === "Q4" || p === "H1" || p === "H2") return p;
-  return "year";
-}
-
-function periodeRange(year: number, periode: Periode): { start: Date; end: Date; label: string } {
-  // Bruker Date utc — vi er ikke avhengig av timezone for periode-grenser
-  const utc = (y: number, m: number, d: number) => new Date(Date.UTC(y, m, d));
-  switch (periode) {
-    case "Q1": return { start: utc(year, 0, 1),  end: utc(year, 3, 1),  label: `Q1 ${year}` };
-    case "Q2": return { start: utc(year, 3, 1),  end: utc(year, 6, 1),  label: `Q2 ${year}` };
-    case "Q3": return { start: utc(year, 6, 1),  end: utc(year, 9, 1),  label: `Q3 ${year}` };
-    case "Q4": return { start: utc(year, 9, 1),  end: utc(year + 1, 0, 1), label: `Q4 ${year}` };
-    case "H1": return { start: utc(year, 0, 1),  end: utc(year, 6, 1),  label: `H1 ${year}` };
-    case "H2": return { start: utc(year, 6, 1),  end: utc(year + 1, 0, 1), label: `H2 ${year}` };
-    default:   return { start: utc(year, 0, 1),  end: utc(year + 1, 0, 1), label: `${year}` };
-  }
-}
-
-/**
- * Beregn MVA-beløp gitt grunnlag og sats.
- *   - Hvis "inkl": grunnlag inneholder MVA → mva = grunnlag * sats / (100 + sats)
- *                  netto = grunnlag - mva
- *   - Hvis "eks":  grunnlag er uten MVA → mva = grunnlag * sats / 100
- *                  netto = grunnlag (uendret)
- */
-function calcMva(
-  total: number,
-  sats: number,
-  inkludert: boolean
-): { netto: number; mva: number } {
-  if (sats === 0) return { netto: total, mva: 0 };
-  if (inkludert) {
-    const mva = (total * sats) / (100 + sats);
-    return { netto: total - mva, mva };
-  }
-  return { netto: total, mva: (total * sats) / 100 };
-}
-
-// Bucketize sats — 25, 15, 12 mappet, alt annet til "fritak/0"
-function bucket(sats: number | null): "25" | "15" | "12" | "fritak" {
-  if (sats === 25) return "25";
-  if (sats === 15) return "15";
-  if (sats === 12) return "12";
-  return "fritak";
-}
-
-interface SatsBucket { grunnlag: number; mva: number }
-interface MvaSide { totalt: number; pers25: SatsBucket; pers15: SatsBucket; pers12: SatsBucket; persFritak: SatsBucket }
-
-function emptySide(): MvaSide {
-  return {
-    totalt: 0,
-    pers25: { grunnlag: 0, mva: 0 },
-    pers15: { grunnlag: 0, mva: 0 },
-    pers12: { grunnlag: 0, mva: 0 },
-    persFritak: { grunnlag: 0, mva: 0 },
-  };
-}
-
-function addToBucket(side: MvaSide, sats: number | null, netto: number, mva: number) {
-  const b = bucket(sats);
-  const target = b === "25" ? side.pers25 : b === "15" ? side.pers15 : b === "12" ? side.pers12 : side.persFritak;
-  target.grunnlag += netto;
-  target.mva += mva;
-  side.totalt += mva;
-}
 
 router.get("/", async (req: Request, res: Response) => {
   const { organizationId } = req.session!;
@@ -153,7 +86,7 @@ router.get("/", async (req: Request, res: Response) => {
   ]);
 
   // Bygg utgående MVA (inntekter)
-  const utgaaende = emptySide();
+  const utgaaende = emptyMvaSide();
   const warnings: string[] = [];
   let invoicesMissingMva = 0;
 
@@ -169,7 +102,7 @@ router.get("/", async (req: Request, res: Response) => {
   }
 
   // Bygg inngående MVA (utgifter)
-  const inngaaende = emptySide();
+  const inngaaende = emptyMvaSide();
   let utgifterMissingMva = 0;
   for (const u of utgifter) {
     const total = Number(u.belopInkMva);

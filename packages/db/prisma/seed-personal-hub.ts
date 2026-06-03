@@ -120,7 +120,10 @@ async function main() {
     console.log(`[hub-seed] Bruker: ${user.name} (org: ${organizationId})`);
 
     // ── Leads → Foresporsel ─────────────────────────────────
-    let leadsCreated = 0, leadsUpdated = 0;
+    // Idempotent via externalId (lead.id fra hub-backupen).
+    // Hvis raden allerede finnes (externalId match), HOPPER VI OVER
+    // — bevarer brukerens manuelle redigeringer i web. Kun nye importeres.
+    let leadsCreated = 0, leadsSkipped = 0;
     for (const lead of backup.leads || []) {
       const name = lead.kunde || lead.tittel || "(uten navn)";
       // Bygg messagefeltet med både hovedtekst og kommunikasjons-tråd
@@ -136,124 +139,123 @@ async function main() {
       }
       const message = messageParts.join("\n");
 
-      // Match på (organizationId, name, createdAt-dag) for idempotens
-      const existing = await prisma.foresporsel.findFirst({
-        where: { organizationId, name, notes: { contains: lead.id } },
+      // Match på (organizationId, externalId) — Prisma @@unique
+      const existing = await prisma.foresporsel.findUnique({
+        where: { organizationId_externalId: { organizationId, externalId: lead.id } },
         select: { id: true },
       });
 
-      const data = {
-        organizationId,
-        name,
-        message: message || undefined,
-        notes: `Importert fra portal-hub (id: ${lead.id})${lead.notat ? `\n\n${lead.notat}` : ''}`,
-        source: lead.kontakt || undefined,
-        status: mapLeadStatus(lead.status),
-        expectedCloseDate: parseDateOrNull(lead.frist),
-      };
-
       if (existing) {
-        await prisma.foresporsel.update({ where: { id: existing.id }, data });
-        leadsUpdated++;
-      } else {
-        const created = await prisma.foresporsel.create({ data });
-        // Overskriv createdAt etter create (Prisma støtter ikke @default(now()) override i create-input)
-        const opprettet = parseDateOrNull(lead.opprettet);
-        if (opprettet) {
-          await prisma.foresporsel.update({
-            where: { id: created.id },
-            data: { createdAt: opprettet },
-          });
-        }
-        leadsCreated++;
+        leadsSkipped++;
+        continue;
       }
+
+      const created = await prisma.foresporsel.create({
+        data: {
+          organizationId,
+          externalId: lead.id,
+          name,
+          message: message || undefined,
+          notes: lead.notat || undefined,
+          source: lead.kontakt || undefined,
+          status: mapLeadStatus(lead.status),
+          expectedCloseDate: parseDateOrNull(lead.frist),
+        },
+      });
+      // Overskriv createdAt etter create (Prisma støtter ikke override i create-input)
+      const opprettet = parseDateOrNull(lead.opprettet);
+      if (opprettet) {
+        await prisma.foresporsel.update({
+          where: { id: created.id },
+          data: { createdAt: opprettet },
+        });
+      }
+      leadsCreated++;
     }
-    console.log(`[hub-seed] Leads: ${leadsCreated} opprettet, ${leadsUpdated} oppdatert`);
+    console.log(`[hub-seed] Leads: ${leadsCreated} opprettet, ${leadsSkipped} hoppet over (allerede importert)`);
 
     // ── Invoices → Invoice ──────────────────────────────────
-    let invoicesCreated = 0, invoicesUpdated = 0;
+    // Idempotent via externalId. Hopp over hvis allerede importert.
+    let invoicesCreated = 0, invoicesSkipped = 0;
     for (const hubInv of backup.invoices || []) {
       const totalAmount = (hubInv.linjer || []).reduce((s, l) => s + l.pris * l.antall, 0);
       const totalHours = (hubInv.linjer || []).reduce((s, l) => s + l.antall, 0);
 
-      const existing = await prisma.invoice.findFirst({
-        where: {
-          organizationId,
-          invoiceNumber: hubInv.nummer || null,
-          ...(hubInv.nummer ? {} : { note: { contains: hubInv.id } }),
-        },
+      const existing = await prisma.invoice.findUnique({
+        where: { organizationId_externalId: { organizationId, externalId: hubInv.id } },
         select: { id: true },
       });
 
-      const dato = parseDateOrNull(hubInv.dato) || new Date();
-      const data = {
-        organizationId,
-        sakId: null,                              // hub.projectId mappes ikke direkte til Sak.id
-        invoiceNumber: hubInv.nummer || null,
-        periodStart: dato,
-        periodEnd: dato,
-        dueDate: parseDateOrNull(hubInv.forfall),
-        paidAt: hubInv.betalt ? (parseDateOrNull(hubInv.betaltDato) || dato) : null,
-        totalHours,
-        totalAmount,
-        currency: "NOK",
-        status: "exported" as InvoiceStatus,     // alle hub-fakturaer er ferdige
-        customerName: hubInv.kunde || null,
-        customerAddress: hubInv.kundeadr || null,
-        lineItems: hubInv.linjer
-          ? hubInv.linjer.map((l) => ({
-              description: l.beskrivelse,
-              quantity: l.antall,
-              unitPrice: l.pris,
-              sum: l.pris * l.antall,
-            }))
-          : undefined,
-        note: `Importert fra portal-hub (id: ${hubInv.id})`,
-      };
-
       if (existing) {
-        await prisma.invoice.update({ where: { id: existing.id }, data });
-        invoicesUpdated++;
-      } else {
-        await prisma.invoice.create({ data });
-        invoicesCreated++;
+        invoicesSkipped++;
+        continue;
       }
+
+      const dato = parseDateOrNull(hubInv.dato) || new Date();
+      await prisma.invoice.create({
+        data: {
+          organizationId,
+          externalId: hubInv.id,
+          sakId: null,                              // hub.projectId mappes ikke direkte til Sak.id
+          invoiceNumber: hubInv.nummer || null,
+          periodStart: dato,
+          periodEnd: dato,
+          dueDate: parseDateOrNull(hubInv.forfall),
+          paidAt: hubInv.betalt ? (parseDateOrNull(hubInv.betaltDato) || dato) : null,
+          totalHours,
+          totalAmount,
+          currency: "NOK",
+          status: "exported" as InvoiceStatus,     // alle hub-fakturaer er ferdige
+          customerName: hubInv.kunde || null,
+          customerAddress: hubInv.kundeadr || null,
+          lineItems: hubInv.linjer
+            ? hubInv.linjer.map((l) => ({
+                description: l.beskrivelse,
+                quantity: l.antall,
+                unitPrice: l.pris,
+                sum: l.pris * l.antall,
+              }))
+            : undefined,
+        },
+      });
+      invoicesCreated++;
     }
-    console.log(`[hub-seed] Invoices: ${invoicesCreated} opprettet, ${invoicesUpdated} oppdatert`);
+    console.log(`[hub-seed] Invoices: ${invoicesCreated} opprettet, ${invoicesSkipped} hoppet over (allerede importert)`);
 
     // ── Expenses → Utgift ───────────────────────────────────
-    let utgCreated = 0, utgUpdated = 0;
+    let utgCreated = 0, utgSkipped = 0;
     for (const exp of backup.expenses || []) {
       if (!exp.dato || !exp.beskrivelse || exp.belop == null) {
         console.log(`[hub-seed]   ⚠ hopper over utgift uten dato/beskrivelse/belop`);
         continue;
       }
       const externalId = exp.id || `${exp.dato}-${exp.beskrivelse.slice(0, 20)}`;
-      const existing = await prisma.utgift.findFirst({
-        where: { organizationId, notes: { contains: externalId } },
+
+      const existing = await prisma.utgift.findUnique({
+        where: { organizationId_externalId: { organizationId, externalId } },
         select: { id: true },
       });
 
-      const data = {
-        organizationId,
-        dato: new Date(exp.dato),
-        beskrivelse: exp.beskrivelse,
-        belopInkMva: exp.belop,
-        mvaSats: exp.mva ?? null,
-        kategori: exp.kategori || null,
-        leverandor: exp.leverandor || null,
-        notes: `Importert fra portal-hub (id: ${externalId})`,
-      };
-
       if (existing) {
-        await prisma.utgift.update({ where: { id: existing.id }, data });
-        utgUpdated++;
-      } else {
-        await prisma.utgift.create({ data });
-        utgCreated++;
+        utgSkipped++;
+        continue;
       }
+
+      await prisma.utgift.create({
+        data: {
+          organizationId,
+          externalId,
+          dato: new Date(exp.dato),
+          beskrivelse: exp.beskrivelse,
+          belopInkMva: exp.belop,
+          mvaSats: exp.mva ?? null,
+          kategori: exp.kategori || null,
+          leverandor: exp.leverandor || null,
+        },
+      });
+      utgCreated++;
     }
-    console.log(`[hub-seed] Expenses: ${utgCreated} opprettet, ${utgUpdated} oppdatert`);
+    console.log(`[hub-seed] Expenses: ${utgCreated} opprettet, ${utgSkipped} hoppet over (allerede importert)`);
 
     console.log(`\n[hub-seed] FERDIG.`);
     console.log(`Gå til /foresporsler, /fakturaer og /regnskap i Sakspilot for å se importerte data.`);

@@ -434,11 +434,18 @@ export default function Sidebar() {
                   rel="noopener noreferrer"
                   onClick={(e) => {
                     openShortcut(e, s);
-                    // Klikk = nullstill badge for snarveien
+                    // Klikk = nullstill BÅDE manual + auto badge for denne snarveien
                     if (manualBadges[s.id]) {
                       const next = { ...manualBadges };
                       delete next[s.id];
                       persistManualBadges(next);
+                    }
+                    if (autoBadges[s.url]) {
+                      setAutoBadges((prev) => {
+                        const next = { ...prev };
+                        delete next[s.url];
+                        return next;
+                      });
                     }
                   }}
                   onContextMenu={(e) => {
@@ -610,6 +617,9 @@ export default function Sidebar() {
                     openSite(e, s);
                     if (manualBadges[s.id]) {
                       const next = { ...manualBadges }; delete next[s.id]; persistManualBadges(next);
+                    }
+                    if (autoBadges[s.url]) {
+                      setAutoBadges((prev) => { const n = { ...prev }; delete n[s.url]; return n; });
                     }
                   }}
                   onContextMenu={(e) => { e.preventDefault(); setManualBadge(s.id, s.label); }}

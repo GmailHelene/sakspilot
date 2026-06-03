@@ -14,6 +14,7 @@ import { Router, Request, Response } from "express";
 import PDFDocument from "pdfkit";
 import prisma from "../lib/prisma";
 import { requireAuth } from "../middleware/auth";
+import { parsePeriode, periodeRange, calcMva, bucket } from "../lib/mva";
 
 const router = Router();
 router.use(requireAuth);
@@ -446,20 +447,8 @@ router.get("/fakturaer", async (req: Request, res: Response) => {
 router.get("/mva", async (req: Request, res: Response) => {
   const { organizationId } = req.session!;
   const yr = parseInt((req.query.year as string) || String(new Date().getFullYear()), 10);
-  const periode = (req.query.periode as string) || "year";
-
-  // Periode-grenser (samme logikk som mvaRapport.ts)
-  const utc = (y: number, m: number, d: number) => new Date(Date.UTC(y, m, d));
-  let start: Date, end: Date, label: string;
-  switch (periode) {
-    case "Q1": start = utc(yr, 0, 1);  end = utc(yr, 3, 1);  label = `Q1 ${yr}`; break;
-    case "Q2": start = utc(yr, 3, 1);  end = utc(yr, 6, 1);  label = `Q2 ${yr}`; break;
-    case "Q3": start = utc(yr, 6, 1);  end = utc(yr, 9, 1);  label = `Q3 ${yr}`; break;
-    case "Q4": start = utc(yr, 9, 1);  end = utc(yr + 1, 0, 1); label = `Q4 ${yr}`; break;
-    case "H1": start = utc(yr, 0, 1);  end = utc(yr, 6, 1);  label = `H1 ${yr}`; break;
-    case "H2": start = utc(yr, 6, 1);  end = utc(yr + 1, 0, 1); label = `H2 ${yr}`; break;
-    default:   start = utc(yr, 0, 1);  end = utc(yr + 1, 0, 1); label = `${yr}`;
-  }
+  const periode = parsePeriode(req.query.periode as string);
+  const { start, end, label } = periodeRange(yr, periode);
 
   const [org, invoices, utgifter] = await Promise.all([
     prisma.organization.findUnique({
@@ -477,16 +466,8 @@ router.get("/mva", async (req: Request, res: Response) => {
   ]);
   if (!org) return res.status(404).json({ error: "Organisasjon ikke funnet" });
 
-  // Beregn buckets — samme algoritme som mvaRapport.ts
-  function calcMva(total: number, sats: number, inkludert: boolean): { netto: number; mva: number } {
-    if (sats === 0) return { netto: total, mva: 0 };
-    if (inkludert) {
-      const mva = (total * sats) / (100 + sats);
-      return { netto: total - mva, mva };
-    }
-    return { netto: total, mva: (total * sats) / 100 };
-  }
-
+  // Buckets — bruker shared lib slik at MVA-logikken er identisk med
+  // mvaRapport.ts. Lokal struktur for å holde PDF-rendring enkel.
   type Bucket = { grunnlag: number; mva: number };
   const utgaaende = { totalt: 0, "25": { grunnlag: 0, mva: 0 } as Bucket, "15": { grunnlag: 0, mva: 0 } as Bucket, "12": { grunnlag: 0, mva: 0 } as Bucket, fritak: { grunnlag: 0, mva: 0 } as Bucket };
   const inngaaende = { totalt: 0, "25": { grunnlag: 0, mva: 0 } as Bucket, "15": { grunnlag: 0, mva: 0 } as Bucket, "12": { grunnlag: 0, mva: 0 } as Bucket, fritak: { grunnlag: 0, mva: 0 } as Bucket };
@@ -495,7 +476,7 @@ router.get("/mva", async (req: Request, res: Response) => {
     const total = Number(inv.totalAmount);
     const sats = inv.mvaSats ?? 25;
     const { netto, mva } = calcMva(total, sats, inv.mvaInkludert);
-    const key = sats === 25 ? "25" : sats === 15 ? "15" : sats === 12 ? "12" : "fritak";
+    const key = bucket(sats);
     utgaaende[key].grunnlag += netto;
     utgaaende[key].mva += mva;
     utgaaende.totalt += mva;
@@ -507,7 +488,7 @@ router.get("/mva", async (req: Request, res: Response) => {
       continue;
     }
     const { netto, mva } = calcMva(total, u.mvaSats, true);
-    const key = u.mvaSats === 25 ? "25" : u.mvaSats === 15 ? "15" : u.mvaSats === 12 ? "12" : "fritak";
+    const key = bucket(u.mvaSats);
     inngaaende[key].grunnlag += netto;
     inngaaende[key].mva += mva;
     inngaaende.totalt += mva;

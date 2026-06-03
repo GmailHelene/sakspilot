@@ -1752,25 +1752,35 @@ ipcMain.handle('shell:open-in-window', async (_e, url, label) => {
   });
 
   // ── Auto-badge fra fanetittel ─────────────────────────────────
-  // Mange tjenester (Gmail, Outlook, Slack, Discord, FB, GitHub)
-  // legger antall uleste i tittelen som "(N) Inbox" eller
-  // "Inbox (N) - Gmail". Plukk det ut og send til renderer så
-  // Sidebar viser badge på snarvei-tilen.
+  // Mange tjenester legger antall uleste i tittelen — vi plukker det
+  // ut og sender til renderer. Vi godtar BARE to mønstre for å unngå
+  // falsk-positive (som "GitHub (3 stars) - Repo"):
   //
-  // Vi matcher det FØRSTE tallet i parentes i tittelen — det fanger
-  // alle de vanlige mønstrene uten å bli forvirret av f.eks.
-  // "GitHub (3.4 stjerner)" (vi tar 3, men det er ufarlig - brukeren
-  // kan høyreklikke for å nullstille hvis falsk-positive blir et problem).
-  const TITLE_BADGE_RE = /\((\d+)\)/;
+  //   A. Tittel starter med "(N) ..." — Slack, Discord, Outlook, FB
+  //   B. "Inbox (N) - ..." eller "Mail (N) | ..." — Gmail, Outlook web
+  //      (tall i parentes etterfulgt av separator: " -", " |", "·")
+  //
+  // GitHub Notifications bruker mønster A: "(3) Notifications", så det
+  // funker. "GitHub (3 stars)" matcher IKKE A (starter ikke med parentes)
+  // og IKKE B (ingen separator etter parentesen). Vi vinner.
+  //
+  // Hvis tjenesten ikke matcher noen av disse, sender vi count=0 så
+  // gammel badge nullstilles. Manuell høyreklikk-badge overlever.
+  const TITLE_PREFIX_RE = /^\((\d+)\)\s/;            // (3) ...
+  const TITLE_INFIX_RE  = /\((\d+)\)\s*[-|·—]/;      // ... (3) - ...
   view.webContents.on('page-title-updated', (_event, title) => {
     if (!dashboardWindow || dashboardWindow.isDestroyed()) return;
-    const m = title.match(TITLE_BADGE_RE);
-    const count = m ? parseInt(m[1], 10) : 0;
-    // Send count (kan være 0 — det er hvordan vi "nullstiller" badge
-    // når brukeren har lest alt og tittelen ikke lenger har "(N)")
+    let count = 0;
+    const m1 = title.match(TITLE_PREFIX_RE);
+    if (m1) {
+      count = parseInt(m1[1], 10);
+    } else {
+      const m2 = title.match(TITLE_INFIX_RE);
+      if (m2) count = parseInt(m2[1], 10);
+    }
     dashboardWindow.webContents.send('shortcut:auto-badge', {
       url,
-      count: Number.isFinite(count) ? count : 0,
+      count: Number.isFinite(count) && count > 0 ? count : 0,
     });
   });
 

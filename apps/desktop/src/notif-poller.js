@@ -80,6 +80,11 @@ class NotifPoller {
     this.isLoggedIn = isLoggedIn;
     this.timer = null;
     this.inFlight = false;
+    // True når neste tick IKKE skal varsle — bare "kalibrere" snapshot.
+    // Settes til true ved start() første gang i en bruker-sesjon (etter
+    // reset() ved logout). Hindrer "alle uleste varsler popper opp ved
+    // login"-spam når noen har samlet seg opp mens du var utlogget.
+    this.skipNextNotify = false;
   }
 
   start() {
@@ -106,7 +111,15 @@ class NotifPoller {
     try {
       const res = await this.apiCall('/notifications/counts');
       const counts = res && res.counts ? res.counts : {};
-      this.compareAndNotify(counts);
+      // Hopp over notify for første tick etter reset (vi vil bare ha en
+      // baseline-snapshot, ikke spamme alle eksisterende uleste som "nye").
+      // Etterfølgende ticks varsler normalt om endringer fra denne baseline.
+      if (this.skipNextNotify) {
+        this.skipNextNotify = false;
+        console.log('[NotifPoller] første tick etter reset — bare kalibrerer snapshot');
+      } else {
+        this.compareAndNotify(counts);
+      }
       // Lagre fersk snapshot for neste tick. Vi lagrer BARE unread-tallene
       // — total er ikke relevant for delta-sammenligning.
       const snapshot = {};
@@ -151,11 +164,13 @@ class NotifPoller {
   }
 
   /**
-   * Reset snapshot — kalles ved logout så ikke neste login spam-varsler om
-   * alt som har samlet seg opp.
+   * Reset snapshot — kalles ved logout. Setter også skipNextNotify så neste
+   * tick (etter neste login) bare kalibrerer baseline uten å spam-varsle om
+   * alt som har samlet seg opp i mellomtiden.
    */
   reset() {
     this.store.delete(STORE_KEY);
+    this.skipNextNotify = true;
   }
 }
 
