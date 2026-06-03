@@ -14,6 +14,7 @@
 import { useEffect, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import { SearchBar } from '@/components/SearchBar';
+import { InlineEdit } from '@/components/InlineEdit';
 import { tokens } from '@/lib/tokens';
 import { api } from '@/lib/api';
 import { Plus, ArrowRight, X } from 'lucide-react';
@@ -84,6 +85,35 @@ export default function ForesporslerPage() {
     await api(`/foresporsler/${id}`, { method: 'PATCH', body: { status: newStatus } });
     load();
     setSelected(null);
+  }
+
+  /**
+   * Generisk felt-oppdatering — brukt av inline-edit på kanban-kortene.
+   * Optimistisk: oppdater UI umiddelbart, rull tilbake hvis API feiler.
+   */
+  async function updateField<K extends keyof Foresporsel>(
+    id: string,
+    field: K,
+    value: Foresporsel[K]
+  ) {
+    if (!data) return;
+    const original = data.foresporsler.find((f) => f.id === id);
+    if (!original) return;
+    // Optimistisk
+    setData({
+      ...data,
+      foresporsler: data.foresporsler.map((f) => (f.id === id ? { ...f, [field]: value } : f)),
+    });
+    try {
+      await api(`/foresporsler/${id}`, { method: 'PATCH', body: { [field]: value } });
+    } catch (err) {
+      // Rull tilbake
+      setData((d) => d ? {
+        ...d,
+        foresporsler: d.foresporsler.map((f) => (f.id === id ? { ...f, [field]: original[field] } : f)),
+      } : d);
+      throw err;  // la InlineEdit vise feilmelding
+    }
   }
 
   // ── Drag-and-drop ────────────────────────────────────────
@@ -229,8 +259,13 @@ export default function ForesporslerPage() {
                         key={f.id}
                         draggable
                         onDragStart={(e) => onDragStart(e, f)}
-                        onClick={() => setSelected(f)}
-                        title="Dra til en annen kolonne for å endre status, eller klikk for detaljer"
+                        onClick={(e) => {
+                          // Hvis klikket lander på et input/textarea (inline-edit-modus),
+                          // ikke åpne detalj-modal
+                          if ((e.target as HTMLElement).matches('input, textarea')) return;
+                          setSelected(f);
+                        }}
+                        title="Dra for å endre status. Klikk navnet eller verdien for å redigere direkte. Klikk kortet for detaljer."
                         style={{
                           background: 'white', border: '1px solid #e2e8f0',
                           borderRadius: 8, padding: 10, textAlign: 'left', cursor: 'grab',
@@ -238,18 +273,34 @@ export default function ForesporslerPage() {
                           userSelect: 'none',
                         }}
                       >
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{f.name}</div>
+                        {/* Navn — inline-redigerbart */}
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
+                          <InlineEdit
+                            value={f.name}
+                            onSave={(v) => updateField(f.id, 'name', v)}
+                            minLength={1}
+                            maxLength={200}
+                          />
+                        </div>
                         {f.message && (
                           <div style={{
                             fontSize: 11, color: '#64748b', overflow: 'hidden',
                             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
                           }}>{f.message}</div>
                         )}
-                        {f.estimatedValue != null && (
-                          <div style={{ fontSize: 11, color: '#0f172a', fontWeight: 600 }}>
-                            {f.estimatedValue.toLocaleString('nb-NO')} kr
-                          </div>
-                        )}
+                        {/* Estimert verdi — inline-redigerbart */}
+                        <div style={{ fontSize: 11, color: '#0f172a', fontWeight: 600 }}>
+                          <InlineEdit
+                            value={f.estimatedValue != null ? String(f.estimatedValue) : ''}
+                            placeholder="Sett estimat…"
+                            onSave={async (v) => {
+                              const n = parseInt(v.replace(/\s/g, ''), 10);
+                              await updateField(f.id, 'estimatedValue', isNaN(n) ? null : n);
+                            }}
+                            displayStyle={{ minWidth: 80 }}
+                          />
+                          {f.estimatedValue != null && <span style={{ marginLeft: 4 }}>kr</span>}
+                        </div>
                         {f.source && (
                           <div style={{ fontSize: 10, color: '#94a3b8' }}>Kilde: {f.source}</div>
                         )}

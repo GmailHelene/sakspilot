@@ -419,10 +419,24 @@ function CreateInvoiceModal({ onClose, onCreated }: { onClose: () => void; onCre
                 );
               })}
             </div>
-            <div style={{ borderTop: '2px solid #cbd5e1', marginTop: 12, paddingTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
-              <span style={{ fontSize: 16, fontWeight: 700, color: tokens.color.navy }}>
-                Totalt: {total.toLocaleString('nb-NO')} NOK
-              </span>
+            <div style={{ borderTop: '2px solid #cbd5e1', marginTop: 12, paddingTop: 8 }}>
+              {/* MVA-breakdown — antar pris inkl. 25 % MVA (hub-konvensjon).
+                  Hvis vi senere får mvaInkludert-toggle, byttes formelen ut. */}
+              {total > 0 && (() => {
+                const mva = total * 0.25 / 1.25;
+                const netto = total - mva;
+                return (
+                  <div style={{ fontSize: 12, color: '#64748b', display: 'flex', justifyContent: 'flex-end', gap: 16, marginBottom: 4 }}>
+                    <span>Netto: <strong style={{ color: '#0f172a' }}>{netto.toLocaleString('nb-NO', { maximumFractionDigits: 2 })}</strong></span>
+                    <span>MVA (25 %): <strong style={{ color: '#0f172a' }}>{mva.toLocaleString('nb-NO', { maximumFractionDigits: 2 })}</strong></span>
+                  </div>
+                );
+              })()}
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <span style={{ fontSize: 16, fontWeight: 700, color: tokens.color.navy }}>
+                  Totalt inkl. MVA: {total.toLocaleString('nb-NO')} NOK
+                </span>
+              </div>
             </div>
           </div>
 

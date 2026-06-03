@@ -29,38 +29,45 @@ const STORE_KEY = 'lastSeenNotifCounts';
 const POLL_INTERVAL_MS = 60_000;
 
 // Per-område: hvordan vi formaterer toast-tittel + body.
-// Holdes her isf i main.js så det er ett sted å oppdatere når flere
-// områder kommer til.
+// `silent: false` aktiverer Windows-standard-varsel-lyd; vi setter det
+// kun på områder som er VIKTIGE å fange opp med en gang (nye leads).
+// Andre områder bruker silent toast for å ikke avbryte arbeidsflyten.
 const AREA_CONFIG = {
   foresporsler: {
     title: (n) => (n === 1 ? 'Ny forespørsel' : `${n} nye forespørsler`),
     body:  'Klikk for å se i Sakspilot',
     path:  '/foresporsler',
+    silent: false,   // nye leads = penger på bordet, må fange brukerens oppmerksomhet
   },
   saker: {
     title: (n) => (n === 1 ? 'Forfalt sak' : `${n} saker har overskredet frist`),
     body:  'Sjekk hvilke saker som er forsinket',
     path:  '/saker',
+    silent: true,    // forfalte saker er allerede et problem — ikke spamme lyd
   },
   fakturaer: {
     title: (n) => (n === 1 ? 'Forfalt faktura' : `${n} forfalte fakturaer`),
     body:  'Send purring eller marker som betalt',
     path:  '/fakturaer',
+    silent: true,
   },
   kalender: {
     title: (n) => (n === 1 ? 'Frist i dag eller i morgen' : `${n} frister neste 24 t`),
     body:  'Se kalender i Sakspilot',
     path:  '/kalender',
+    silent: true,
   },
   klistrelapper: {
     title: (n) => (n === 1 ? 'Påminnelse' : `${n} påminnelser`),
     body:  'Klistrelapp har gått forbi remind-tid',
     path:  '/klistrelapper',
+    silent: false,   // påminnelser er bevisst valgt av brukeren — lyd matcher intensjon
   },
   team: {
     title: (n) => (n === 1 ? 'Team-invitasjon' : `${n} team-invitasjoner venter`),
     body:  'Aksepter eller avslå i Innstillinger → Team',
     path:  '/innstillinger/team',
+    silent: true,
   },
 };
 
@@ -154,6 +161,7 @@ class NotifPoller {
             title: cfg.title(delta),
             body: cfg.body,
             areaPath: cfg.path,
+            silent: cfg.silent,
           });
           console.log(`[NotifPoller] ${area}: +${delta} (was ${prevUnread} → ${currUnread})`);
         } catch (err) {

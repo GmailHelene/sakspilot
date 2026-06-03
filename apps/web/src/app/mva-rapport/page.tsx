@@ -73,10 +73,17 @@ const PERIODER: Array<{ value: Periode; label: string }> = [
 ];
 
 export default function MvaRapportPage() {
-  const [year, setYear] = useState(currentYear);
-  // Default: nåværende kvartal
-  const currentQ = Math.floor(new Date().getMonth() / 3) + 1;
-  const [periode, setPeriode] = useState<Periode>(`Q${currentQ}` as Periode);
+  // Default: SISTE AVSLUTTEDE kvartal — det er det som er aktuelt for innlevering.
+  // Hvis vi er i Q2 2026, har vi nettopp avsluttet Q1 2026, og det er det
+  // brukeren typisk skal rapportere på (eller verifisere).
+  // Spesialtilfelle: i januar er siste avsluttede Q4 i fjor.
+  const now = new Date();
+  const currentQ = Math.floor(now.getMonth() / 3) + 1;
+  const lastClosedQ = currentQ === 1 ? 4 : currentQ - 1;
+  const lastClosedYear = currentQ === 1 ? currentYear - 1 : currentYear;
+
+  const [year, setYear] = useState(lastClosedYear);
+  const [periode, setPeriode] = useState<Periode>(`Q${lastClosedQ}` as Periode);
   const [data, setData] = useState<MvaResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
