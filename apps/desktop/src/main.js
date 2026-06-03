@@ -1751,6 +1751,29 @@ ipcMain.handle('shell:open-in-window', async (_e, url, label) => {
     if (m) { m.loading = false; broadcastShortcutState(); }
   });
 
+  // ── Auto-badge fra fanetittel ─────────────────────────────────
+  // Mange tjenester (Gmail, Outlook, Slack, Discord, FB, GitHub)
+  // legger antall uleste i tittelen som "(N) Inbox" eller
+  // "Inbox (N) - Gmail". Plukk det ut og send til renderer så
+  // Sidebar viser badge på snarvei-tilen.
+  //
+  // Vi matcher det FØRSTE tallet i parentes i tittelen — det fanger
+  // alle de vanlige mønstrene uten å bli forvirret av f.eks.
+  // "GitHub (3.4 stjerner)" (vi tar 3, men det er ufarlig - brukeren
+  // kan høyreklikke for å nullstille hvis falsk-positive blir et problem).
+  const TITLE_BADGE_RE = /\((\d+)\)/;
+  view.webContents.on('page-title-updated', (_event, title) => {
+    if (!dashboardWindow || dashboardWindow.isDestroyed()) return;
+    const m = title.match(TITLE_BADGE_RE);
+    const count = m ? parseInt(m[1], 10) : 0;
+    // Send count (kan være 0 — det er hvordan vi "nullstiller" badge
+    // når brukeren har lest alt og tittelen ikke lenger har "(N)")
+    dashboardWindow.webContents.send('shortcut:auto-badge', {
+      url,
+      count: Number.isFinite(count) ? count : 0,
+    });
+  });
+
   setActiveShortcut(url);
 
   view.webContents.loadURL(url).catch((err) => {

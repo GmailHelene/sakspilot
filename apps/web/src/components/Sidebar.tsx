@@ -57,6 +57,8 @@ function getDesktopAPI(): {
   isDesktop: boolean;
   openFolder?: (path: string) => Promise<{ ok: boolean; error?: string }>;
   openInWindow?: (url: string, label: string) => Promise<{ ok: boolean }>;
+  // Returnerer en unsubscribe-funksjon
+  onShortcutAutoBadge?: (cb: (payload: { url: string; count: number }) => void) => () => void;
 } {
   if (typeof window === 'undefined') return { isDesktop: false };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -92,6 +94,11 @@ export default function Sidebar() {
   const [userRole, setUserRole] = useState<string | null>(null);
   // Manuelle badges på snarveier/sites/mapper. Sti: { [shortcutId]: count }
   const [manualBadges, setManualBadges] = useState<Record<string, number>>({});
+  // Auto-badges fra Electron-main, indeksert på URL (siden main bare kjenner URL).
+  // I render-tid mapper vi URL → shortcutId via lookup. Holdes separat fra
+  // manualBadges så manuelle overstyringer kan vinne (eller motsatt — vi
+  // velger MAX av de to per item, så høyreklikk fungerer som "minst denne").
+  const [autoBadges, setAutoBadges] = useState<Record<string, number>>({});
   // Henter notif-counts hvert 30s + ved fokus + manuelle besøk.
   // Disabler i SSR (gjør ingenting før mounted=true) for å unngå at
   // useEffect-en kjører før localStorage er tilgjengelig.
@@ -104,6 +111,36 @@ export default function Sidebar() {
       if (stored) setManualBadges(JSON.parse(stored));
     } catch {}
   }, []);
+
+  // Subscribe på auto-badges fra Electron-main (kun i .exe-en).
+  // Main parser fanetittel på åpne BrowserViews og sender { url, count }.
+  // Vi indekserer på URL siden main bare kjenner URLen.
+  useEffect(() => {
+    if (!desktop.isDesktop || !desktop.onShortcutAutoBadge) return;
+    const unsubscribe = desktop.onShortcutAutoBadge(({ url, count }) => {
+      setAutoBadges((prev) => {
+        // Ingen endring? slipp re-render
+        if (prev[url] === count) return prev;
+        const next = { ...prev };
+        if (count > 0) next[url] = count;
+        else delete next[url];
+        return next;
+      });
+    });
+    return unsubscribe;
+  }, [desktop]);
+
+  /**
+   * Slå sammen manuell + auto badge for en gitt snarvei.
+   * Returner MAX av de to — så manual override (høyreklikk) fungerer
+   * som "minst dette tallet", og auto kan overstyre med høyere.
+   * Hvis bare én av dem finnes, returnér den.
+   */
+  function getBadgeFor(id: string, url: string): number {
+    const m = manualBadges[id] || 0;
+    const a = autoBadges[url] || 0;
+    return Math.max(m, a);
+  }
 
   function persistManualBadges(next: Record<string, number>) {
     setManualBadges(next);
@@ -388,7 +425,7 @@ export default function Sidebar() {
 
         {mounted &&
           shortcuts.map((s) => {
-            const badge = manualBadges[s.id];
+            const badge = getBadgeFor(s.id, s.url);
             return (
               <div key={s.id} style={{ position: 'relative' }} className="shortcut-row">
                 <a
@@ -562,7 +599,7 @@ export default function Sidebar() {
             }}
           >
             {mySites.map((s) => {
-              const badge = manualBadges[s.id];
+              const badge = getBadgeFor(s.id, s.url);
               return (
               <div key={s.id} style={{ position: 'relative' }} className="my-site-tile">
                 <a

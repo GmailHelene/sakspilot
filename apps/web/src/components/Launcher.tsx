@@ -74,6 +74,9 @@ interface TooltipState {
 export default function Launcher() {
   const [apps, setApps] = useState<LauncherApp[]>(DEFAULT_APPS);
   const [mySites, setMySites] = useState<MySite[]>([]);
+  // Auto-badges fra Electron-main (parser fanetittel når snarvei er åpen)
+  // Indeksert på URL. Vi viser bare badge når count > 0.
+  const [autoBadges, setAutoBadges] = useState<Record<string, number>>({});
   const [adding, setAdding] = useState(false);
   const [newLabel, setNewLabel] = useState('');
   const [newUrl, setNewUrl] = useState('');
@@ -115,9 +118,28 @@ export default function Launcher() {
     // Lytt også når Mine sites endres (Sidebar disptacher det)
     window.addEventListener('sakspilot:sites-updated', handler);
     // storage-eventet fyrer på andre tabs/vinduer — fanger samme-vindu via custom event
+
+    // Auto-badge fra Electron-main: parser fanetittel på åpne BrowserViews.
+    // Bare i .exe-en — i nettleser er api udefinert.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const api = (typeof window !== 'undefined' ? (window as any).sakspilot : null);
+    let unsubBadge: (() => void) | null = null;
+    if (api?.isDesktop && api.onShortcutAutoBadge) {
+      unsubBadge = api.onShortcutAutoBadge(({ url, count }: { url: string; count: number }) => {
+        setAutoBadges((prev) => {
+          if (prev[url] === count) return prev;
+          const next = { ...prev };
+          if (count > 0) next[url] = count;
+          else delete next[url];
+          return next;
+        });
+      });
+    }
+
     return () => {
       window.removeEventListener('sakspilot:launcher-updated', handler);
       window.removeEventListener('sakspilot:sites-updated', handler);
+      if (unsubBadge) unsubBadge();
     };
   }, []);
 
@@ -415,6 +437,10 @@ export default function Launcher() {
                 </span>
               )}
             </button>
+            {/* Auto-badge: tall fra fanetittel (Gmail "Inbox (3)" osv) */}
+            {app.url && autoBadges[app.url] > 0 && (
+              <LauncherBadge count={autoBadges[app.url]} />
+            )}
           </div>
         );
         })}
@@ -463,6 +489,9 @@ export default function Launcher() {
                 >
                   <LauncherSiteFavicon url={s.url} label={s.label} />
                 </a>
+                {autoBadges[s.url] > 0 && (
+                  <LauncherBadge count={autoBadges[s.url]} />
+                )}
               </div>
             ))}
           </>
@@ -892,3 +921,42 @@ const resetButtonStyle: React.CSSProperties = {
   fontSize: 16,
   cursor: 'pointer',
 };
+
+/**
+ * Liten rød badge i topp-høyre hjørne av en Launcher-ikon.
+ * Absolute-positionert; ytterligere wrapper trenger position: relative
+ * (vår eksisterende wrapper har det allerede).
+ *
+ * Format: 9+ for >9, 99+ for >99 — så vi ikke får 3-sifret tall som
+ * sprenger ikon-størrelsen.
+ */
+function LauncherBadge({ count }: { count: number }) {
+  const display = count > 99 ? '99+' : count > 9 ? `${count}` : String(count);
+  return (
+    <span
+      aria-label={`${count} varsler`}
+      style={{
+        position: 'absolute',
+        top: -2,
+        right: 4,
+        minWidth: 16,
+        height: 16,
+        padding: '0 4px',
+        background: '#dc2626',
+        color: 'white',
+        fontSize: 9,
+        fontWeight: 700,
+        borderRadius: 999,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        lineHeight: 1,
+        border: '1.5px solid #1E3A5F',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+        pointerEvents: 'none',
+      }}
+    >
+      {display}
+    </span>
+  );
+}

@@ -53,6 +53,19 @@ contextBridge.exposeInMainWorld('sakspilot', {
     ipcRenderer.on('shortcut:state', listener);
     return () => ipcRenderer.removeListener('shortcut:state', listener);
   },
+
+  /**
+   * Lytt etter auto-badge fra åpne snarveier. Main-prosessen leser
+   * fanetittelen og sender { url, count } når det er endring.
+   * Bruker URL som nøkkel siden Sidebar har shortcuts/mySites med url.
+   *
+   * Callback signatur: ({ url: string, count: number }) => void
+   */
+  onShortcutAutoBadge: (callback) => {
+    const listener = (_e, payload) => callback(payload);
+    ipcRenderer.on('shortcut:auto-badge', listener);
+    return () => ipcRenderer.removeListener('shortcut:auto-badge', listener);
+  },
 });
 
 // Egen, mer begrenset bro for det flytende widget-vinduet (widget.html).
