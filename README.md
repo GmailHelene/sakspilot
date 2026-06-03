@@ -29,7 +29,11 @@ Se [`docs/STATUS-2026-06-03.md`](docs/STATUS-2026-06-03.md) for funksjonsoversik
 - **Web:** https://sakspilot.no (Vercel)
 - **API:** https://api.sakspilot.no (Render)
 - **Database:** Neon Postgres (eu-central-1)
-- **Desktop:** `apps/desktop/release/Sakspilot-win-x64.zip` (GitHub Releases — versjonsløs URL følger seneste)
+- **Desktop:** Last ned fra [Releases](https://github.com/GmailHelene/sakspilot/releases). Versjonsløse URL-er som alltid peker på seneste:
+  - Windows: https://github.com/GmailHelene/sakspilot/releases/latest/download/Sakspilot-win-x64.zip
+  - macOS (Apple Silicon): https://github.com/GmailHelene/sakspilot/releases/latest/download/Sakspilot-mac-arm64.dmg
+  - macOS (Intel): https://github.com/GmailHelene/sakspilot/releases/latest/download/Sakspilot-mac-x64.dmg
+  - Linux: https://github.com/GmailHelene/sakspilot/releases/latest/download/Sakspilot-linux-x64.tar.gz
 
 ## Hva er ferdig
 

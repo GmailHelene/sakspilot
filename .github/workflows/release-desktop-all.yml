@@ -31,16 +31,23 @@ jobs:
             platform: win32
             arch: x64
             build_script: build:exe
-            # En .zip-fil — Helene pakker ut og dobbeltklikker Sakspilot.exe
-            artifact_glob: 'apps/desktop/release/Sakspilot-*-win-x64.zip'
+            # Glober både versjon-stemplet (Sakspilot-0.0.14-win-x64.zip) OG
+            # stable-navnet kopi (Sakspilot-win-x64.zip) som genereres av
+            # "Create stable-named copy"-steget.
+            artifact_glob: |
+              apps/desktop/release/Sakspilot-*-win-x64.zip
+              apps/desktop/release/Sakspilot-win-x64.zip
           - os: macos-latest
             platform: darwin
             arch: arm64                          # M1/M2/M3 — dekker ~90% av nye Macs
             build_script: build:exe:mac-arm
-            # macos-runner produserer BÅDE .zip OG .dmg — vi glober begge
+            # macos-runner produserer BÅDE .zip OG .dmg — vi glober begge,
+            # pluss stable-navnede kopier.
             artifact_glob: |
               apps/desktop/release/Sakspilot-*-mac-arm64.zip
               apps/desktop/release/Sakspilot-*-mac-arm64.dmg
+              apps/desktop/release/Sakspilot-mac-arm64.zip
+              apps/desktop/release/Sakspilot-mac-arm64.dmg
           - os: macos-13                         # macos-13 = siste runner med Intel x64
             platform: darwin
             arch: x64                            # eldre Intel-Macs (pre-2020)
@@ -48,11 +55,15 @@ jobs:
             artifact_glob: |
               apps/desktop/release/Sakspilot-*-mac-x64.zip
               apps/desktop/release/Sakspilot-*-mac-x64.dmg
+              apps/desktop/release/Sakspilot-mac-x64.zip
+              apps/desktop/release/Sakspilot-mac-x64.dmg
           - os: ubuntu-latest
             platform: linux
             arch: x64
             build_script: build:exe:linux
-            artifact_glob: 'apps/desktop/release/Sakspilot-*-linux-x64.tar.gz'
+            artifact_glob: |
+              apps/desktop/release/Sakspilot-*-linux-x64.tar.gz
+              apps/desktop/release/Sakspilot-linux-x64.tar.gz
 
     steps:
       - uses: actions/checkout@v4
@@ -77,6 +88,45 @@ jobs:
       - name: Build (${{ matrix.platform }}/${{ matrix.arch }})
         working-directory: apps/desktop
         run: npm run ${{ matrix.build_script }}
+
+      # Lag stable-navnede kopier (uten versjon i filnavn) så
+      # `releases/latest/download/Sakspilot-<platform>.zip` alltid funker.
+      # Vi beholder den versjon-stemplede kopien for historisk sporing
+      # OG laster opp den stable-navnede ved siden av.
+      #
+      # Bruker bash på alle plattformer (windows-latest har Git Bash installert).
+      # Eneste forskjellen mellom plattformer er filendelsen — .zip vs .tar.gz.
+      - name: Create stable-named copy
+        shell: bash
+        working-directory: apps/desktop/release
+        run: |
+          set -e
+          if [ "${{ matrix.platform }}" = "linux" ]; then
+            ARCH_EXT="tar.gz"
+            STABLE="Sakspilot-linux-x64.tar.gz"
+            SRC=$(ls Sakspilot-*-linux-x64.tar.gz | head -1)
+          elif [ "${{ matrix.platform }}" = "darwin" ]; then
+            ARCH_EXT="zip"
+            STABLE="Sakspilot-mac-${{ matrix.arch }}.zip"
+            SRC=$(ls Sakspilot-*-mac-${{ matrix.arch }}.zip | head -1)
+            # macOS lager ogsa .dmg — lag stable-navn for den
+            DMG_SRC=$(ls Sakspilot-*-mac-${{ matrix.arch }}.dmg 2>/dev/null | head -1 || echo "")
+            if [ -n "$DMG_SRC" ]; then
+              cp "$DMG_SRC" "Sakspilot-mac-${{ matrix.arch }}.dmg"
+              echo "  ✓ $DMG_SRC -> Sakspilot-mac-${{ matrix.arch }}.dmg"
+            fi
+          else
+            ARCH_EXT="zip"
+            STABLE="Sakspilot-win-x64.zip"
+            SRC=$(ls Sakspilot-*-win-x64.zip | head -1)
+          fi
+          if [ -z "$SRC" ]; then
+            echo "::error::Fant ingen versjon-stemplet arkiv aa lage stable-kopi av"
+            exit 1
+          fi
+          cp "$SRC" "$STABLE"
+          echo "  ✓ $SRC -> $STABLE"
+          ls -la Sakspilot-*
 
       # TODO: macOS code-signing + notarization
       # Krever Apple Developer ID cert (~$99/år). Konfigurer secrets:
