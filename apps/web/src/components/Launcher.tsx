@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { tokens } from '@/lib/tokens';
 
 /**
@@ -71,25 +71,14 @@ interface TooltipState {
   left: number;
 }
 
-// Manuelle Launcher-badges lagres i localStorage med eget prefix
-// (atskilt fra Sidebar sine sakspilot_manual_badges).
-const LAUNCHER_MANUAL_BADGES = 'sakspilot_launcher_manual_badges';
-
 export default function Launcher() {
   const [apps, setApps] = useState<LauncherApp[]>(DEFAULT_APPS);
   const [mySites, setMySites] = useState<MySite[]>([]);
-  // Auto-badges fra Electron-main (parser fanetittel når snarvei er åpen)
-  // Indeksert på URL. Vi viser bare badge når count > 0.
+  // Auto-badges fra Electron-main (parser fanetittel når snarvei er åpen).
+  // F.eks. Gmail-fanen viser "Inbox (3) - ..." → vi plukker opp tallet 3.
+  // Tjenester uten count i tittel (ChatGPT/Notion/Vercel) får ingen badge —
+  // det er bevisst, ikke et problem som trenger en manuell workaround.
   const [autoBadges, setAutoBadges] = useState<Record<string, number>>({});
-  // Manuelle badges (høyreklikk → sett antall). Indeksert på item-id.
-  const [manualBadges, setManualBadges] = useState<Record<string, number>>({});
-  // Popover-state for høyreklikk-meny — itemId + skjerm-koord
-  const [badgePopover, setBadgePopover] = useState<{
-    id: string;
-    label: string;
-    x: number;
-    y: number;
-  } | null>(null);
   const [adding, setAdding] = useState(false);
   const [newLabel, setNewLabel] = useState('');
   const [newUrl, setNewUrl] = useState('');
@@ -124,11 +113,6 @@ export default function Launcher() {
   useEffect(() => {
     setMounted(true);
     loadFromStorage();
-    // Last manuelle badges
-    try {
-      const stored = localStorage.getItem(LAUNCHER_MANUAL_BADGES);
-      if (stored) setManualBadges(JSON.parse(stored));
-    } catch {}
     function handler() {
       loadFromStorage();
     }
@@ -309,45 +293,8 @@ export default function Launcher() {
     persist(apps.filter((a) => a.id !== id));
   }
 
-  // ── Manuelle badges ───────────────────────────────────────
-  function persistManualBadges(next: Record<string, number>) {
-    setManualBadges(next);
-    try {
-      localStorage.setItem(LAUNCHER_MANUAL_BADGES, JSON.stringify(next));
-    } catch {}
-  }
-
-  function openBadgePopover(id: string, label: string, x: number, y: number) {
-    setBadgePopover({ id, label, x, y });
-  }
-
-  function commitBadgePopover(rawValue: string) {
-    if (!badgePopover) return;
-    const n = parseInt(rawValue, 10);
-    const next = { ...manualBadges };
-    if (!n || n <= 0) {
-      delete next[badgePopover.id];
-    } else {
-      next[badgePopover.id] = Math.min(n, 999);
-    }
-    persistManualBadges(next);
-    setBadgePopover(null);
-  }
-
-  /** Slå sammen manual + auto badge — max-verdi vinner. */
-  function getEffectiveBadge(id: string, url: string): number {
-    const m = manualBadges[id] || 0;
-    const a = autoBadges[url] || 0;
-    return Math.max(m, a);
-  }
-
-  /** Når en snarvei åpnes, nullstill manuell badge for den. */
-  function clearBadgesOnOpen(id: string, url: string) {
-    if (manualBadges[id]) {
-      const next = { ...manualBadges };
-      delete next[id];
-      persistManualBadges(next);
-    }
+  /** Nullstill auto-badge for en snarvei når brukeren åpner den. */
+  function clearBadgesOnOpen(url: string) {
     if (autoBadges[url]) {
       setAutoBadges((prev) => {
         const next = { ...prev };
@@ -405,20 +352,13 @@ export default function Launcher() {
               boxShadow: isOver ? 'inset 0 3px 0 0 #D4A017' : 'none',
               transition: 'opacity 0.15s',
             }}
-            onContextMenu={(e) => {
-              // Høyreklikk → åpne badge-popover. Bare hvis app har en URL
-              // (lokal-program-snarveier kan ikke ha auto-badge, men manuell
-              // er fortsatt nyttig — la oss tillate det også).
-              e.preventDefault();
-              openBadgePopover(app.id, app.label, e.clientX, e.clientY);
-            }}
-            onMouseEnter={(e) => showTooltip(e, app.id, app.kind === 'local' ? `${app.label} (lokalt program)` : `${app.label}\n(Høyreklikk for varsel-antall)`)}
+            onMouseEnter={(e) => showTooltip(e, app.id, app.kind === 'local' ? `${app.label} (lokalt program)` : app.label)}
             onMouseLeave={hideTooltip}
           >
             <button
               onClick={(e) => {
-                // Nullstill manuell+auto badge ved åpning
-                if (app.url) clearBadgesOnOpen(app.id, app.url);
+                // Nullstill auto-badge ved åpning
+                if (app.url) clearBadgesOnOpen(app.url);
                 e.preventDefault();
                 openApp(app);
               }}
@@ -516,7 +456,7 @@ export default function Launcher() {
                 (høyreklikk → sett antall). Manuell badge fungerer også på
                 tjenester uten tall i tittel (ChatGPT, Notion osv). */}
             {(() => {
-              const eff = app.url ? getEffectiveBadge(app.id, app.url) : 0;
+              const eff = app.url ? (autoBadges[app.url] || 0) : 0;
               return eff > 0 ? <LauncherBadge count={eff} /> : null;
             })()}
           </div>
@@ -534,16 +474,14 @@ export default function Launcher() {
                 margin: '12px auto',
               }}
             />
-            {mySites.map((s) => (
+            {mySites.map((s) => {
+              const eff = autoBadges[s.url] || 0;
+              return (
               <div
                 key={s.id}
                 style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}
-                onMouseEnter={(e) => showTooltip(e, 'site-' + s.id, `${s.label}\n(Høyreklikk for varsel-antall)`)}
+                onMouseEnter={(e) => showTooltip(e, 'site-' + s.id, s.label)}
                 onMouseLeave={hideTooltip}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  openBadgePopover(s.id, s.label, e.clientX, e.clientY);
-                }}
               >
                 <a
                   href={s.url}
@@ -556,7 +494,7 @@ export default function Launcher() {
                       e.preventDefault();
                       await api.openInWindow(s.url, s.label);
                     }
-                    clearBadgesOnOpen(s.id, s.url);
+                    clearBadgesOnOpen(s.url);
                   }}
                   style={{
                     ...iconButtonStyle,
@@ -572,12 +510,10 @@ export default function Launcher() {
                 >
                   <LauncherSiteFavicon url={s.url} label={s.label} />
                 </a>
-                {(() => {
-                  const eff = getEffectiveBadge(s.id, s.url);
-                  return eff > 0 ? <LauncherBadge count={eff} /> : null;
-                })()}
+                {eff > 0 && <LauncherBadge count={eff} />}
               </div>
-            ))}
+              );
+            })}
           </>
         )}
 
@@ -873,98 +809,13 @@ export default function Launcher() {
           {tooltip.label}
         </div>
       )}
-      {badgePopover && (
-        <LauncherBadgePopover
-          label={badgePopover.label}
-          x={badgePopover.x}
-          y={badgePopover.y}
-          currentValue={manualBadges[badgePopover.id] ?? 0}
-          onCommit={commitBadgePopover}
-          onCancel={() => setBadgePopover(null)}
-        />
-      )}
     </aside>
   );
 }
 
-/**
- * Liten popover for å sette varsel-antall på en Launcher-tile.
- * Speil-implementasjon av Sidebar sin BadgePopover.
- */
-function LauncherBadgePopover({
-  label, x, y, currentValue, onCommit, onCancel,
-}: {
-  label: string;
-  x: number;
-  y: number;
-  currentValue: number;
-  onCommit: (value: string) => void;
-  onCancel: () => void;
-}) {
-  const [val, setVal] = useState(String(currentValue || ''));
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    inputRef.current?.focus();
-    inputRef.current?.select();
-  }, []);
-
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (!(e.target as HTMLElement).closest('[data-launcher-badge-popover]')) onCancel();
-    }
-    const t = setTimeout(() => window.addEventListener('mousedown', handler), 0);
-    return () => { clearTimeout(t); window.removeEventListener('mousedown', handler); };
-  }, [onCancel]);
-
-  const popW = 220;
-  const popH = 120;
-  const left = Math.min(x, typeof window !== 'undefined' ? window.innerWidth - popW - 8 : x);
-  const top = Math.min(y, typeof window !== 'undefined' ? window.innerHeight - popH - 8 : y);
-
-  return (
-    <div
-      data-launcher-badge-popover
-      style={{
-        position: 'fixed', left, top, width: popW,
-        background: 'white', border: '1px solid #cbd5e1',
-        borderRadius: 8, boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
-        padding: 12, zIndex: 9999,
-      }}
-    >
-      <div style={{ fontSize: 11, fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-        Varsler på «{label}»
-      </div>
-      <input
-        ref={inputRef}
-        type="number"
-        min={0}
-        max={999}
-        value={val}
-        onChange={(e) => setVal(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') onCommit(val);
-          if (e.key === 'Escape') onCancel();
-        }}
-        placeholder="Antall (0 = fjern)"
-        style={{
-          width: '100%', padding: '6px 8px', border: '1px solid #cbd5e1',
-          borderRadius: 4, fontSize: 13, boxSizing: 'border-box', outline: 'none',
-        }}
-      />
-      <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', marginTop: 10 }}>
-        <button
-          onClick={onCancel}
-          style={{ background: '#f1f5f9', color: '#475569', border: 'none', padding: '5px 10px', borderRadius: 4, fontSize: 12, cursor: 'pointer' }}
-        >Avbryt</button>
-        <button
-          onClick={() => onCommit(val)}
-          style={{ background: '#1E3A5F', color: 'white', border: 'none', padding: '5px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
-        >Lagre</button>
-      </div>
-    </div>
-  );
-}
+// (Manuell badge-popover fjernet 2026-06-03 — dårlig UX. Auto-badges fra
+// Electron-fanetittel-parsing er det vi beholder; tjenester uten count i
+// tittel forblir uten badge — det er bevisst.)
 
 function LauncherSiteFavicon({ url, label }: { url: string; label: string }) {
   const [tier, setTier] = useState<0 | 1 | 2>(0);

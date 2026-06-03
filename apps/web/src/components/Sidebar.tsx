@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -41,10 +41,6 @@ interface FolderShortcut {
 
 const FOLDER_STORAGE = 'sakspilot_folder_shortcuts';
 const SITES_STORAGE = 'sakspilot_my_sites';
-// Manuelle badges på snarveier/sites — lagret som { [id]: count } i localStorage.
-// Brukeren høyreklikker en snarvei for å sette tall (ny melding venter, etc.).
-// Server vet ikke om eksterne URLs så dette er bare en visuell hjelp.
-const MANUAL_BADGES_STORAGE = 'sakspilot_manual_badges';
 
 interface MySite {
   id: string;
@@ -93,15 +89,6 @@ export default function Sidebar() {
 
   const [navTick, setNavTick] = useState(0);
   const [userRole, setUserRole] = useState<string | null>(null);
-  // Manuelle badges på snarveier/sites/mapper. Sti: { [shortcutId]: count }
-  const [manualBadges, setManualBadges] = useState<Record<string, number>>({});
-  // Popover-state for å sette manuell badge — itemId + skjerm-posisjon
-  const [badgePopover, setBadgePopover] = useState<{
-    id: string;
-    label: string;
-    x: number;
-    y: number;
-  } | null>(null);
   // Vis/skjul "Mer…"-gruppen i sidebar. Lagres i localStorage.
   const [showMore, setShowMore] = useState(false);
   useEffect(() => {
@@ -117,32 +104,18 @@ export default function Sidebar() {
       return next;
     });
   }
-  // Auto-badges fra Electron-main, indeksert på URL (siden main bare kjenner URL).
-  // I render-tid mapper vi URL → shortcutId via lookup. Holdes separat fra
-  // manualBadges så manuelle overstyringer kan vinne (eller motsatt — vi
-  // velger MAX av de to per item, så høyreklikk fungerer som "minst denne").
+  // Auto-badges fra Electron-main, indeksert på URL.
+  // BARE i .exe-en — plukker opp tall fra fanetittel: "Inbox (3) - Gmail" → 3.
+  // Tjenester uten count i tittel (ChatGPT/Notion/Vercel) får ingen badge —
+  // det er bevisst. Brukeren går selv inn på dem når de vil sjekke.
   const [autoBadges, setAutoBadges] = useState<Record<string, number>>({});
-  // Henter notif-counts hvert 30s + ved fokus + manuelle besøk.
-  // Disabler i SSR (gjør ingenting før mounted=true) for å unngå at
-  // useEffect-en kjører før localStorage er tilgjengelig.
   const { counts } = useNotifications();
 
-  // Last manualBadges fra localStorage på mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(MANUAL_BADGES_STORAGE);
-      if (stored) setManualBadges(JSON.parse(stored));
-    } catch {}
-  }, []);
-
   // Subscribe på auto-badges fra Electron-main (kun i .exe-en).
-  // Main parser fanetittel på åpne BrowserViews og sender { url, count }.
-  // Vi indekserer på URL siden main bare kjenner URLen.
   useEffect(() => {
     if (!desktop.isDesktop || !desktop.onShortcutAutoBadge) return;
     const unsubscribe = desktop.onShortcutAutoBadge(({ url, count }) => {
       setAutoBadges((prev) => {
-        // Ingen endring? slipp re-render
         if (prev[url] === count) return prev;
         const next = { ...prev };
         if (count > 0) next[url] = count;
@@ -152,47 +125,6 @@ export default function Sidebar() {
     });
     return unsubscribe;
   }, [desktop]);
-
-  /**
-   * Slå sammen manuell + auto badge for en gitt snarvei.
-   * Returner MAX av de to — så manual override (høyreklikk) fungerer
-   * som "minst dette tallet", og auto kan overstyre med høyere.
-   * Hvis bare én av dem finnes, returnér den.
-   */
-  function getBadgeFor(id: string, url: string): number {
-    const m = manualBadges[id] || 0;
-    const a = autoBadges[url] || 0;
-    return Math.max(m, a);
-  }
-
-  function persistManualBadges(next: Record<string, number>) {
-    setManualBadges(next);
-    try {
-      localStorage.setItem(MANUAL_BADGES_STORAGE, JSON.stringify(next));
-    } catch {}
-  }
-
-  /**
-   * Åpne popover for å sette manuell badge. Brukes ved høyreklikk.
-   * Erstatter den gamle window.prompt-løsningen for konsistent UX.
-   */
-  function setManualBadge(itemId: string, label: string, x: number, y: number) {
-    setBadgePopover({ id: itemId, label, x, y });
-  }
-
-  /** Bekreft popover-input + lukk. */
-  function commitBadgePopover(rawValue: string) {
-    if (!badgePopover) return;
-    const n = parseInt(rawValue, 10);
-    const next = { ...manualBadges };
-    if (!n || n <= 0) {
-      delete next[badgePopover.id];
-    } else {
-      next[badgePopover.id] = Math.min(n, 999);
-    }
-    persistManualBadges(next);
-    setBadgePopover(null);
-  }
   useEffect(() => {
     setMounted(true);
     try {
@@ -479,7 +411,7 @@ export default function Sidebar() {
 
         {mounted &&
           shortcuts.map((s) => {
-            const badge = getBadgeFor(s.id, s.url);
+            const badge = autoBadges[s.url] || 0;
             return (
               <div key={s.id} style={{ position: 'relative' }} className="shortcut-row">
                 <a
@@ -488,12 +420,7 @@ export default function Sidebar() {
                   rel="noopener noreferrer"
                   onClick={(e) => {
                     openShortcut(e, s);
-                    // Klikk = nullstill BÅDE manual + auto badge for denne snarveien
-                    if (manualBadges[s.id]) {
-                      const next = { ...manualBadges };
-                      delete next[s.id];
-                      persistManualBadges(next);
-                    }
+                    // Klikk = nullstill auto-badge (siden brukeren nå "leser")
                     if (autoBadges[s.url]) {
                       setAutoBadges((prev) => {
                         const next = { ...prev };
@@ -502,11 +429,7 @@ export default function Sidebar() {
                       });
                     }
                   }}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    setManualBadge(s.id, s.label, e.clientX, e.clientY);
-                  }}
-                  title={`${s.label}\n(Høyreklikk for å sette varsel-antall)`}
+                  title={s.label}
                   style={{ ...itemStyle, paddingRight: badge > 0 ? 56 : 30 }}
                 >
                   <ExternalLink size={14} strokeWidth={2} style={{ color: tokens.color.textMuted, flexShrink: 0 }} />
@@ -574,37 +497,27 @@ export default function Sidebar() {
           </div>
         )}
 
-        {mounted && folders.map((f) => {
-          const badge = manualBadges[f.id];
-          return (
-            <div key={f.id} style={{ position: 'relative' }}>
-              <button
-                onClick={() => {
-                  openFolder(f.path);
-                  if (manualBadges[f.id]) {
-                    const next = { ...manualBadges }; delete next[f.id]; persistManualBadges(next);
-                  }
-                }}
-                onContextMenu={(e) => { e.preventDefault(); setManualBadge(f.id, f.label, e.clientX, e.clientY); }}
-                style={{ ...itemStyle, paddingRight: badge > 0 ? 56 : 30, width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}
-                title={`${f.path}\n(Høyreklikk for å sette varsel-antall)`}
-              >
-                <FolderOpen size={14} strokeWidth={2} style={{ color: '#D4A017', flexShrink: 0 }} />
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: tokens.color.text }}>
-                  {f.label}
-                </span>
-                {badge > 0 && <NavBadge count={badge} />}
-              </button>
-              <button
-                onClick={() => deleteFolder(f.id)}
-                style={deleteButtonStyle}
-                title="Slett mappe-snarvei"
-              >
-                <Trash2 size={12} strokeWidth={2} />
-              </button>
-            </div>
-          );
-        })}
+        {mounted && folders.map((f) => (
+          <div key={f.id} style={{ position: 'relative' }}>
+            <button
+              onClick={() => openFolder(f.path)}
+              style={{ ...itemStyle, paddingRight: 30, width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}
+              title={f.path}
+            >
+              <FolderOpen size={14} strokeWidth={2} style={{ color: '#D4A017', flexShrink: 0 }} />
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: tokens.color.text }}>
+                {f.label}
+              </span>
+            </button>
+            <button
+              onClick={() => deleteFolder(f.id)}
+              style={deleteButtonStyle}
+              title="Slett mappe-snarvei"
+            >
+              <Trash2 size={12} strokeWidth={2} />
+            </button>
+          </div>
+        ))}
       </SidebarSection>
 
       {/* My Sites — egne live-prosjekter/nettsider som PWA-ikoner-grid */}
@@ -660,7 +573,7 @@ export default function Sidebar() {
             }}
           >
             {mySites.map((s) => {
-              const badge = getBadgeFor(s.id, s.url);
+              const badge = autoBadges[s.url] || 0;
               return (
               <div key={s.id} style={{ position: 'relative' }} className="my-site-tile">
                 <a
@@ -669,15 +582,11 @@ export default function Sidebar() {
                   rel="noopener noreferrer"
                   onClick={(e) => {
                     openSite(e, s);
-                    if (manualBadges[s.id]) {
-                      const next = { ...manualBadges }; delete next[s.id]; persistManualBadges(next);
-                    }
                     if (autoBadges[s.url]) {
                       setAutoBadges((prev) => { const n = { ...prev }; delete n[s.url]; return n; });
                     }
                   }}
-                  onContextMenu={(e) => { e.preventDefault(); setManualBadge(s.id, s.label, e.clientX, e.clientY); }}
-                  title={`${s.label}\n(Høyreklikk for å sette varsel-antall)`}
+                  title={s.label}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -749,116 +658,13 @@ export default function Sidebar() {
           Sakspilot v0.0.1
         </a>
       </div>
-      {badgePopover && (
-        <BadgePopover
-          itemId={badgePopover.id}
-          label={badgePopover.label}
-          x={badgePopover.x}
-          y={badgePopover.y}
-          currentValue={manualBadges[badgePopover.id] ?? 0}
-          onCommit={commitBadgePopover}
-          onCancel={() => setBadgePopover(null)}
-        />
-      )}
     </aside>
   );
 }
 
-/**
- * Liten popover for å sette varsel-antall på en snarvei/mappe/site.
- * Posisjonert ved muse-koordinater (clientX/clientY), klemmes innenfor
- * vinduet. Fokus settes på input umiddelbart for rask tasting.
- */
-function BadgePopover({
-  itemId, label, x, y, currentValue, onCommit, onCancel,
-}: {
-  itemId: string;
-  label: string;
-  x: number;
-  y: number;
-  currentValue: number;
-  onCommit: (value: string) => void;
-  onCancel: () => void;
-}) {
-  void itemId;
-  const [val, setVal] = useState(String(currentValue || ''));
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    inputRef.current?.focus();
-    inputRef.current?.select();
-  }, []);
-
-  // Lukk ved klikk utenfor
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (!(e.target as HTMLElement).closest('[data-badge-popover]')) onCancel();
-    }
-    // Vent til neste tick så vi ikke fanger åpningsklikket
-    const t = setTimeout(() => window.addEventListener('mousedown', handler), 0);
-    return () => { clearTimeout(t); window.removeEventListener('mousedown', handler); };
-  }, [onCancel]);
-
-  // Klamp posisjon innenfor vinduet
-  const popW = 220;
-  const popH = 120;
-  const left = Math.min(x, window.innerWidth - popW - 8);
-  const top = Math.min(y, window.innerHeight - popH - 8);
-
-  return (
-    <div
-      data-badge-popover
-      style={{
-        position: 'fixed',
-        left,
-        top,
-        width: popW,
-        background: 'white',
-        border: '1px solid #cbd5e1',
-        borderRadius: 8,
-        boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
-        padding: 12,
-        zIndex: 9999,
-      }}
-    >
-      <div style={{ fontSize: 11, fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-        Varsler på «{label}»
-      </div>
-      <input
-        ref={inputRef}
-        type="number"
-        min={0}
-        max={999}
-        value={val}
-        onChange={(e) => setVal(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') onCommit(val);
-          if (e.key === 'Escape') onCancel();
-        }}
-        placeholder="Antall (0 = fjern)"
-        style={{
-          width: '100%',
-          padding: '6px 8px',
-          border: '1px solid #cbd5e1',
-          borderRadius: 4,
-          fontSize: 13,
-          boxSizing: 'border-box',
-          outline: 'none',
-        }}
-      />
-      <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', marginTop: 10 }}>
-        <button
-          onClick={onCancel}
-          style={{ background: '#f1f5f9', color: '#475569', border: 'none', padding: '5px 10px', borderRadius: 4, fontSize: 12, cursor: 'pointer' }}
-        >Avbryt</button>
-        <button
-          onClick={() => onCommit(val)}
-          style={{ background: tokens.color.navy, color: 'white', border: 'none', padding: '5px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
-        >Lagre</button>
-      </div>
-    </div>
-  );
-}
+// (Manuell badge-popover er fjernet 2026-06-03 — det var en dårlig UX.
+// Auto-badges fra Electron fanetittel-parsing er det vi beholder, siden
+// de speiler ekte varsel-tilstand i tjenester som Gmail/Outlook/Slack.)
 
 /**
  * SiteFavicon — viser favicon for et site med graceful fallback.
