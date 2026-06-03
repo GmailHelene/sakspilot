@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Home, LayoutGrid, Users, Calendar, CalendarClock, GanttChartSquare, Plus, X,
   ExternalLink, Trash2, StickyNote, FolderOpen, Folder, Shield, Zap, BarChart3, Plug, Palette,
   MessageSquare, UserCog, Globe, Inbox, FileText, Wallet, PieChart, Receipt,
+  ChevronDown, ChevronRight,
   type LucideIcon,
 } from 'lucide-react';
 import { tokens } from '@/lib/tokens';
@@ -94,6 +95,28 @@ export default function Sidebar() {
   const [userRole, setUserRole] = useState<string | null>(null);
   // Manuelle badges på snarveier/sites/mapper. Sti: { [shortcutId]: count }
   const [manualBadges, setManualBadges] = useState<Record<string, number>>({});
+  // Popover-state for å sette manuell badge — itemId + skjerm-posisjon
+  const [badgePopover, setBadgePopover] = useState<{
+    id: string;
+    label: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  // Vis/skjul "Mer…"-gruppen i sidebar. Lagres i localStorage.
+  const [showMore, setShowMore] = useState(false);
+  useEffect(() => {
+    try {
+      const s = localStorage.getItem('sakspilot_sidebar_show_more');
+      if (s === 'true') setShowMore(true);
+    } catch {}
+  }, []);
+  function toggleShowMore() {
+    setShowMore((prev) => {
+      const next = !prev;
+      try { localStorage.setItem('sakspilot_sidebar_show_more', String(next)); } catch {}
+      return next;
+    });
+  }
   // Auto-badges fra Electron-main, indeksert på URL (siden main bare kjenner URL).
   // I render-tid mapper vi URL → shortcutId via lookup. Holdes separat fra
   // manualBadges så manuelle overstyringer kan vinne (eller motsatt — vi
@@ -150,24 +173,25 @@ export default function Sidebar() {
   }
 
   /**
-   * Spør bruker om antall, oppdater manualBadges.
-   * Tom string / 0 fjerner badge. Brukes ved høyreklikk.
+   * Åpne popover for å sette manuell badge. Brukes ved høyreklikk.
+   * Erstatter den gamle window.prompt-løsningen for konsistent UX.
    */
-  function setManualBadge(itemId: string, label: string) {
-    const current = manualBadges[itemId] ?? 0;
-    const input = window.prompt(
-      `Antall varsler for "${label}":\n(0 eller tom = fjern badge)`,
-      String(current || '')
-    );
-    if (input === null) return;
-    const n = parseInt(input, 10);
+  function setManualBadge(itemId: string, label: string, x: number, y: number) {
+    setBadgePopover({ id: itemId, label, x, y });
+  }
+
+  /** Bekreft popover-input + lukk. */
+  function commitBadgePopover(rawValue: string) {
+    if (!badgePopover) return;
+    const n = parseInt(rawValue, 10);
     const next = { ...manualBadges };
     if (!n || n <= 0) {
-      delete next[itemId];
+      delete next[badgePopover.id];
     } else {
-      next[itemId] = Math.min(n, 999);
+      next[badgePopover.id] = Math.min(n, 999);
     }
     persistManualBadges(next);
+    setBadgePopover(null);
   }
   useEffect(() => {
     setMounted(true);
@@ -299,18 +323,19 @@ export default function Sidebar() {
   // Nav-elementer kan skjules per bruker via localStorage.
   // Default: alle synlige. Hver bruker kan toggle via Sidebar-settings (kommer).
   // notif: hvilket NotificationArea-key et nav-element mapper til.
-  // Bare nav-elementer med meningsfulle varsler får en area-key — resten
-  // får ingen badge (NavBadge returnerer null hvis count/total er 0).
-  const ALL_NAV: { id: string; href: string; label: string; Icon: LucideIcon; notif?: NotificationArea }[] = [
-    { id: 'hjem', href: '/hjem', label: 'Hjem', Icon: Home },
-    { id: 'forespørsler', href: '/foresporsler', label: 'Forespørsler', Icon: Inbox, notif: 'foresporsler' },
-    { id: 'prosjekter', href: '/saker', label: 'Prosjekter', Icon: LayoutGrid, notif: 'saker' },
-    { id: 'klienter', href: '/klienter', label: 'Klienter', Icon: Users },
-    { id: 'fakturaer', href: '/fakturaer', label: 'Fakturaer', Icon: FileText, notif: 'fakturaer' },
-    { id: 'regnskap', href: '/regnskap', label: 'Regnskap', Icon: Wallet },
-    { id: 'mva-rapport', href: '/mva-rapport', label: 'MVA-rapport', Icon: Receipt },
-    { id: 'statistikk', href: '/statistikk', label: 'Statistikk', Icon: PieChart },
-    { id: 'kalender', href: '/kalender', label: 'Kalender', Icon: Calendar, notif: 'kalender' },
+  // primary: vises alltid. !primary: under "Mer…"-collapse.
+  // Dette er for å redusere scroll i sidebaren (18+ items → ~9 alltid synlige).
+  const ALL_NAV: { id: string; href: string; label: string; Icon: LucideIcon; notif?: NotificationArea; primary?: boolean }[] = [
+    { id: 'hjem', href: '/hjem', label: 'Hjem', Icon: Home, primary: true },
+    { id: 'forespørsler', href: '/foresporsler', label: 'Forespørsler', Icon: Inbox, notif: 'foresporsler', primary: true },
+    { id: 'prosjekter', href: '/saker', label: 'Prosjekter', Icon: LayoutGrid, notif: 'saker', primary: true },
+    { id: 'klienter', href: '/klienter', label: 'Klienter', Icon: Users, primary: true },
+    { id: 'fakturaer', href: '/fakturaer', label: 'Fakturaer', Icon: FileText, notif: 'fakturaer', primary: true },
+    { id: 'regnskap', href: '/regnskap', label: 'Regnskap', Icon: Wallet, primary: true },
+    { id: 'mva-rapport', href: '/mva-rapport', label: 'MVA-rapport', Icon: Receipt, primary: true },
+    { id: 'statistikk', href: '/statistikk', label: 'Statistikk', Icon: PieChart, primary: true },
+    { id: 'kalender', href: '/kalender', label: 'Kalender', Icon: Calendar, notif: 'kalender', primary: true },
+    // Under "Mer…" — sjeldnere brukte funksjoner
     { id: 'tidslinje', href: '/gantt', label: 'Tidslinje', Icon: GanttChartSquare },
     { id: 'rapport', href: '/rapport', label: 'Rapport', Icon: BarChart3 },
     { id: 'klistrelapper', href: '/klistrelapper', label: 'Klistrelapper', Icon: StickyNote, notif: 'klistrelapper' },
@@ -319,11 +344,9 @@ export default function Sidebar() {
     { id: 'kalender-feed', href: '/innstillinger/kalender', label: 'Kalender-feed', Icon: CalendarClock },
     { id: 'sikkerhet', href: '/innstillinger/sikkerhet', label: 'Sikkerhet', Icon: Shield },
     { id: 'utseende', href: '/innstillinger/utseende', label: 'Utseende', Icon: Palette },
-    // Team-side er KUN for owners. userRole hentes via /auth/me i useEffect.
     ...(userRole === 'owner'
       ? [{ id: 'team', href: '/innstillinger/team', label: 'Team', Icon: UserCog, notif: 'team' as NotificationArea }]
       : []),
-    // Egne domener (whitelabel klient-portal) — også owner-only
     ...(userRole === 'owner'
       ? [{ id: 'domener', href: '/innstillinger/domener', label: 'Egne domener', Icon: Globe }]
       : []),
@@ -346,42 +369,73 @@ export default function Sidebar() {
 
   return (
     <aside style={sidebarStyle}>
-      {/* Seksjon: Sakspilot */}
+      {/* Seksjon: Sakspilot — primær nav alltid synlig + "Mer..."-collapse */}
       <SidebarSection title="Sakspilot">
-        {navLinks.map(({ href, label, Icon, notif }) => {
-          const active = pathname.startsWith(href);
-          const areaCount = notif && counts ? counts[notif] : null;
+        {(() => {
+          const primaryItems = navLinks.filter((n) => n.primary);
+          const moreItems = navLinks.filter((n) => !n.primary);
+          // Auto-vis "Mer…" hvis brukeren er på en av de skjulte sidene
+          // (ellers ville aktiv-state forsvunnet)
+          const activeIsInMore = moreItems.some((n) => pathname.startsWith(n.href));
+          const showMoreEffective = showMore || activeIsInMore;
+
+          function renderItem(item: typeof navLinks[number]) {
+            const { href, label, Icon, notif } = item;
+            const active = pathname.startsWith(href);
+            const areaCount = notif && counts ? counts[notif] : null;
+            return (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => { if (notif) markVisited(notif); }}
+                style={{
+                  ...itemStyle,
+                  background: active ? tokens.gradient.navy : 'transparent',
+                  color: active ? tokens.color.white : tokens.color.text,
+                  fontWeight: active ? 600 : 500,
+                  boxShadow: active ? tokens.shadow.colored(tokens.color.navy) : 'none',
+                  transform: active ? 'translateX(2px)' : 'none',
+                }}
+                onMouseEnter={(e) => { if (!active) (e.currentTarget as HTMLElement).style.background = tokens.color.bgAlt; }}
+                onMouseLeave={(e) => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+              >
+                <Icon size={16} strokeWidth={active ? 2.5 : 2} />
+                <span>{label}</span>
+                {areaCount && (
+                  <NavBadge count={areaCount.unread} total={areaCount.total} activeMode={active} />
+                )}
+              </Link>
+            );
+          }
           return (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => {
-                // Nullstill badge for dette området når brukeren åpner siden
-                if (notif) markVisited(notif);
-              }}
-              style={{
-                ...itemStyle,
-                background: active ? tokens.gradient.navy : 'transparent',
-                color: active ? tokens.color.white : tokens.color.text,
-                fontWeight: active ? 600 : 500,
-                boxShadow: active ? tokens.shadow.colored(tokens.color.navy) : 'none',
-                transform: active ? 'translateX(2px)' : 'none',
-              }}
-              onMouseEnter={(e) => {
-                if (!active) (e.currentTarget as HTMLElement).style.background = tokens.color.bgAlt;
-              }}
-              onMouseLeave={(e) => {
-                if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent';
-              }}
-            >
-              <Icon size={16} strokeWidth={active ? 2.5 : 2} />
-              <span>{label}</span>
-              {areaCount && (
-                <NavBadge count={areaCount.unread} total={areaCount.total} activeMode={active} />
+            <>
+              {primaryItems.map(renderItem)}
+              {moreItems.length > 0 && (
+                <>
+                  <button
+                    onClick={toggleShowMore}
+                    style={{
+                      ...itemStyle,
+                      background: 'transparent',
+                      color: tokens.color.textMuted,
+                      border: 'none',
+                      cursor: 'pointer',
+                      width: '100%',
+                      textAlign: 'left' as const,
+                      fontSize: 12,
+                      fontFamily: 'inherit',
+                    }}
+                    title={showMoreEffective ? 'Skjul mindre brukte fane' : 'Vis flere fane'}
+                  >
+                    {showMoreEffective ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                    <span>{showMoreEffective ? 'Skjul' : `Mer (${moreItems.length})`}</span>
+                  </button>
+                  {showMoreEffective && moreItems.map(renderItem)}
+                </>
               )}
-            </Link>
+            </>
           );
-        })}
+        })()}
       </SidebarSection>
 
       {/* Seksjon: Snarveier */}
@@ -450,7 +504,7 @@ export default function Sidebar() {
                   }}
                   onContextMenu={(e) => {
                     e.preventDefault();
-                    setManualBadge(s.id, s.label);
+                    setManualBadge(s.id, s.label, e.clientX, e.clientY);
                   }}
                   title={`${s.label}\n(Høyreklikk for å sette varsel-antall)`}
                   style={{ ...itemStyle, paddingRight: badge > 0 ? 56 : 30 }}
@@ -531,7 +585,7 @@ export default function Sidebar() {
                     const next = { ...manualBadges }; delete next[f.id]; persistManualBadges(next);
                   }
                 }}
-                onContextMenu={(e) => { e.preventDefault(); setManualBadge(f.id, f.label); }}
+                onContextMenu={(e) => { e.preventDefault(); setManualBadge(f.id, f.label, e.clientX, e.clientY); }}
                 style={{ ...itemStyle, paddingRight: badge > 0 ? 56 : 30, width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}
                 title={`${f.path}\n(Høyreklikk for å sette varsel-antall)`}
               >
@@ -622,7 +676,7 @@ export default function Sidebar() {
                       setAutoBadges((prev) => { const n = { ...prev }; delete n[s.url]; return n; });
                     }
                   }}
-                  onContextMenu={(e) => { e.preventDefault(); setManualBadge(s.id, s.label); }}
+                  onContextMenu={(e) => { e.preventDefault(); setManualBadge(s.id, s.label, e.clientX, e.clientY); }}
                   title={`${s.label}\n(Høyreklikk for å sette varsel-antall)`}
                   style={{
                     display: 'flex',
@@ -695,7 +749,114 @@ export default function Sidebar() {
           Sakspilot v0.0.1
         </a>
       </div>
+      {badgePopover && (
+        <BadgePopover
+          itemId={badgePopover.id}
+          label={badgePopover.label}
+          x={badgePopover.x}
+          y={badgePopover.y}
+          currentValue={manualBadges[badgePopover.id] ?? 0}
+          onCommit={commitBadgePopover}
+          onCancel={() => setBadgePopover(null)}
+        />
+      )}
     </aside>
+  );
+}
+
+/**
+ * Liten popover for å sette varsel-antall på en snarvei/mappe/site.
+ * Posisjonert ved muse-koordinater (clientX/clientY), klemmes innenfor
+ * vinduet. Fokus settes på input umiddelbart for rask tasting.
+ */
+function BadgePopover({
+  itemId, label, x, y, currentValue, onCommit, onCancel,
+}: {
+  itemId: string;
+  label: string;
+  x: number;
+  y: number;
+  currentValue: number;
+  onCommit: (value: string) => void;
+  onCancel: () => void;
+}) {
+  void itemId;
+  const [val, setVal] = useState(String(currentValue || ''));
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
+
+  // Lukk ved klikk utenfor
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (!(e.target as HTMLElement).closest('[data-badge-popover]')) onCancel();
+    }
+    // Vent til neste tick så vi ikke fanger åpningsklikket
+    const t = setTimeout(() => window.addEventListener('mousedown', handler), 0);
+    return () => { clearTimeout(t); window.removeEventListener('mousedown', handler); };
+  }, [onCancel]);
+
+  // Klamp posisjon innenfor vinduet
+  const popW = 220;
+  const popH = 120;
+  const left = Math.min(x, window.innerWidth - popW - 8);
+  const top = Math.min(y, window.innerHeight - popH - 8);
+
+  return (
+    <div
+      data-badge-popover
+      style={{
+        position: 'fixed',
+        left,
+        top,
+        width: popW,
+        background: 'white',
+        border: '1px solid #cbd5e1',
+        borderRadius: 8,
+        boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
+        padding: 12,
+        zIndex: 9999,
+      }}
+    >
+      <div style={{ fontSize: 11, fontWeight: 600, color: '#475569', marginBottom: 6 }}>
+        Varsler på «{label}»
+      </div>
+      <input
+        ref={inputRef}
+        type="number"
+        min={0}
+        max={999}
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') onCommit(val);
+          if (e.key === 'Escape') onCancel();
+        }}
+        placeholder="Antall (0 = fjern)"
+        style={{
+          width: '100%',
+          padding: '6px 8px',
+          border: '1px solid #cbd5e1',
+          borderRadius: 4,
+          fontSize: 13,
+          boxSizing: 'border-box',
+          outline: 'none',
+        }}
+      />
+      <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', marginTop: 10 }}>
+        <button
+          onClick={onCancel}
+          style={{ background: '#f1f5f9', color: '#475569', border: 'none', padding: '5px 10px', borderRadius: 4, fontSize: 12, cursor: 'pointer' }}
+        >Avbryt</button>
+        <button
+          onClick={() => onCommit(val)}
+          style={{ background: tokens.color.navy, color: 'white', border: 'none', padding: '5px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+        >Lagre</button>
+      </div>
+    </div>
   );
 }
 

@@ -211,27 +211,32 @@ export default function RegnskapPage() {
           <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, padding: 16, marginBottom: 20 }}>
             <h3 style={{ fontSize: 14, color: '#475569', margin: '0 0 12px' }}>Per måned</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 6, alignItems: 'end', minHeight: 120 }}>
-              {byMonth.map((b) => (
-                <div key={b.month} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                  <div style={{ display: 'flex', gap: 2, alignItems: 'flex-end', height: 80, width: '100%', justifyContent: 'center' }}>
-                    <div
-                      title={`Inntekt: ${b.income.toLocaleString('nb-NO')} kr`}
-                      style={{
+              {byMonth.map((b) => {
+                const result = b.income - b.expense;
+                const tooltip = `${MONTHS[b.month]}\n` +
+                  `Inntekt: ${b.income.toLocaleString('nb-NO')} kr\n` +
+                  `Utgift: ${b.expense.toLocaleString('nb-NO')} kr\n` +
+                  `Resultat: ${result.toLocaleString('nb-NO')} kr`;
+                return (
+                  <div
+                    key={b.month}
+                    title={tooltip}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'help' }}
+                  >
+                    <div style={{ display: 'flex', gap: 2, alignItems: 'flex-end', height: 80, width: '100%', justifyContent: 'center' }}>
+                      <div style={{
                         width: '40%', background: '#22c55e',
                         height: `${(b.income / maxMonthValue) * 100}%`, minHeight: b.income > 0 ? 2 : 0, borderRadius: '2px 2px 0 0',
-                      }}
-                    />
-                    <div
-                      title={`Utgift: ${b.expense.toLocaleString('nb-NO')} kr`}
-                      style={{
+                      }} />
+                      <div style={{
                         width: '40%', background: '#ef4444',
                         height: `${(b.expense / maxMonthValue) * 100}%`, minHeight: b.expense > 0 ? 2 : 0, borderRadius: '2px 2px 0 0',
-                      }}
-                    />
+                      }} />
+                    </div>
+                    <div style={{ fontSize: 10, color: '#64748b' }}>{MONTHS[b.month]}</div>
                   </div>
-                  <div style={{ fontSize: 10, color: '#64748b' }}>{MONTHS[b.month]}</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div style={{ display: 'flex', gap: 16, fontSize: 11, color: '#64748b', marginTop: 8, justifyContent: 'center' }}>
               <span><span style={{ background: '#22c55e', width: 10, height: 10, display: 'inline-block', borderRadius: 2, marginRight: 4 }} />Inntekt</span>

@@ -79,6 +79,14 @@ export default function FakturaerPage() {
   const [error, setError] = useState<string | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [q, setQ] = useState('');
+  // Mobil-modus: under 700 px bytter vi til kort-stack istedenfor bred tabell
+  const [isNarrow, setIsNarrow] = useState(false);
+  useEffect(() => {
+    function check() { setIsNarrow(window.innerWidth < 700); }
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   async function downloadListPdf() {
     setDownloadingPdf(true);
@@ -189,7 +197,7 @@ export default function FakturaerPage() {
             Ingen fakturaer for valgt filter. Opprett en faktura fra en sak.
           </div>
         )}
-        {filtered.length > 0 && (
+        {filtered.length > 0 && !isNarrow && (
           <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
@@ -231,6 +239,50 @@ export default function FakturaerPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Mobil-vennlig kort-stack — vises i stedet for tabell under 700px */}
+        {filtered.length > 0 && isNarrow && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {filtered.map((inv) => (
+              <div
+                key={inv.id}
+                onClick={() => setSelected(inv)}
+                style={{
+                  background: 'white', border: '1px solid #e2e8f0', borderRadius: 8,
+                  padding: 12, cursor: 'pointer',
+                  display: 'flex', flexDirection: 'column', gap: 6,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
+                      {inv.sak?.client?.name || inv.customerName || '—'}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#64748b' }}>
+                      {inv.invoiceNumber ? `#${inv.invoiceNumber} · ` : ''}{fmtDate(inv.periodEnd)}
+                    </div>
+                  </div>
+                  <StatusBadge status={inv.status} paidAt={inv.paidAt} />
+                </div>
+                {inv.sak?.title && (
+                  <div style={{ fontSize: 11, color: '#475569' }}>{inv.sak.title}</div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: tokens.color.navy }}>
+                    {fmtAmount(inv.totalAmount)} {inv.currency}
+                  </span>
+                  <span style={{ fontSize: 11, color: inv.paidAt ? '#14532d' : (inv.dueDate && isOverdue(inv.dueDate) ? '#dc2626' : '#64748b') }}>
+                    {inv.paidAt
+                      ? `Betalt ${fmtDate(inv.paidAt)}`
+                      : inv.dueDate
+                        ? `${isOverdue(inv.dueDate) ? 'Forfalt' : 'Forfall'} ${fmtDate(inv.dueDate)}`
+                        : ''}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
