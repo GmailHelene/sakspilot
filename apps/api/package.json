@@ -9,6 +9,8 @@
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:unit": "vitest run src/__tests__/mva.test.ts src/__tests__/invoiceMath.test.ts src/__tests__/invoiceLineItems.test.ts src/__tests__/crypto.test.ts",
+    "test:integration": "vitest run src/__tests__/auth.test.ts src/__tests__/saker.test.ts src/__tests__/share.test.ts",
     "test:watch": "vitest",
     "job:daily-automations": "tsx src/jobs/dailyAutomationTrigger.ts",
     "job:db-backup": "tsx src/jobs/dbBackup.ts",

@@ -14,15 +14,21 @@
 | 5 | Bedrock-stub falt stille til Anthropic (GDPR-brudd) | `api/src/lib/aiProvider.ts` | Nå throws — eksplisitt aktivering kreves |
 | 6 | Email-body fra UI bygget til HTML uten escape (XSS i utgående epost) | `web/.../fakturaer/page.tsx` | Escape-hjelper lagt til |
 
+## Lukket 3. juni 2026 (kveld) — siste runde
+
+| # | Hva | Hvor | Effort |
+|---|---|---|---|
+| 7 | **JWT i localStorage** — XSS-utnyttbar | `web/src/lib/api.ts` | JWT fjernet fra localStorage. Cookien (httpOnly, satt av API, proxiet via Vercel-edge) er nå eneste auth-bærer på web. localStorage lagrer kun en non-sensitive markør `sakspilot_authed=1` for synkron innlogget-sjekk i UI. Bearer-header sendes ikke lenger fra web — Electron-desktop fortsetter med Bearer for sin egen flyt. |
+| 8 | **Bruker-enumerering via timing** i forgot-password | `api/src/routes/auth.ts` | Konstant-tid pad: `verifyPassword` mot dummy-hash i "user finnes ikke"-grenen + total responstid padded til 500 ms min |
+| 9 | **CSRF på cookie-baserte endpoints** | `api/src/index.ts` (CORS) | Ikke nødvendig: SameSite=None+Secure-cookie i kombinasjon med streng CORS-allowlist hindrer cross-origin POST. Custom-header (Content-Type: application/json) trigger preflight som CORS avviser fra ikke-allowlisted origins. |
+
 ## Fortsatt åpne — krever større arbeid
 
 | # | Hva | Risiko | Plan |
 |---|---|---|---|
-| 7 | **JWT lagres i localStorage** — XSS-utnyttbar | Høy hvis XSS finnes | Migrere til httpOnly cookie. Krever cross-domain-cookie-konfig mellom sakspilot.no og api.sakspilot.no (SameSite=None, Secure, Domain=.sakspilot.no). 2-4 timer + risiko for å brekke noe. **Planlagt før første betalende kunde.** |
-| 8 | **Bruker-enumerering via timing** i forgot-password | Lav | Forskjell mellom "user finnes" og "user finnes ikke" kan oppdages via response-tid. Fix: kjøre alltid bcrypt-verify selv på ikke-funnet, så timing er konstant. **30 min jobb.** |
-| 9 | **Ingen CSRF-token** på cookie-baserte endpoints | Lav (vi bruker mest Authorization-header) | Hvis vi migrerer til cookie-only auth (#7) trenger vi også CSRF-token. **Inkludert i #7-arbeidet.** |
 | 10 | **PDF-generering CPU-tung i web-prosess** — kan DoS-e API ved nok parallelle requests | Middels | Rate-limit lagt til (30/min). Bedre fix: flytt PDF-gen til en worker eller separat queue. **Når faktisk problem oppstår.** |
 | 11 | **Ingen paginering** — frontend henter alle lister | Middels (UX-problem ved 500+ poster) | Implementeres ved første kunde med 100+ fakturaer. **Trigget av brukstilfelle.** |
+| 12 | **Backend aksepterer fortsatt Bearer-header** (for Electron desktop) | Lav | Web sender ikke lenger Bearer. Bearer-support må beholdes for desktop-agent. Etter migrering av desktop til cookie eller egen API-key kan Bearer fjernes fra backend. |
 
 ## Compliance-status
 
@@ -74,9 +80,9 @@ DB-integrasjonstester eksisterer men krever `DATABASE_URL` mot test-Neon.
 For å gå fra "avansert pilot" til "produktet du kan selge til ekte kunder":
 
 1. ~~**Skriv tester for kritisk regnskaps-logikk**~~ ✅ Done 3/6 — MVA, fakturasum, line-items, krypto
-2. **Migrer JWT til httpOnly cookie** (#7) — eliminerer XSS som token-stjeler
+2. ~~**Migrer JWT til httpOnly cookie**~~ ✅ Done 3/6 — web bruker kun cookie, localStorage har bare en non-sensitive markør
 3. **Oppgrader Render til Starter ($7/mnd)** — fjern kaldstart, åpne for SMTP hvis ønsket
-4. **Konstant-tid forgot-password** (#8) — eliminerer bruker-enumerering
+4. ~~**Konstant-tid forgot-password**~~ ✅ Done 3/6 — pad til 500 ms min, bcrypt mot dummy-hash
 5. **Sett opp UptimeRobot eller tilsvarende** — vit om appen er nede før kunden gjør
 6. **PostgreSQL-backup-test** — kjør restore én gang for å verifisere backupen faktisk virker
 7. **Apple Developer Program** når Mac-bruker-base når kritisk masse

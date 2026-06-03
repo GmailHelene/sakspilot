@@ -313,9 +313,9 @@ function GDPRSection() {
       ? (await (window as Window & { sakspilot?: { getSettings?: () => Promise<{ apiUrl?: string }> } }).sakspilot!.getSettings!())?.apiUrl
       : '';
     const base = apiUrl || (process.env.NEXT_PUBLIC_API_URL || '');
-    const token = localStorage.getItem('sakspilot_token');
     try {
-      const res = await fetch(`${base}/me/export`, { headers: { Authorization: `Bearer ${token}` } });
+      // Auth via httpOnly-cookie (credentials: 'include'). Ingen Bearer-header.
+      const res = await fetch(`${base}/me/export`, { credentials: 'include' });
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');

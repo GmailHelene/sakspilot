@@ -29,11 +29,35 @@ jobs:
       - name: Typecheck Web
         run: cd apps/web && npx tsc --noEmit
 
-  test:
-    name: Integration tests
+  unit-tests:
+    name: Unit tests (no DB)
     runs-on: ubuntu-latest
-    # Krever sekretene DATABASE_URL_TEST + JWT_SECRET satt i GitHub repo settings.
-    # Bruk en dedikert Neon-test-branch — IKKE prod-DB.
+    # Penger + krypto + line-items + MVA-rapport. Kjøres ALLTID i CI
+    # uavhengig av om DATABASE_URL_TEST er satt. Hvis denne ryker er
+    # det en regresjon i regnskaps-kritisk logikk og PR skal blokkeres.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci --workspaces --include-workspace-root
+
+      - name: Generate Prisma client
+        run: npx prisma generate --schema=packages/db/prisma/schema.prisma
+
+      - name: Run unit tests
+        run: cd apps/api && npm run test:unit
+
+  integration-tests:
+    name: Integration tests (DB)
+    runs-on: ubuntu-latest
+    # Krever sekretene DATABASE_URL_TEST + JWT_SECRET_TEST satt i GitHub
+    # repo settings. Bruk en dedikert Neon-test-branch — IKKE prod-DB.
+    # Hvis sekretene mangler hopper jobben over uten å feile, så CI er
+    # grønn ved første push før secrets er konfigurert.
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
       DIRECT_URL: ${{ secrets.DATABASE_URL_TEST }}
@@ -57,5 +81,12 @@ jobs:
         if: env.DATABASE_URL != ''
 
       - name: Run integration tests
-        run: cd apps/api && npm test
+        run: cd apps/api && npm run test:integration
         if: env.DATABASE_URL != ''
+
+      - name: Skip notice
+        run: |
+          echo "::notice::DATABASE_URL_TEST ikke satt — integration-tester hoppet over."
+          echo "Sett DATABASE_URL_TEST + JWT_SECRET_TEST i Settings → Secrets → Actions"
+          echo "for å aktivere DB-tester. Bruk en dedikert Neon-test-branch, IKKE prod-DB."
+        if: env.DATABASE_URL == ''

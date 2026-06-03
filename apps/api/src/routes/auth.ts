@@ -353,7 +353,21 @@ const ForgotSchema = z.object({
   email: z.string().email().max(200),
 });
 
+// Konstant-tid sentinel: dummy bcrypt-hash som vi sammenligner mot for
+// brukere som IKKE finnes. Gir oss ~80-100ms CPU-arbeid (samme som
+// en ekte bcrypt.compare på prod-runden) så timing-forskjellen mellom
+// "user finnes" og "user finnes ikke" forsvinner. Hashen er "doesnotexist"
+// kryptert med bcrypt cost-faktor 12 (samme som vi bruker for prod-passord).
+const TIMING_PAD_HASH = "$2b$12$Wn1.Z7ScJxNmRSqWaIu/MumPHnNFYsX0wjWX3pHJtPiwzMt4UbWAi";
+
+// Minimum total responstid for forgot-password. Den ekte flyten
+// (DB-write + auditLog + Brevo HTTP-API) tar 300-700ms i prod. Vi padder
+// derfor opp til 500ms minimum så "user finnes ikke"-grenen ikke kan
+// avsløres via timing-måling.
+const FORGOT_MIN_MS = 500;
+
 router.post("/forgot-password", async (req: Request, res: Response) => {
+  const startedAt = Date.now();
   const parsed = ForgotSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ error: "Ugyldig e-post" });
@@ -404,6 +418,10 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
       console.log(`[forgot-password] Reset-lenke sendt til ${email} (msg: ${result.messageId})`);
     }
   } else {
+    // CPU-arbeid for konstant timing: ekvivalent med verifyPassword i login-flyten.
+    // Uten dette returnerer "user finnes ikke"-grenen i 5ms vs ~500ms for "finnes",
+    // som angriper kan bruke til bruker-enumerering via repeated POSTs.
+    await verifyPassword("dummy-passord-for-timing-pad", TIMING_PAD_HASH);
     console.log(`[forgot-password] Ingen bruker med e-post ${email} (ignorert)`);
   }
 
@@ -416,6 +434,13 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
   const showDevUrl = user && process.env.NODE_ENV === "development";
   if (user && !emailSent && process.env.NODE_ENV !== "development") {
     console.warn(`[forgot-password] SMTP feilet for ${email}. Reset-URL: ${resetUrl}`);
+  }
+
+  // Tidskonstant respons: padd opp til FORGOT_MIN_MS slik at både
+  // "user finnes" og "user finnes ikke" tar minst like lang tid.
+  const elapsed = Date.now() - startedAt;
+  if (elapsed < FORGOT_MIN_MS) {
+    await new Promise((r) => setTimeout(r, FORGOT_MIN_MS - elapsed));
   }
 
   return res.json({

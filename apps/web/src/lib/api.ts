@@ -2,43 +2,64 @@
  * API-helper for Sakspilot frontend.
  *
  * Bruker Next.js sin rewrite (/api/* → http://localhost:8001/*) i dev.
- * I prod settes NEXT_PUBLIC_API_URL til Railway-URL.
+ * I prod settes NEXT_PUBLIC_API_URL til Vercel-Edge-proxy som peker på
+ * api.sakspilot.no. Cookie-en (httpOnly, satt av API) deles tilbake til
+ * sakspilot.no via proxy — så `credentials: 'include'` er nok for auth.
  *
- * JWT lagres i localStorage som fallback når httpOnly-cookie ikke kan deles
- * cross-site (samme strategi som ByggPilot).
+ * AUTH-STRATEGI (3. juni 2026 — XSS-fix):
+ *   - JWT lagres KUN i httpOnly-cookie (ikke lesbar fra JavaScript)
+ *   - localStorage lagrer en non-sensitive markør `sakspilot_authed: "1"`
+ *     som vi sjekker SYNKRONT for å avgjøre om vi skal vise app eller
+ *     redirecte til /login. Markøren har null verdi for en angriper —
+ *     selv om XSS stjeler den, kan den ikke brukes til API-kall.
+ *   - Vi sender IKKE lenger Authorization-header. Cookie tar over.
+ *   - getToken() er beholdt som no-op for ABI-kompatibilitet (returnerer
+ *     null) — gamle direkte-fetch-sites slutter å sende Bearer-header,
+ *     men cookie får dem fortsatt gjennom auth-middleware.
+ *
+ * Migrasjon for eksisterende brukere: de har gammel `sakspilot_token`
+ * i localStorage. Vår nye isTokenValid() ser ikke etter den, så de blir
+ * sendt til /login én gang. Etter ny login: kun cookie + markør.
  */
 
-const TOKEN_KEY = 'sakspilot_token';
+const AUTHED_KEY = 'sakspilot_authed';
+const LEGACY_TOKEN_KEY = 'sakspilot_token'; // ryddes ved første sjekk
 
+/**
+ * @deprecated Returnerer alltid null. JWT er ikke lenger tilgjengelig for JS.
+ * Beholdt for at gamle direkte-fetch-sites kompilerer — de slutter bare å
+ * sende Authorization-header, og cookie håndterer auth via credentials.
+ */
 export function getToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(TOKEN_KEY);
+  return null;
 }
 
+/**
+ * Markerer brukeren som "innlogget" lokalt. Sendes truthy etter vellykket
+ * login/register (vi ignorerer det faktiske token-feltet siden cookie er
+ * satt av Set-Cookie-headeren i samme respons).
+ */
 export function setToken(token: string | null): void {
   if (typeof window === 'undefined') return;
-  if (token) localStorage.setItem(TOKEN_KEY, token);
-  else localStorage.removeItem(TOKEN_KEY);
+  // Rydd opp gammel JWT-i-localStorage hvis den ligger igjen fra før fixen
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
+  if (token) localStorage.setItem(AUTHED_KEY, '1');
+  else localStorage.removeItem(AUTHED_KEY);
 }
 
+/**
+ * Synkron sjekk om brukeren ser ut til å være innlogget. Brukes til å
+ * avgjøre redirect til /login eller initial render. Den ekte sannheten
+ * ligger i serverside-cookien — første API-kall som returnerer 401 vil
+ * rydde markøren via 401-handleren under.
+ */
 export function isTokenValid(): boolean {
-  const token = getToken();
-  if (!token) return false;
-  try {
-    // JWT-payload er base64url-kodet midt-del — vi sjekker exp uten å verifisere signatur
-    const [, payloadB64] = token.split('.');
-    const payload = JSON.parse(
-      atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'))
-    );
-    if (payload.exp && payload.exp * 1000 < Date.now()) {
-      setToken(null);
-      return false;
-    }
-    return true;
-  } catch {
-    setToken(null);
-    return false;
+  if (typeof window === 'undefined') return false;
+  // Rydd opp legacy hvis den fortsatt ligger der (engangs-migrasjon)
+  if (localStorage.getItem(LEGACY_TOKEN_KEY)) {
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
   }
+  return localStorage.getItem(AUTHED_KEY) === '1';
 }
 
 interface ApiOptions {
@@ -57,9 +78,8 @@ interface ApiOptions {
  * filename: hvis ikke gitt, leses fra Content-Disposition header.
  */
 export async function downloadPdf(path: string, filename?: string): Promise<void> {
-  const token = getToken();
+  // Cookie sendes via credentials: 'include' — ingen Bearer-header nødvendig
   const res = await fetch(`/api${path}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
     credentials: 'include',
   });
   if (!res.ok) {
@@ -102,12 +122,11 @@ export async function api<T = unknown>(
   options: ApiOptions = {}
 ): Promise<T> {
   const { method = 'GET', body, signal } = options;
-  const token = getToken();
-
+  // Auth håndteres av httpOnly-cookien via credentials: 'include'.
+  // Ingen Bearer-header — XSS skal ikke kunne tilegne seg auth-token.
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
-  if (token) headers.Authorization = `Bearer ${token}`;
 
   const res = await fetch(`/api${path}`, {
     method,
@@ -141,7 +160,8 @@ export async function api<T = unknown>(
       path.startsWith('/auth/me')
     ) {
       const keys = [
-        'sakspilot_token',
+        'sakspilot_token',   // legacy — XSS-fix 3/6
+        'sakspilot_authed',
         'sakspilot_active_user',
         'sakspilot_onboarded',
         'sakspilot_profession',

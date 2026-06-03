@@ -14,7 +14,7 @@ men ikke produksjonsherdet på alle akser. Hva det betyr i praksis:
 | Funksjonsbredde | ✅ Real — 25+ sider/features fungerer |
 | Datamodell | ✅ Solid — multi-tenant, indekser, audit-log |
 | Sikkerhets-fundament | ✅ Bra — tenant-filter, bcrypt, AES-256, rate-limit |
-| Sikkerhets-herding | ⚠️ Noen kjente gap (se `docs/SECURITY-NOTES.md`) |
+| Sikkerhets-herding | ✅ JWT i cookie, konstant-tid forgot-password, fail-closed token-revokering. Gjenstående: PDF-DoS-isolasjon, paginering. Se `docs/SECURITY-NOTES.md` |
 | Testdekning | 🟡 Penger + krypto dekket — 8 testfiler, 153 tester (4 nye 3/6). DB-integrasjonstester eksisterer men krever Neon. UI/E2E mangler |
 | Skalering | ⚠️ Ingen paginering — fungerer for piloter, ikke 5k+ poster |
 | Hosting | ⚠️ Render Free-tier (kaldstart 30-60 sek) — må oppgraderes til Starter for betalende |
