@@ -453,13 +453,13 @@ export default function Sidebar() {
                     setManualBadge(s.id, s.label);
                   }}
                   title={`${s.label}\n(Høyreklikk for å sette varsel-antall)`}
-                  style={{ ...itemStyle, paddingRight: badge ? 56 : 30 }}
+                  style={{ ...itemStyle, paddingRight: badge > 0 ? 56 : 30 }}
                 >
                   <ExternalLink size={14} strokeWidth={2} style={{ color: tokens.color.textMuted, flexShrink: 0 }} />
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {s.label}
                   </span>
-                  {badge && <NavBadge count={badge} />}
+                  {badge > 0 && <NavBadge count={badge} />}
                 </a>
                 <button
                   onClick={() => deleteShortcut(s.id)}
@@ -532,14 +532,14 @@ export default function Sidebar() {
                   }
                 }}
                 onContextMenu={(e) => { e.preventDefault(); setManualBadge(f.id, f.label); }}
-                style={{ ...itemStyle, paddingRight: badge ? 56 : 30, width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}
+                style={{ ...itemStyle, paddingRight: badge > 0 ? 56 : 30, width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}
                 title={`${f.path}\n(Høyreklikk for å sette varsel-antall)`}
               >
                 <FolderOpen size={14} strokeWidth={2} style={{ color: '#D4A017', flexShrink: 0 }} />
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: tokens.color.text }}>
                   {f.label}
                 </span>
-                {badge && <NavBadge count={badge} />}
+                {badge > 0 && <NavBadge count={badge} />}
               </button>
               <button
                 onClick={() => deleteFolder(f.id)}
@@ -640,7 +640,7 @@ export default function Sidebar() {
                   }}
                 >
                   <SiteFavicon url={s.url} label={s.label} />
-                  {badge && (
+                  {badge > 0 && (
                     <span style={{
                       position: 'absolute', top: -4, right: -4,
                       minWidth: 18, height: 18, padding: '0 5px',
