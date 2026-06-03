@@ -40,6 +40,12 @@ function getTransporter(): Transporter | null {
     port,
     secure: port === 465, // 465 = implicit TLS, 587 = STARTTLS
     auth: { user, pass },
+    // Aggresive timeouts — uten dette kan nodemailer henge i 60+ sekunder
+    // hvis SMTP_HOST er feil eller porten er blokkert. Med 15 sek failer
+    // vi raskt og kan vise brukbar feilmelding i UI.
+    connectionTimeout: 15_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 30_000,
   });
 
   return _transporter;
@@ -92,10 +98,14 @@ export async function sendEmail(msg: EmailMessage): Promise<EmailResult> {
     return { ok: true, messageId: info.messageId };
   } catch (err) {
     console.error("[email] send feilet:", err);
-    return {
-      ok: false,
-      error: err instanceof Error ? err.message : "Ukjent SMTP-feil",
-    };
+    // Vis litt mer kontekst i error-strengen så bruker forstår
+    // hva som faktisk gikk galt (timeout, auth, ukjent host, osv.)
+    let msg = err instanceof Error ? err.message : "Ukjent SMTP-feil";
+    if (err && typeof err === "object" && "code" in err) {
+      // nodemailer/Node.js feilkoder: ETIMEDOUT, ECONNREFUSED, EAUTH, etc.
+      msg = `[${(err as { code: string }).code}] ${msg}`;
+    }
+    return { ok: false, error: msg };
   }
 }
 
