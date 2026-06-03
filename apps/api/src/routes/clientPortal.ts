@@ -527,4 +527,88 @@ router.get(
   }
 );
 
+// ── GET /client-portal/invoices ─────────────────────────────────
+// Samlet faktura-historikk for klienten på tvers av alle sine prosjekter.
+// Brukes som "Fakturaer"-fane i klient-portalen.
+//
+// Vi ekskluderer drafts (klienten skal ikke se utkast som frilanseren ikke
+// har sendt enda) og cancelled (annullerte fakturaer er internt).
+router.get("/invoices", requireClientAuth, async (req: Request, res: Response) => {
+  const { clientId } = req.clientSession!;
+
+  const invoices = await prisma.invoice.findMany({
+    where: {
+      sak: { clientId },
+      status: "exported",
+    },
+    select: {
+      id: true,
+      invoiceNumber: true,
+      periodStart: true,
+      periodEnd: true,
+      dueDate: true,
+      paidAt: true,
+      totalHours: true,
+      totalAmount: true,
+      currency: true,
+      status: true,
+      sak: { select: { id: true, title: true } },
+      // Vi viser ikke lineItems-detaljer i listen, men gir antall så UI kan vise badge
+      // (klient kan klikke for detalj som viser linjer).
+    },
+    orderBy: { periodEnd: "desc" },
+  });
+
+  // Aggregeringer for header-KPIer
+  const totalAmount = invoices.reduce((s, i) => s + Number(i.totalAmount), 0);
+  const paidAmount = invoices.filter((i) => i.paidAt).reduce((s, i) => s + Number(i.totalAmount), 0);
+  const unpaidAmount = totalAmount - paidAmount;
+  const overdueCount = invoices.filter((i) =>
+    !i.paidAt && i.dueDate && i.dueDate < new Date()
+  ).length;
+
+  return res.json({
+    invoices,
+    summary: {
+      total: invoices.length,
+      totalAmount,
+      paidAmount,
+      unpaidAmount,
+      overdueCount,
+    },
+  });
+});
+
+// ── GET /client-portal/invoices/:id ─────────────────────────────
+// Enkelt-faktura med lineItems for detalj-visning.
+router.get("/invoices/:id", requireClientAuth, async (req: Request, res: Response) => {
+  const { clientId } = req.clientSession!;
+
+  // Verifiser tilhørighet før vi returnerer detalj
+  const invoice = await prisma.invoice.findFirst({
+    where: {
+      id: req.params.id,
+      sak: { clientId },
+      status: "exported",
+    },
+    select: {
+      id: true,
+      invoiceNumber: true,
+      periodStart: true,
+      periodEnd: true,
+      dueDate: true,
+      paidAt: true,
+      totalHours: true,
+      totalAmount: true,
+      currency: true,
+      lineItems: true,
+      note: true,
+      sak: { select: { id: true, title: true } },
+    },
+  });
+  if (!invoice) return res.status(404).json({ error: "Faktura ikke funnet" });
+
+  return res.json(invoice);
+});
+
 export default router;

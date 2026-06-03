@@ -76,15 +76,32 @@ export default function PortalDashboard() {
     <div style={{ minHeight: '100vh', background: tokens.color.bg, fontFamily: 'Inter, -apple-system, sans-serif' }}>
       <PortalTopBar me={me} onLogout={logout} />
       <main style={{ maxWidth: 880, margin: '0 auto', padding: 24 }}>
-        <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 26, color: tokens.color.navy, margin: '0 0 4px 0' }}>
-            Dine prosjekter
-          </h1>
-          {me && (
-            <p style={{ fontSize: 14, color: tokens.color.textMuted, margin: 0 }}>
-              Hos <strong>{me.organizationName}</strong>
-            </p>
-          )}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+          <div>
+            <h1 style={{ fontSize: 26, color: tokens.color.navy, margin: '0 0 4px 0' }}>
+              Dine prosjekter
+            </h1>
+            {me && (
+              <p style={{ fontSize: 14, color: tokens.color.textMuted, margin: 0 }}>
+                Hos <strong>{me.organizationName}</strong>
+              </p>
+            )}
+          </div>
+          <Link
+            href="/portal/fakturaer"
+            style={{
+              background: tokens.color.bgAlt,
+              color: tokens.color.navy,
+              padding: '8px 14px',
+              borderRadius: tokens.radius.sm,
+              fontSize: 13,
+              fontWeight: 600,
+              textDecoration: 'none',
+              border: `1px solid ${tokens.color.border}`,
+            }}
+          >
+            Mine fakturaer →
+          </Link>
         </div>
 
         {loading && (
