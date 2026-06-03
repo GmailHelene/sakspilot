@@ -17,6 +17,7 @@ import { SearchBar } from '@/components/SearchBar';
 import { InlineEdit } from '@/components/InlineEdit';
 import { tokens } from '@/lib/tokens';
 import { api } from '@/lib/api';
+import { useConfirm } from '@/components/ConfirmDialog';
 import { Plus, ArrowRight, X } from 'lucide-react';
 
 type Status = 'ny' | 'i_dialog' | 'vunnet' | 'tapt' | 'arkivert';
@@ -65,6 +66,7 @@ export default function ForesporslerPage() {
   // DnD-state: hvilken kolonne kortet hovrer over (for visuell feedback).
   // dragOverStatus settes på dragEnter + tømmes på dragLeave/drop.
   const [dragOverStatus, setDragOverStatus] = useState<Status | null>(null);
+  const confirm = useConfirm();
 
   async function load() {
     try {
@@ -163,7 +165,12 @@ export default function ForesporslerPage() {
   }
 
   async function convertToClient(f: Foresporsel) {
-    if (!confirm(`Konverter "${f.name}" til klient + opprette ny sak?`)) return;
+    const ok = await confirm({
+      title: `Konvertere «${f.name}» til klient?`,
+      body: 'Vi oppretter en ny klient med kontakt-info fra forespørselen, og et nytt prosjekt under den. Forespørselen markeres som vunnet.',
+      confirmLabel: 'Konvertér',
+    });
+    if (!ok) return;
     await api(`/foresporsler/${f.id}/convert`, { method: 'POST', body: { createSak: true } });
     load();
     setSelected(null);

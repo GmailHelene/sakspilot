@@ -8,6 +8,8 @@ import Sidebar from './Sidebar';
 import Launcher from './Launcher';
 import ReminderPoller from './ReminderPoller';
 import { NotificationTitleSync } from './NotificationTitleSync';
+import { ConfirmProvider } from './ConfirmDialog';
+import { KeyboardShortcuts } from './KeyboardShortcuts';
 import { isTokenValid } from '@/lib/api';
 import { initPreferenceSync } from '@/lib/preferenceSync';
 import { tokens } from '@/lib/tokens';
@@ -81,12 +83,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
+    <ConfirmProvider>
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Global påminnelse-poller — sjekker klistrelapp-påminnelser hvert
           60. sek og viser fixed toast øverst når noe forfaller. */}
       <ReminderPoller />
       {/* Synker varselstall til nettleser-fanen (title + favicon-badge) */}
       <NotificationTitleSync />
+      {/* Globale tastatursnarveier (Ctrl+K søk, N ny, osv) */}
+      <KeyboardShortcuts />
       <Header />
       <div style={{ flex: 1, display: 'flex', minHeight: 0, position: 'relative' }}>
         {/* Mobil-hamburger — floating top-left, men under main-content
@@ -172,5 +177,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
     </div>
+    </ConfirmProvider>
   );
 }

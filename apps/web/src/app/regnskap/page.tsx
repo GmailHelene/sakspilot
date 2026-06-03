@@ -17,6 +17,7 @@ import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
 import { api, downloadPdf } from '@/lib/api';
 import { SearchBar } from '@/components/SearchBar';
+import { useConfirm } from '@/components/ConfirmDialog';
 import { Plus, X, Trash2, FileDown, Paperclip, ImagePlus, Upload } from 'lucide-react';
 import { BankCsvImport } from './BankCsvImport';
 
@@ -85,6 +86,7 @@ export default function RegnskapPage() {
   const [importingCsv, setImportingCsv] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState('');
+  const confirm = useConfirm();
 
   async function load() {
     try {
@@ -104,7 +106,13 @@ export default function RegnskapPage() {
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [year, q]);
 
   async function deleteUtgift(id: string) {
-    if (!confirm('Slette utgiften?')) return;
+    const ok = await confirm({
+      title: 'Slette utgiften?',
+      body: 'Utgiften slettes permanent. Kvittering går også tapt hvis den var lastet opp.',
+      confirmLabel: 'Slett',
+      danger: true,
+    });
+    if (!ok) return;
     await api(`/utgifter/${id}`, { method: 'DELETE' });
     load();
   }
@@ -131,7 +139,13 @@ export default function RegnskapPage() {
   }
 
   async function removeKvittering(utgiftId: string) {
-    if (!confirm('Fjerne kvitteringen?')) return;
+    const ok = await confirm({
+      title: 'Fjerne kvitteringen?',
+      body: 'Kvitteringen slettes permanent. Utgiften selv beholdes.',
+      confirmLabel: 'Fjern',
+      danger: true,
+    });
+    if (!ok) return;
     await api(`/utgifter/${utgiftId}`, { method: 'PATCH', body: { kvitteringUrl: null } });
     load();
   }

@@ -20,6 +20,7 @@ import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
 import { api, downloadPdf, ApiError } from '@/lib/api';
 import { SearchBar } from '@/components/SearchBar';
+import { useConfirm } from '@/components/ConfirmDialog';
 import { Download, ExternalLink, X, Check, Trash2, Plus, FileDown, Mail, Bell } from 'lucide-react';
 
 interface LineItem {
@@ -79,6 +80,7 @@ export default function FakturaerPage() {
   const [error, setError] = useState<string | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [q, setQ] = useState('');
+  const confirm = useConfirm();
   // Mobil-modus: under 700 px bytter vi til kort-stack istedenfor bred tabell
   const [isNarrow, setIsNarrow] = useState(false);
   useEffect(() => {
@@ -116,14 +118,25 @@ export default function FakturaerPage() {
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [year, statusFilter, q]);
 
   async function markPaid(id: string) {
-    if (!confirm('Markere som betalt nå?')) return;
+    const ok = await confirm({
+      title: 'Markere som betalt?',
+      body: 'Fakturaen markeres som betalt med dagens dato. Brukes for innbetalinger som har kommet på konto.',
+      confirmLabel: 'Marker betalt',
+    });
+    if (!ok) return;
     await api(`/invoices/${id}`, { method: 'PATCH', body: { paidAt: new Date().toISOString() } as unknown });
     load();
     setSelected(null);
   }
 
   async function deleteDraft(id: string) {
-    if (!confirm('Slett utkast? Tilknyttede timer frigjøres.')) return;
+    const ok = await confirm({
+      title: 'Slette utkast?',
+      body: 'Fakturautkastet slettes permanent. Eventuelle timer som var tilknyttet frigjøres så de kan brukes på ny faktura.',
+      confirmLabel: 'Slett',
+      danger: true,
+    });
+    if (!ok) return;
     await api(`/invoices/${id}`, { method: 'DELETE' });
     load();
     setSelected(null);
@@ -533,6 +546,7 @@ function DetailModal({
   const [sendOpen, setSendOpen] = useState(false);
   const [sendingReminder, setSendingReminder] = useState(false);
   const [reminderResult, setReminderResult] = useState<string | null>(null);
+  const confirm = useConfirm();
 
   const isOverdue = inv.dueDate && new Date(inv.dueDate) < new Date();
   const canRemind = isOverdue && !inv.paidAt && inv.status !== 'cancelled';
@@ -540,7 +554,14 @@ function DetailModal({
   async function sendReminder() {
     const reminderNum = inv.reminderCount + 1;
     const label = reminderNum === 1 ? 'Vennlig påminnelse' : reminderNum === 2 ? 'Andre påminnelse' : 'SISTE purring';
-    if (!confirm(`Send "${label}" til kunden nå?\n\nFakturaen er ${Math.floor((Date.now() - new Date(inv.dueDate!).getTime()) / 86400000)} dager forsinket.`)) return;
+    const days = Math.floor((Date.now() - new Date(inv.dueDate!).getTime()) / 86400000);
+    const ok = await confirm({
+      title: `Send «${label}»?`,
+      body: `Fakturaen er ${days} dager forsinket. Vi sender en epost til kunden med faktura-PDF og purrer på beløpet.`,
+      confirmLabel: 'Send purring',
+      danger: reminderNum >= 3,
+    });
+    if (!ok) return;
     setSendingReminder(true);
     setReminderResult(null);
     try {

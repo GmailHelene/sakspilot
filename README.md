@@ -72,6 +72,8 @@ endepunkter, schema, bruksanvisning og gjenstående.
 | **Manuelle badges (høyreklikk → popover)** | ✅ NY (3. juni) |
 | **Brevo HTTPS API (Render Free-tier-kompatibel)** | ✅ NY (3. juni) |
 | **PDF rate-limit (30/min)** | ✅ NY (3. juni) |
+| **Custom ConfirmDialog (Esc/Enter)** | ✅ NY (3. juni) |
+| **Tastatursnarveier (Ctrl+K + g-prefiks)** | ✅ NY (3. juni) |
 | AWS Bedrock-provider | 🟡 stub klar |
 | Stripe checkout | 🔴 Q1 2027 |
 | Tripletex direkte (krever partner) | 🔴 venter |
