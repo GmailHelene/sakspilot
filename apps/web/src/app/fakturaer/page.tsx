@@ -18,7 +18,7 @@
 import { useEffect, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
-import { api, downloadPdf } from '@/lib/api';
+import { api, downloadPdf, ApiError } from '@/lib/api';
 import { Download, ExternalLink, X, Check, Trash2, Plus, FileDown, Mail } from 'lucide-react';
 
 interface LineItem {
@@ -632,7 +632,16 @@ Mvh`;
       });
       onSent();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Send feilet');
+      // Vis bakre-detalj så bruker forstår hva som faktisk feilet
+      // (typisk "SMTP not configured" eller "Invalid login").
+      if (err instanceof ApiError) {
+        const detail = typeof err.details === 'string' ? err.details : '';
+        setError(detail ? `${err.message}: ${detail}` : err.message);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Send feilet');
+      }
     } finally {
       setSending(false);
     }
