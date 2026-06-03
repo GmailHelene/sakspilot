@@ -17,7 +17,8 @@ import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
 import { api, downloadPdf } from '@/lib/api';
 import { SearchBar } from '@/components/SearchBar';
-import { Plus, X, Trash2, FileDown, Paperclip, ImagePlus } from 'lucide-react';
+import { Plus, X, Trash2, FileDown, Paperclip, ImagePlus, Upload } from 'lucide-react';
+import { BankCsvImport } from './BankCsvImport';
 
 interface Utgift {
   id: string;
@@ -81,6 +82,7 @@ export default function RegnskapPage() {
   const [utg, setUtg] = useState<UtgiftResponse | null>(null);
   const [inv, setInv] = useState<InvoiceSummary | null>(null);
   const [creating, setCreating] = useState(false);
+  const [importingCsv, setImportingCsv] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState('');
 
@@ -244,6 +246,13 @@ export default function RegnskapPage() {
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <SearchBar value={q} onChange={setQ} placeholder="Søk utgifter…" />
             <button
+              onClick={() => setImportingCsv(true)}
+              style={{ ...btnStyle, background: '#f1f5f9', color: '#334155', display: 'flex', alignItems: 'center', gap: 6 }}
+              title="Importer utgifter fra bank-CSV (DNB/Sparebank1/Nordea/generic)"
+            >
+              <Upload size={14} /> Bank-CSV
+            </button>
+            <button
               onClick={() => setCreating(true)}
               style={{ ...btnStyle, background: tokens.color.navy, color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}
             >
@@ -324,6 +333,7 @@ export default function RegnskapPage() {
       </div>
 
       {creating && <CreateModal onClose={() => setCreating(false)} onCreated={() => { setCreating(false); load(); }} />}
+      {importingCsv && <BankCsvImport onClose={() => setImportingCsv(false)} onImported={() => { setImportingCsv(false); load(); }} />}
     </AppLayout>
   );
 }

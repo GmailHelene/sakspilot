@@ -195,4 +195,98 @@ router.delete("/:id", async (req: Request, res: Response) => {
   return res.json({ ok: true });
 });
 
+// ── Bulk-import fra bank-CSV ─────────────────────────────────────
+const BulkUtgiftSchema = z.array(
+  z.object({
+    dato: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    beskrivelse: z.string().min(1).max(500),
+    belopInkMva: z.number().min(-10_000_000).max(10_000_000),
+    mvaSats: z.number().int().min(0).max(100).nullable().optional(),
+    kategori: z.string().max(100).optional(),
+    leverandor: z.string().max(200).optional(),
+    /** Bank-referanse / arkiv-id — brukes til idempotens */
+    externalId: z.string().max(200).optional(),
+  })
+).min(1).max(1000);
+
+/**
+ * POST /utgifter/bulk-import
+ * Importer flere utgifter samtidig fra bank-CSV.
+ *
+ * Idempotent via externalId: hvis en rad allerede finnes med samme
+ * externalId, hopper vi over (returnerer { skipped: N }).
+ *
+ * Frontend parser CSV og kaller dette endepunktet — backend er format-
+ * agnostic, vi bryr oss ikke om DNB vs Sparebank1.
+ *
+ * Returner: { created, skipped, errors[] }
+ */
+router.post("/bulk-import", async (req: Request, res: Response) => {
+  const parsed = BulkUtgiftSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: "Ugyldig input",
+      details: parsed.error.flatten().fieldErrors,
+    });
+  }
+
+  const session = req.session!;
+  let created = 0;
+  let skipped = 0;
+  const errors: Array<{ index: number; error: string }> = [];
+
+  for (let i = 0; i < parsed.data.length; i++) {
+    const row = parsed.data[i];
+    try {
+      // Idempotens: hvis externalId allerede finnes, hopp over
+      if (row.externalId) {
+        const existing = await prisma.utgift.findUnique({
+          where: {
+            organizationId_externalId: {
+              organizationId: session.organizationId,
+              externalId: row.externalId,
+            },
+          },
+          select: { id: true },
+        });
+        if (existing) {
+          skipped++;
+          continue;
+        }
+      }
+
+      await prisma.utgift.create({
+        data: {
+          organizationId: session.organizationId,
+          externalId: row.externalId ?? null,
+          dato: new Date(row.dato),
+          beskrivelse: row.beskrivelse,
+          belopInkMva: row.belopInkMva,
+          mvaSats: row.mvaSats ?? null,
+          kategori: row.kategori || null,
+          leverandor: row.leverandor || null,
+        },
+      });
+      created++;
+    } catch (err) {
+      errors.push({
+        index: i,
+        error: err instanceof Error ? err.message : "Ukjent feil",
+      });
+    }
+  }
+
+  await prisma.auditLog.create({
+    data: {
+      userId: session.userId,
+      organizationId: session.organizationId,
+      action: "utgift.bulk_imported",
+      entityType: "utgift",
+      metadata: { created, skipped, errorCount: errors.length },
+    },
+  });
+
+  return res.json({ created, skipped, errors });
+});
+
 export default router;
