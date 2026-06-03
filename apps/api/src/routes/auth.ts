@@ -407,9 +407,16 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
     console.log(`[forgot-password] Ingen bruker med e-post ${email} (ignorert)`);
   }
 
-  // _devResetUrl bare for ikke-prod ELLER hvis SMTP feilet (siste utvei for piloter)
-  const showDevUrl =
-    user && (process.env.NODE_ENV !== "production" || !emailSent);
+  // _devResetUrl returneres BARE i lokal dev (NODE_ENV='development').
+  // Tidligere falt vi tilbake til å lekke URL-en hvis emailSent=false selv i
+  // prod ("siste utvei for piloter") — det er en bruker-enumerering-vektor og
+  // potensielt en konto-overtakelsesvektor hvis noen sniffer responser.
+  // Logger fortsatt URLen til API-konsollen for prod-fallback (du må logge inn
+  // på Render Logs for å hente den), men eksponerer den IKKE i HTTP-respons.
+  const showDevUrl = user && process.env.NODE_ENV === "development";
+  if (user && !emailSent && process.env.NODE_ENV !== "development") {
+    console.warn(`[forgot-password] SMTP feilet for ${email}. Reset-URL: ${resetUrl}`);
+  }
 
   return res.json({
     ok: true,

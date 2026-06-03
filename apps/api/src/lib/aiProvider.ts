@@ -94,14 +94,18 @@ export function getAIClient(): Anthropic | null {
   }
 
   if (id === "bedrock") {
-    // Stub — koden under er kommentert ut til vi installerer SDK + tester.
-    console.warn(
-      "[aiProvider] AI_PROVIDER=bedrock er valgt, men Bedrock-SDK er ikke aktivert. " +
-        "Faller tilbake til Anthropic. Se aiProvider.ts for aktivering."
+    // Stub — Bedrock-SDK er ikke aktivert. Tidligere falt vi STILLE tilbake
+    // til Anthropic (USA), som er et brudd på GDPR-databehandler-løftet hvis
+    // org-en eksplisitt har valgt Bedrock for å holde data i EU.
+    //
+    // Nå: throw med tydelig melding. Bedre å feile høyt enn å sende data
+    // til feil region uten å varsle om det. Etter aktivering av Bedrock-SDK
+    // (se header-kommentar), erstatt denne throw med ekte Bedrock-init.
+    throw new Error(
+      "[aiProvider] AI_PROVIDER=bedrock er valgt, men Bedrock-SDK er IKKE aktivert. " +
+      "Vi vil ikke stille falle tilbake til Anthropic (USA) — det ville brutt GDPR-løftet om EU-databehandler. " +
+      "Enten: (1) Aktiver Bedrock-SDK i aiProvider.ts (se header-kommentar), eller (2) Sett AI_PROVIDER=anthropic."
     );
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) return null;
-    return new Anthropic({ apiKey });
   }
 
   return null;

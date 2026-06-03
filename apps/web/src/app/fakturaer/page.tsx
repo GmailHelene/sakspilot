@@ -772,7 +772,19 @@ Mvh`;
     setSending(true); setError(null);
     try {
       // Konverter \n → <br> for HTML-versjonen av epost-body
-      const bodyHtml = body.split('\n').map((l) => l.trim() === '' ? '<br>' : `<p style="margin:0 0 12px">${l}</p>`).join('');
+      // Sanitér epost-body før vi pakker den inn i HTML-tags. Tidligere
+      // dyttet vi user-input direkte inn i en <p> — en kunde med <img onerror>
+      // i body kunne kjøre script i ANDRE klients innboks (XSS i utgående
+      // epost). Vi escaper alle HTML-spesielle tegn før innpakking.
+      const escapeHtml = (s: string): string => s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+      const bodyHtml = body.split('\n').map((l) =>
+        l.trim() === '' ? '<br>' : `<p style="margin:0 0 12px">${escapeHtml(l)}</p>`
+      ).join('');
       await api(`/invoices/${inv.id}/send-email`, {
         method: 'POST',
         body: {

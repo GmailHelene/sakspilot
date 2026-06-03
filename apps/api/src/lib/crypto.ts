@@ -18,15 +18,21 @@ const IV_LENGTH = 12;
 function getKey(): Buffer {
   const hex = process.env.ENCRYPTION_KEY;
   if (!hex || hex.length !== 64) {
-    // Fallback for dev — IKKE bruk på prod
-    if (process.env.NODE_ENV === "production") {
+    // Fail-hard utenfor lokal dev. Tidligere falt vi tilbake til "0000..." for
+    // alt som ikke var NODE_ENV='production' — men feilkonfigurerte staging-/CI-
+    // miljøer kunne dermed lese krypterte tokens som om de var i klartekst.
+    // Nå: bare NODE_ENV='development' tillates fallback, alt annet throws ved
+    // første kallforsøk så feilen oppdages med en gang.
+    if (process.env.NODE_ENV !== "development") {
       throw new Error(
-        "ENCRYPTION_KEY mangler eller har feil lengde (skal være 64 hex-tegn). " +
-          "Generer: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\""
+        `[crypto] ENCRYPTION_KEY mangler eller har feil lengde (skal være 64 hex-tegn). ` +
+        `NODE_ENV='${process.env.NODE_ENV ?? "undefined"}'. ` +
+        `Generer: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
       );
     }
     console.warn(
-      "[crypto] ADVARSEL: ENCRYPTION_KEY ikke satt, bruker dev-default. SETT FØR PROD."
+      "[crypto] ADVARSEL: ENCRYPTION_KEY ikke satt, bruker dev-default (alle nuller). " +
+      "MÅ settes som env-var før test/prod-deploy."
     );
     return Buffer.from("0".repeat(64), "hex");
   }

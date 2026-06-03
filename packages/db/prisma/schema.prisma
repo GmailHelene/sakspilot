@@ -740,6 +740,11 @@ model Invoice {
   timeEntries  TimeEntry[]
 
   @@unique([organizationId, externalId])
+  /// Unikt fakturanummer per organisasjon. Bokføringsloven krever fortløpende,
+  /// unike fakturanumre — to fakturaer med samme nr i samme org er en
+  /// data-integritetsfeil og blokkeres her på DB-nivå (ikke bare i appen).
+  /// NULL er fortsatt tillatt (Fiken/Tripletex genererer egen sekvens).
+  @@unique([organizationId, invoiceNumber])
   @@index([organizationId, periodStart])
   @@index([organizationId, paidAt])
   @@map("invoices")

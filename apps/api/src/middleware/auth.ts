@@ -35,9 +35,14 @@ const tokenVersionCache = new Map<string, { v: number; expires: number }>();
 const TV_CACHE_TTL = 30_000;
 
 async function isTokenStillValid(session: SakspilotSession): Promise<boolean> {
-  // Hvis JWT er fra før vi la til tv-feltet (undefined), godta — men kun en kort
-  // overgang. Etter alle har logget inn på nytt kan vi gjøre dette strengt.
-  if (typeof session.tv !== "number") return true;
+  // FAIL CLOSED ved manglende tokenVersion. Tidligere returnerte vi true for
+  // "JWT fra før tv-feltet ble lagt til", men det betydde at gamle pre-tv
+  // tokens kunne leve evig — selv etter passordbytte. Tokens uten tv-claim
+  // tvinges nå å re-loginne (8h JWT TTL gjør at det er en engangshendelse).
+  if (typeof session.tv !== "number") {
+    console.warn(`[auth] Avviser legacy-token uten tv-claim for user=${session.userId} — må re-logge inn`);
+    return false;
+  }
 
   const cached = tokenVersionCache.get(session.userId);
   if (cached && cached.expires > Date.now()) {

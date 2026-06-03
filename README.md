@@ -1,18 +1,30 @@
 # Sakspilot
 
-Komplett **regnskaps- og prosjektverktøy** for selvstendig næringsdrivende i Norge.
+**Regnskaps- og prosjektverktøy for selvstendig næringsdrivende i Norge.**
 Forespørsler → fakturaer → regnskap → MVA-rapport — i ett verktøy, med desktop-agent
 for passiv tidsregistrering og varsler.
 
-## Status (3. juni 2026)
+## Modenhets-status (ærlig vurdert, 3. juni 2026)
 
-✅ **Konkurransedyktig på beste norske SaaS for små bedrifter.** Web + API + desktop-agent
-live i prod på alle 3 OS. Bredt feature-sett: hub-funksjoner, send-faktura-epost, purring,
-bank-CSV-import, kvittering-upload, klient-portal-fakturaer, MVA-rapport, søk, inline-rediger,
-auto/manuelle badges, native varsel-toast m/lyd.
+**Avansert pilot/MVP.** Bredt feature-sett som demonstrerer ende-til-ende-flyt,
+men ikke produksjonsherdet på alle akser. Hva det betyr i praksis:
 
-Se [`docs/STATUS-2026-06-03.md`](docs/STATUS-2026-06-03.md) for fullstendig status med
-endepunkter, schema, bruksanvisning og gjenstående.
+| Aspekt | Tilstand |
+|---|---|
+| Funksjonsbredde | ✅ Real — 25+ sider/features fungerer |
+| Datamodell | ✅ Solid — multi-tenant, indekser, audit-log |
+| Sikkerhets-fundament | ✅ Bra — tenant-filter, bcrypt, AES-256, rate-limit |
+| Sikkerhets-herding | ⚠️ Noen kjente gap (se `docs/SECURITY-NOTES.md`) |
+| Testdekning | 🔴 Lav — 4 testfiler, ~570 linjer. MVA-core dekket. Resten må bygges ut |
+| Skalering | ⚠️ Ingen paginering — fungerer for piloter, ikke 5k+ poster |
+| Hosting | ⚠️ Render Free-tier (kaldstart 30-60 sek) — må oppgraderes til Starter for betalende |
+| Code-signing | 🔴 Ingen — Mac/Windows-brukere må bekrefte "ikke verifisert" |
+
+**Egnet for:** lukkede piloter, egen bruk, demo, MVP-validering.
+**Ikke egnet for:** offentlige innkjøp, regulert bransje uten ekstra herding, store team.
+
+Se [`docs/STATUS-2026-06-03.md`](docs/STATUS-2026-06-03.md) for funksjonsoversikt og
+[`docs/SECURITY-NOTES.md`](docs/SECURITY-NOTES.md) for kjente sikkerhetsgap.
 
 - **Web:** https://sakspilot.no (Vercel)
 - **API:** https://api.sakspilot.no (Render)
