@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { tokens } from '@/lib/tokens';
 import { api, isTokenValid } from '@/lib/api';
+import { useNotifications, markVisited, type NotificationArea } from '@/lib/notifications';
+import { NavBadge } from '@/components/NavBadge';
 
 /**
  * Persistent venstre-sidebar (Basaas/Linear-stil).
@@ -38,6 +40,10 @@ interface FolderShortcut {
 
 const FOLDER_STORAGE = 'sakspilot_folder_shortcuts';
 const SITES_STORAGE = 'sakspilot_my_sites';
+// Manuelle badges på snarveier/sites — lagret som { [id]: count } i localStorage.
+// Brukeren høyreklikker en snarvei for å sette tall (ny melding venter, etc.).
+// Server vet ikke om eksterne URLs så dette er bare en visuell hjelp.
+const MANUAL_BADGES_STORAGE = 'sakspilot_manual_badges';
 
 interface MySite {
   id: string;
@@ -84,6 +90,48 @@ export default function Sidebar() {
 
   const [navTick, setNavTick] = useState(0);
   const [userRole, setUserRole] = useState<string | null>(null);
+  // Manuelle badges på snarveier/sites/mapper. Sti: { [shortcutId]: count }
+  const [manualBadges, setManualBadges] = useState<Record<string, number>>({});
+  // Henter notif-counts hvert 30s + ved fokus + manuelle besøk.
+  // Disabler i SSR (gjør ingenting før mounted=true) for å unngå at
+  // useEffect-en kjører før localStorage er tilgjengelig.
+  const { counts } = useNotifications();
+
+  // Last manualBadges fra localStorage på mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(MANUAL_BADGES_STORAGE);
+      if (stored) setManualBadges(JSON.parse(stored));
+    } catch {}
+  }, []);
+
+  function persistManualBadges(next: Record<string, number>) {
+    setManualBadges(next);
+    try {
+      localStorage.setItem(MANUAL_BADGES_STORAGE, JSON.stringify(next));
+    } catch {}
+  }
+
+  /**
+   * Spør bruker om antall, oppdater manualBadges.
+   * Tom string / 0 fjerner badge. Brukes ved høyreklikk.
+   */
+  function setManualBadge(itemId: string, label: string) {
+    const current = manualBadges[itemId] ?? 0;
+    const input = window.prompt(
+      `Antall varsler for "${label}":\n(0 eller tom = fjern badge)`,
+      String(current || '')
+    );
+    if (input === null) return;
+    const n = parseInt(input, 10);
+    const next = { ...manualBadges };
+    if (!n || n <= 0) {
+      delete next[itemId];
+    } else {
+      next[itemId] = Math.min(n, 999);
+    }
+    persistManualBadges(next);
+  }
   useEffect(() => {
     setMounted(true);
     try {
@@ -213,19 +261,22 @@ export default function Sidebar() {
 
   // Nav-elementer kan skjules per bruker via localStorage.
   // Default: alle synlige. Hver bruker kan toggle via Sidebar-settings (kommer).
-  const ALL_NAV: { id: string; href: string; label: string; Icon: LucideIcon }[] = [
+  // notif: hvilket NotificationArea-key et nav-element mapper til.
+  // Bare nav-elementer med meningsfulle varsler får en area-key — resten
+  // får ingen badge (NavBadge returnerer null hvis count/total er 0).
+  const ALL_NAV: { id: string; href: string; label: string; Icon: LucideIcon; notif?: NotificationArea }[] = [
     { id: 'hjem', href: '/hjem', label: 'Hjem', Icon: Home },
-    { id: 'forespørsler', href: '/foresporsler', label: 'Forespørsler', Icon: Inbox },
-    { id: 'prosjekter', href: '/saker', label: 'Prosjekter', Icon: LayoutGrid },
+    { id: 'forespørsler', href: '/foresporsler', label: 'Forespørsler', Icon: Inbox, notif: 'foresporsler' },
+    { id: 'prosjekter', href: '/saker', label: 'Prosjekter', Icon: LayoutGrid, notif: 'saker' },
     { id: 'klienter', href: '/klienter', label: 'Klienter', Icon: Users },
-    { id: 'fakturaer', href: '/fakturaer', label: 'Fakturaer', Icon: FileText },
+    { id: 'fakturaer', href: '/fakturaer', label: 'Fakturaer', Icon: FileText, notif: 'fakturaer' },
     { id: 'regnskap', href: '/regnskap', label: 'Regnskap', Icon: Wallet },
     { id: 'mva-rapport', href: '/mva-rapport', label: 'MVA-rapport', Icon: Receipt },
     { id: 'statistikk', href: '/statistikk', label: 'Statistikk', Icon: PieChart },
-    { id: 'kalender', href: '/kalender', label: 'Kalender', Icon: Calendar },
+    { id: 'kalender', href: '/kalender', label: 'Kalender', Icon: Calendar, notif: 'kalender' },
     { id: 'tidslinje', href: '/gantt', label: 'Tidslinje', Icon: GanttChartSquare },
     { id: 'rapport', href: '/rapport', label: 'Rapport', Icon: BarChart3 },
-    { id: 'klistrelapper', href: '/klistrelapper', label: 'Klistrelapper', Icon: StickyNote },
+    { id: 'klistrelapper', href: '/klistrelapper', label: 'Klistrelapper', Icon: StickyNote, notif: 'klistrelapper' },
     { id: 'agenter', href: '/agenter', label: 'Agenter', Icon: Zap },
     { id: 'integrasjoner', href: '/innstillinger/integrasjoner', label: 'Integrasjoner', Icon: Plug },
     { id: 'kalender-feed', href: '/innstillinger/kalender', label: 'Kalender-feed', Icon: CalendarClock },
@@ -233,7 +284,7 @@ export default function Sidebar() {
     { id: 'utseende', href: '/innstillinger/utseende', label: 'Utseende', Icon: Palette },
     // Team-side er KUN for owners. userRole hentes via /auth/me i useEffect.
     ...(userRole === 'owner'
-      ? [{ id: 'team', href: '/innstillinger/team', label: 'Team', Icon: UserCog }]
+      ? [{ id: 'team', href: '/innstillinger/team', label: 'Team', Icon: UserCog, notif: 'team' as NotificationArea }]
       : []),
     // Egne domener (whitelabel klient-portal) — også owner-only
     ...(userRole === 'owner'
@@ -260,12 +311,17 @@ export default function Sidebar() {
     <aside style={sidebarStyle}>
       {/* Seksjon: Sakspilot */}
       <SidebarSection title="Sakspilot">
-        {navLinks.map(({ href, label, Icon }) => {
+        {navLinks.map(({ href, label, Icon, notif }) => {
           const active = pathname.startsWith(href);
+          const areaCount = notif && counts ? counts[notif] : null;
           return (
             <Link
               key={href}
               href={href}
+              onClick={() => {
+                // Nullstill badge for dette området når brukeren åpner siden
+                if (notif) markVisited(notif);
+              }}
               style={{
                 ...itemStyle,
                 background: active ? tokens.gradient.navy : 'transparent',
@@ -283,6 +339,9 @@ export default function Sidebar() {
             >
               <Icon size={16} strokeWidth={active ? 2.5 : 2} />
               <span>{label}</span>
+              {areaCount && (
+                <NavBadge count={areaCount.unread} total={areaCount.total} activeMode={active} />
+              )}
             </Link>
           );
         })}
@@ -328,29 +387,46 @@ export default function Sidebar() {
         )}
 
         {mounted &&
-          shortcuts.map((s) => (
-            <div key={s.id} style={{ position: 'relative' }} className="shortcut-row">
-              <a
-                href={s.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => openShortcut(e, s)}
-                style={{ ...itemStyle, paddingRight: 30 }}
-              >
-                <ExternalLink size={14} strokeWidth={2} style={{ color: tokens.color.textMuted, flexShrink: 0 }} />
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {s.label}
-                </span>
-              </a>
-              <button
-                onClick={() => deleteShortcut(s.id)}
-                style={deleteButtonStyle}
-                title="Slett snarvei"
-              >
-                <Trash2 size={12} strokeWidth={2} />
-              </button>
-            </div>
-          ))}
+          shortcuts.map((s) => {
+            const badge = manualBadges[s.id];
+            return (
+              <div key={s.id} style={{ position: 'relative' }} className="shortcut-row">
+                <a
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => {
+                    openShortcut(e, s);
+                    // Klikk = nullstill badge for snarveien
+                    if (manualBadges[s.id]) {
+                      const next = { ...manualBadges };
+                      delete next[s.id];
+                      persistManualBadges(next);
+                    }
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setManualBadge(s.id, s.label);
+                  }}
+                  title={`${s.label}\n(Høyreklikk for å sette varsel-antall)`}
+                  style={{ ...itemStyle, paddingRight: badge ? 56 : 30 }}
+                >
+                  <ExternalLink size={14} strokeWidth={2} style={{ color: tokens.color.textMuted, flexShrink: 0 }} />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {s.label}
+                  </span>
+                  {badge && <NavBadge count={badge} />}
+                </a>
+                <button
+                  onClick={() => deleteShortcut(s.id)}
+                  style={deleteButtonStyle}
+                  title="Slett snarvei"
+                >
+                  <Trash2 size={12} strokeWidth={2} />
+                </button>
+              </div>
+            );
+          })}
       </SidebarSection>
 
       {/* Seksjon: Mapper (Electron-only fungerer fullt) */}
@@ -400,27 +476,37 @@ export default function Sidebar() {
           </div>
         )}
 
-        {mounted && folders.map((f) => (
-          <div key={f.id} style={{ position: 'relative' }}>
-            <button
-              onClick={() => openFolder(f.path)}
-              style={{ ...itemStyle, paddingRight: 30, width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}
-              title={f.path}
-            >
-              <FolderOpen size={14} strokeWidth={2} style={{ color: '#D4A017', flexShrink: 0 }} />
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: tokens.color.text }}>
-                {f.label}
-              </span>
-            </button>
-            <button
-              onClick={() => deleteFolder(f.id)}
-              style={deleteButtonStyle}
-              title="Slett mappe-snarvei"
-            >
-              <Trash2 size={12} strokeWidth={2} />
-            </button>
-          </div>
-        ))}
+        {mounted && folders.map((f) => {
+          const badge = manualBadges[f.id];
+          return (
+            <div key={f.id} style={{ position: 'relative' }}>
+              <button
+                onClick={() => {
+                  openFolder(f.path);
+                  if (manualBadges[f.id]) {
+                    const next = { ...manualBadges }; delete next[f.id]; persistManualBadges(next);
+                  }
+                }}
+                onContextMenu={(e) => { e.preventDefault(); setManualBadge(f.id, f.label); }}
+                style={{ ...itemStyle, paddingRight: badge ? 56 : 30, width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}
+                title={`${f.path}\n(Høyreklikk for å sette varsel-antall)`}
+              >
+                <FolderOpen size={14} strokeWidth={2} style={{ color: '#D4A017', flexShrink: 0 }} />
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: tokens.color.text }}>
+                  {f.label}
+                </span>
+                {badge && <NavBadge count={badge} />}
+              </button>
+              <button
+                onClick={() => deleteFolder(f.id)}
+                style={deleteButtonStyle}
+                title="Slett mappe-snarvei"
+              >
+                <Trash2 size={12} strokeWidth={2} />
+              </button>
+            </div>
+          );
+        })}
       </SidebarSection>
 
       {/* My Sites — egne live-prosjekter/nettsider som PWA-ikoner-grid */}
@@ -475,14 +561,22 @@ export default function Sidebar() {
               padding: '4px 8px',
             }}
           >
-            {mySites.map((s) => (
+            {mySites.map((s) => {
+              const badge = manualBadges[s.id];
+              return (
               <div key={s.id} style={{ position: 'relative' }} className="my-site-tile">
                 <a
                   href={s.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={(e) => openSite(e, s)}
-                  title={s.label}
+                  onClick={(e) => {
+                    openSite(e, s);
+                    if (manualBadges[s.id]) {
+                      const next = { ...manualBadges }; delete next[s.id]; persistManualBadges(next);
+                    }
+                  }}
+                  onContextMenu={(e) => { e.preventDefault(); setManualBadge(s.id, s.label); }}
+                  title={`${s.label}\n(Høyreklikk for å sette varsel-antall)`}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -495,9 +589,22 @@ export default function Sidebar() {
                     boxShadow: tokens.shadow.sm,
                     overflow: 'hidden',
                     textDecoration: 'none',
+                    position: 'relative',
                   }}
                 >
                   <SiteFavicon url={s.url} label={s.label} />
+                  {badge && (
+                    <span style={{
+                      position: 'absolute', top: -4, right: -4,
+                      minWidth: 18, height: 18, padding: '0 5px',
+                      background: '#dc2626', color: 'white',
+                      fontSize: 10, fontWeight: 700,
+                      borderRadius: 999, display: 'inline-flex',
+                      alignItems: 'center', justifyContent: 'center',
+                      border: '2px solid white',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                    }}>{badge > 99 ? '99+' : badge}</span>
+                  )}
                 </a>
                 <button
                   onClick={() => removeSite(s.id)}
@@ -525,7 +632,8 @@ export default function Sidebar() {
                   ✕
                 </button>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </SidebarSection>

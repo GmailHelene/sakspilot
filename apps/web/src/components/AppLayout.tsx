@@ -7,6 +7,7 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import Launcher from './Launcher';
 import ReminderPoller from './ReminderPoller';
+import { NotificationTitleSync } from './NotificationTitleSync';
 import { isTokenValid } from '@/lib/api';
 import { initPreferenceSync } from '@/lib/preferenceSync';
 import { tokens } from '@/lib/tokens';
@@ -84,6 +85,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Global påminnelse-poller — sjekker klistrelapp-påminnelser hvert
           60. sek og viser fixed toast øverst når noe forfaller. */}
       <ReminderPoller />
+      {/* Synker varselstall til nettleser-fanen (title + favicon-badge) */}
+      <NotificationTitleSync />
       <Header />
       <div style={{ flex: 1, display: 'flex', minHeight: 0, position: 'relative' }}>
         {/* Mobil-hamburger — floating top-left, men under main-content
