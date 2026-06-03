@@ -1,17 +1,24 @@
 /**
- * SMTP-utsendelse via nodemailer.
+ * Epost-utsendelse via Brevo (Sendinblue).
  *
- * Konfigureres via env-vars på Render:
- *   SMTP_HOST       — f.eks. smtp-relay.brevo.com
- *   SMTP_PORT       — 587 (STARTTLS) eller 465 (TLS)
- *   SMTP_USER       — Brevo SMTP-bruker
- *   SMTP_PASS       — Brevo SMTP-key (xsmtpsib-...)
- *   EMAIL_FROM      — avsender-adresse (må være verifisert i Brevo)
+ * To metoder støttet, sjekkes i prioritert rekkefølge:
  *
- * Hvis SMTP_HOST mangler: sendEmail() returnerer { ok: false } men logger
- * advarsel — appen krasjer ikke. Brukes f.eks. i glemt-passord-flow:
- * hvis SMTP er konfig, sendes lenken; ellers logges den til konsoll og
- * vises i dev-respons.
+ *   1. Brevo HTTPS API (anbefalt, fungerer på Render Free-tier):
+ *        BREVO_API_KEY   — fra Brevo → SMTP & API → API Keys
+ *        EMAIL_FROM      — verifisert avsender
+ *
+ *   2. SMTP-relay via nodemailer (krever utgående 587 — IKKE på Render Free):
+ *        SMTP_HOST       — smtp-relay.brevo.com
+ *        SMTP_PORT       — 587
+ *        SMTP_USER       — Brevo SMTP-bruker
+ *        SMTP_PASS       — Brevo SMTP-key
+ *        EMAIL_FROM      — verifisert avsender
+ *
+ * Render Free-tier blokkerer utgående SMTP (porter 25/465/587) for å
+ * forhindre spam. Bruk Brevo API-metoden — den går over port 443 (HTTPS).
+ *
+ * Hvis ingen er satt: sendEmail() returnerer { ok: false } men krasjer ikke.
+ * Logger STUB-melding for debugging.
  */
 import nodemailer, { Transporter } from "nodemailer";
 
@@ -77,10 +84,16 @@ export interface EmailResult {
 }
 
 export async function sendEmail(msg: EmailMessage): Promise<EmailResult> {
+  // Foretrekk Brevo HTTPS API hvis nøkkel er satt — fungerer på Render Free
+  // (port 443 blokkeres ikke). Fallback til SMTP for bakoverkompatibilitet.
+  if (process.env.BREVO_API_KEY) {
+    return sendViaBrevoApi(msg);
+  }
+
   const t = getTransporter();
   if (!t) {
     console.log(`[email] STUB — ville sendt til ${msg.to}: ${msg.subject}`);
-    return { ok: false, error: "SMTP not configured" };
+    return { ok: false, error: "Verken BREVO_API_KEY eller SMTP_HOST er satt — epost ikke sendt" };
   }
 
   const from = process.env.EMAIL_FROM || "noreply@sakspilot.no";
@@ -106,6 +119,99 @@ export async function sendEmail(msg: EmailMessage): Promise<EmailResult> {
       msg = `[${(err as { code: string }).code}] ${msg}`;
     }
     return { ok: false, error: msg };
+  }
+}
+
+/**
+ * Send epost via Brevo Transactional Email API.
+ *
+ * Bruker fetch direkte mot https://api.brevo.com/v3/smtp/email — ingen
+ * SDK trengs. Header: `api-key: <BREVO_API_KEY>`.
+ *
+ * Fordeler over SMTP:
+ *   - Fungerer på Render Free-tier (port 443 blokkeres ikke)
+ *   - Returnerer JSON med messageId + feilbeskjed
+ *   - Ingen STARTTLS-rare som kan timeout uten ren feil
+ *   - Innebygd 10 sek timeout via AbortController
+ *
+ * Vedlegg: base64-encoded content + filename. Vi sender Buffer.toString('base64').
+ */
+async function sendViaBrevoApi(msg: EmailMessage): Promise<EmailResult> {
+  const apiKey = process.env.BREVO_API_KEY!;
+  const fromEmail = process.env.EMAIL_FROM || "noreply@sakspilot.no";
+  const fromName = process.env.EMAIL_FROM_NAME || "Sakspilot";
+
+  // Bygg CC-array hvis satt (Brevo støtter både string + array)
+  const ccArr: Array<{ email: string }> = [];
+  if (msg.cc) {
+    const ccList = typeof msg.cc === "string" ? msg.cc.split(",") : msg.cc;
+    for (const e of ccList) {
+      const trimmed = e.trim();
+      if (trimmed) ccArr.push({ email: trimmed });
+    }
+  }
+
+  // Vedlegg: Brevo godtar { name, content (base64) }
+  const attachment = (msg.attachments || []).map((a) => ({
+    name: a.filename,
+    content: Buffer.isBuffer(a.content)
+      ? a.content.toString("base64")
+      : Buffer.from(a.content, "utf-8").toString("base64"),
+  }));
+
+  const payload: Record<string, unknown> = {
+    sender: { email: fromEmail, name: fromName },
+    to: [{ email: msg.to }],
+    subject: msg.subject,
+    htmlContent: msg.html,
+    textContent: msg.text || stripHtml(msg.html),
+  };
+  if (ccArr.length > 0) payload.cc = ccArr;
+  if (attachment.length > 0) payload.attachment = attachment;
+
+  // 10 sek timeout med AbortController så vi ikke henger evig hvis
+  // Brevo har problemer.
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), 10_000);
+
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": apiKey,
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
+      signal: ctrl.signal,
+    });
+    clearTimeout(timeout);
+
+    if (res.status === 201 || res.status === 200) {
+      const data = (await res.json().catch(() => null)) as { messageId?: string } | null;
+      return { ok: true, messageId: data?.messageId };
+    }
+
+    // Brevo returnerer { code, message } ved feil. Pakk det ut for kvalitets-feilmelding.
+    const errText = await res.text().catch(() => "");
+    let parsedMsg = errText;
+    try {
+      const errJson = JSON.parse(errText) as { code?: string; message?: string };
+      parsedMsg = `${errJson.code || "brevo_error"}: ${errJson.message || errText}`;
+    } catch {}
+    console.error(`[email] Brevo API ${res.status}:`, parsedMsg);
+    return { ok: false, error: `[Brevo ${res.status}] ${parsedMsg}` };
+  } catch (err) {
+    clearTimeout(timeout);
+    if (err instanceof Error && err.name === "AbortError") {
+      console.error("[email] Brevo API timeout (10s)");
+      return { ok: false, error: "Brevo API svarte ikke innen 10 sek" };
+    }
+    console.error("[email] Brevo API call feilet:", err);
+    return {
+      ok: false,
+      error: err instanceof Error ? `[fetch] ${err.message}` : "Ukjent feil ved Brevo API-kall",
+    };
   }
 }
 
