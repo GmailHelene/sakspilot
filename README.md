@@ -15,7 +15,7 @@ men ikke produksjonsherdet på alle akser. Hva det betyr i praksis:
 | Datamodell | ✅ Solid — multi-tenant, indekser, audit-log |
 | Sikkerhets-fundament | ✅ Bra — tenant-filter, bcrypt, AES-256, rate-limit |
 | Sikkerhets-herding | ⚠️ Noen kjente gap (se `docs/SECURITY-NOTES.md`) |
-| Testdekning | 🔴 Lav — 4 testfiler, ~570 linjer. MVA-core dekket. Resten må bygges ut |
+| Testdekning | 🟡 Penger + krypto dekket — 8 testfiler, 153 tester (4 nye 3/6). DB-integrasjonstester eksisterer men krever Neon. UI/E2E mangler |
 | Skalering | ⚠️ Ingen paginering — fungerer for piloter, ikke 5k+ poster |
 | Hosting | ⚠️ Render Free-tier (kaldstart 30-60 sek) — må oppgraderes til Starter for betalende |
 | Code-signing | 🔴 Ingen — Mac/Windows-brukere må bekrefte "ikke verifisert" |

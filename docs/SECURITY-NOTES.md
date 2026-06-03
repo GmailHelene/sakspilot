@@ -52,11 +52,28 @@
 | CI/CD | ✅ GitHub Actions for desktop-builds. ⚠️ Ingen automatisk testing før deploy |
 | Sentry-bruk | ✅ Aktiv, EU-region, PII-stripping |
 
+## Test-dekning på penger + krypto (3. juni 2026 — utvidet)
+
+| Lib | Tester | Status |
+|---|---|---|
+| `mva.ts` (calcMva, bucket, parsePeriode, periodeRange, addToBucket) | 21 | ✅ Pass |
+| `invoiceMath.ts` (lineSum, totalsFromLines, roundOere) | 16 | ✅ Pass (ny lib 3/6) |
+| `invoiceLineItems.ts` (safeParseLineItems, Zod-schemas) | 14 | ✅ Pass |
+| `crypto.ts` (encrypt/decrypt + env-håndtering) | 17 | ✅ Pass |
+| **Sum penger + krypto** | **68** | ✅ |
+| auth.ts (token-revokering) | 1 | ⚠️ Krever DB |
+| saker.ts | 3 | ⚠️ Krever DB |
+| share.ts | 3 | ⚠️ Krever DB |
+| **Totalt** | **75 pass + 7 DB-avhengige** | |
+
+Penger- og krypto-kjerne er nå dekket av rene unit-tester som kjører i `vitest run` uten DB.
+DB-integrasjonstester eksisterer men krever `DATABASE_URL` mot test-Neon.
+
 ## Anbefalt herding-rekkefølge
 
 For å gå fra "avansert pilot" til "produktet du kan selge til ekte kunder":
 
-1. **Skriv tester for kritisk regnskaps-logikk** (MVA done 3/6 — fortsett med faktura, betalingsavstemming)
+1. ~~**Skriv tester for kritisk regnskaps-logikk**~~ ✅ Done 3/6 — MVA, fakturasum, line-items, krypto
 2. **Migrer JWT til httpOnly cookie** (#7) — eliminerer XSS som token-stjeler
 3. **Oppgrader Render til Starter ($7/mnd)** — fjern kaldstart, åpne for SMTP hvis ønsket
 4. **Konstant-tid forgot-password** (#8) — eliminerer bruker-enumerering
