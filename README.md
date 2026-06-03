@@ -1,13 +1,18 @@
 # Sakspilot
 
-Workspace for selvstendig næringsdrivende. Sak-CRM, passiv tidsregistrering,
-Outlook-integrasjon, AI-assistent og Fiken-faktura — i ett verktøy.
+Komplett **regnskaps- og prosjektverktøy** for selvstendig næringsdrivende i Norge.
+Forespørsler → fakturaer → regnskap → MVA-rapport — i ett verktøy, med desktop-agent
+for passiv tidsregistrering og varsler.
 
-## Status (1. juni 2026)
+## Status (3. juni 2026)
 
-✅ **Funksjonelt komplett for pilotbruk + langt over.** Web + API + desktop-agent live i prod. Multi-user (team + klient-portal), whitelabel-domener, og cross-platform desktop er nå på plass.
+✅ **Konkurransedyktig på beste norske SaaS for små bedrifter.** Web + API + desktop-agent
+live i prod på alle 3 OS. Bredt feature-sett: hub-funksjoner, send-faktura-epost, purring,
+bank-CSV-import, kvittering-upload, klient-portal-fakturaer, MVA-rapport, søk, inline-rediger,
+auto/manuelle badges, native varsel-toast m/lyd.
 
-Se [`docs/STATUS-2026-06-01.md`](docs/STATUS-2026-06-01.md) for fullstendig status.
+Se [`docs/STATUS-2026-06-03.md`](docs/STATUS-2026-06-03.md) for fullstendig status med
+endepunkter, schema, bruksanvisning og gjenstående.
 
 - **Web:** https://sakspilot.no (Vercel)
 - **API:** https://api.sakspilot.no (Render)
@@ -46,17 +51,31 @@ Se [`docs/STATUS-2026-06-01.md`](docs/STATUS-2026-06-01.md) for fullstendig stat
 | Sentry (EU-region) | ✅ |
 | GitHub Releases + versjonsløs download-URL | ✅ |
 | GitHub Actions: daglig automasjons-trigger + DB-backup | ✅ |
-| **Team-plan med invite-flyt** | ✅ NY |
-| **Klient-portal med login (`/portal/*`)** | ✅ NY |
-| **Custom domener (whitelabel)** | ✅ NY |
-| **Mac + Linux desktop build-pipeline** | ✅ NY (build-klar) |
-| **Klistrelapp-reminders (in-app + native)** | ✅ NY |
-| **Voice notes på klistrelapper** | ✅ NY |
-| Demo-video på forsiden | ✅ NY |
+| Team-plan med invite-flyt | ✅ |
+| Klient-portal med login (`/portal/*`) | ✅ |
+| Custom domener (whitelabel) | ✅ |
+| Mac + Linux desktop build-pipeline | ✅ (auto via GitHub Actions) |
+| Klistrelapp-reminders (in-app + native) | ✅ |
+| Voice notes på klistrelapper | ✅ |
+| Demo-video på forsiden | ✅ |
+| **Forespørsler (lead-pipeline, kanban + DnD + inline-rediger)** | ✅ NY (3. juni) |
+| **Fakturaer (full CRUD, send-epost, purring 1/2/3-trinns)** | ✅ NY (3. juni) |
+| **Regnskap (utgifter, kvittering-upload, bank-CSV-import)** | ✅ NY (3. juni) |
+| **MVA-rapport (Q1-Q4 / H1-H2 / år + PDF)** | ✅ NY (3. juni) |
+| **Statistikk (tverrgående KPIer)** | ✅ NY (3. juni) |
+| **Klient-portal fakturaer-fane** | ✅ NY (3. juni) |
+| **Søk overalt (forespørsler/fakturaer/utgifter/klienter/saker)** | ✅ NY (3. juni) |
+| **Sidebar-collapse "Mer..."** | ✅ NY (3. juni) |
+| **Mobil-faktura-kort under 700px** | ✅ NY (3. juni) |
+| **Native Windows-toast for nye leads (m/lyd)** | ✅ NY (3. juni) |
+| **Auto-badges på Launcher (Gmail "Inbox (3)" detekteres)** | ✅ NY (3. juni) |
+| **Manuelle badges (høyreklikk → popover)** | ✅ NY (3. juni) |
+| **Brevo HTTPS API (Render Free-tier-kompatibel)** | ✅ NY (3. juni) |
+| **PDF rate-limit (30/min)** | ✅ NY (3. juni) |
 | AWS Bedrock-provider | 🟡 stub klar |
 | Stripe checkout | 🔴 Q1 2027 |
 | Tripletex direkte (krever partner) | 🔴 venter |
-| macOS code-signing | 🟡 trenger Apple Dev cert |
+| macOS code-signing | 🟡 trenger Apple Dev cert ($99/år) |
 
 ## Struktur
 
@@ -116,8 +135,9 @@ cd apps/desktop && npm run build:exe
 
 ## Dokumenter
 
-- [Status pr 1. juni 2026](docs/STATUS-2026-06-01.md) — faktisk tilstand i prod
-- [Status pr 31. mai 2026](docs/STATUS-2026-05-31.md) — forrige snapshot
+- **[Status pr 3. juni 2026](docs/STATUS-2026-06-03.md)** — siste snapshot (27 nye fixes på én dag, fullt feature-sett dokumentert)
+- [Status pr 1. juni 2026](docs/STATUS-2026-06-01.md) — forrige snapshot
+- [Status pr 31. mai 2026](docs/STATUS-2026-05-31.md) — eldre snapshot
 - [Status pr 28. mai 2026](docs/STATUS-2026-05-28.md) — eldre snapshot
 - [Neste steg + roadmap](docs/NESTE-STEG.md) — hva som gjenstår og prioritering
 - [Pilot-invitasjon til Nicole](docs/pilot-epost-nicole.md) — 3 versjoner
