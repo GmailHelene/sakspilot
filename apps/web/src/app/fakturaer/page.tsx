@@ -19,7 +19,7 @@ import { useEffect, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
 import { api, downloadPdf } from '@/lib/api';
-import { Download, ExternalLink, X, Check, Trash2, Plus, FileDown } from 'lucide-react';
+import { Download, ExternalLink, X, Check, Trash2, Plus, FileDown, Mail } from 'lucide-react';
 
 interface LineItem {
   description: string;
@@ -46,8 +46,10 @@ interface Invoice {
   customerAddress: string | null;
   lineItems: LineItem[] | null;
   note: string | null;
+  sentEmailAt: string | null;
+  sentEmailTo: string | null;
   createdAt: string;
-  sak?: { id: string; title: string; client?: { id: string; name: string } | null } | null;
+  sak?: { id: string; title: string; client?: { id: string; name: string; contactEmail?: string | null } | null } | null;
   _count?: { timeEntries: number };
 }
 
@@ -456,6 +458,7 @@ const modalBtn: React.CSSProperties = {
 function DetailModal({
   invoice: inv, onClose, onMarkPaid, onDelete,
 }: { invoice: Invoice; onClose: () => void; onMarkPaid: () => void; onDelete: () => void }) {
+  const [sendOpen, setSendOpen] = useState(false);
   return (
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', zIndex: 100,
@@ -535,8 +538,21 @@ function DetailModal({
           </div>
         )}
 
+        {/* Sent-stempel hvis sendt før */}
+        {inv.sentEmailAt && inv.sentEmailTo && (
+          <div style={{ marginTop: 12, padding: 10, background: '#eff6ff', borderRadius: 6, fontSize: 12, color: '#1e3a8a' }}>
+            📧 Sendt på epost til <strong>{inv.sentEmailTo}</strong> {new Date(inv.sentEmailAt).toLocaleString('nb-NO')}
+          </div>
+        )}
+
         {/* Aksjoner */}
         <div style={{ display: 'flex', gap: 8, marginTop: 20, flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setSendOpen(true)}
+            style={{ ...btnStyle, background: '#1e3a8a', color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}
+          >
+            <Mail size={14} /> {inv.sentEmailAt ? 'Send på nytt' : 'Send på epost'}
+          </button>
           <button
             onClick={() => downloadPdf(`/invoice-pdf/invoice/${inv.id}`, `faktura-${inv.invoiceNumber || inv.id.slice(0, 8)}.pdf`)}
             style={{ ...btnStyle, background: '#f1f5f9', color: '#334155', display: 'flex', alignItems: 'center', gap: 6 }}
@@ -563,9 +579,116 @@ function DetailModal({
           )}
         </div>
       </div>
+      {sendOpen && (
+        <SendEmailModal
+          invoice={inv}
+          onClose={() => setSendOpen(false)}
+          onSent={() => { setSendOpen(false); onClose(); /* close detail → parent will refresh */ }}
+        />
+      )}
     </div>
   );
 }
+
+function SendEmailModal({
+  invoice: inv, onClose, onSent,
+}: { invoice: Invoice; onClose: () => void; onSent: () => void }) {
+  // Default mottaker = klientens kontakt-epost, eller forrige send-mottaker
+  const defaultTo = inv.sentEmailTo || inv.sak?.client?.contactEmail || '';
+  const defaultSubject = `Faktura ${inv.invoiceNumber || ''} fra Sakspilot`;
+  const customerName = inv.sak?.client?.name || inv.customerName || 'kunden';
+  const totalStr = `${fmtAmount(inv.totalAmount)} ${inv.currency}`;
+  const dueStr = inv.dueDate ? fmtDate(inv.dueDate) : null;
+  const defaultBody = `Hei ${customerName},
+
+Vedlagt finner du faktura ${inv.invoiceNumber || ''} på ${totalStr}${dueStr ? ` med forfall ${dueStr}` : ''}.
+
+Si fra hvis det er noe spørsmål.
+
+Mvh`;
+
+  const [to, setTo] = useState(defaultTo);
+  const [cc, setCc] = useState('');
+  const [subject, setSubject] = useState(defaultSubject);
+  const [body, setBody] = useState(defaultBody);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function send(e: React.FormEvent) {
+    e.preventDefault();
+    if (!to.trim()) { setError('Mottaker mangler'); return; }
+    setSending(true); setError(null);
+    try {
+      // Konverter \n → <br> for HTML-versjonen av epost-body
+      const bodyHtml = body.split('\n').map((l) => l.trim() === '' ? '<br>' : `<p style="margin:0 0 12px">${l}</p>`).join('');
+      await api(`/invoices/${inv.id}/send-email`, {
+        method: 'POST',
+        body: {
+          to: to.trim(),
+          cc: cc.trim() || undefined,
+          subject: subject.trim() || undefined,
+          body: bodyHtml,
+        },
+      });
+      onSent();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Send feilet');
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', zIndex: 110,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        background: 'white', borderRadius: 12, padding: 20, maxWidth: 560, width: '100%',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h2 style={{ fontSize: 18, margin: 0, color: tokens.color.navy }}>Send faktura på epost</h2>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={18} /></button>
+        </div>
+
+        {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: 10, borderRadius: 6, marginBottom: 12, fontSize: 13 }}>{error}</div>}
+
+        <form onSubmit={send} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>
+            Til *
+            <input type="email" required value={to} onChange={(e) => setTo(e.target.value)} style={inputBox} />
+          </label>
+          <label style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>
+            CC (valgfri)
+            <input type="text" value={cc} onChange={(e) => setCc(e.target.value)} placeholder="komma-separert" style={inputBox} />
+          </label>
+          <label style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>
+            Emne
+            <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} style={inputBox} />
+          </label>
+          <label style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>
+            Melding
+            <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={8} style={{ ...inputBox, fontFamily: 'inherit', resize: 'vertical' }} />
+          </label>
+          <div style={{ fontSize: 12, color: '#64748b', background: '#f1f5f9', padding: 8, borderRadius: 6 }}>
+            📎 Faktura-PDF (<strong>faktura-{inv.invoiceNumber || inv.id.slice(0,8)}.pdf</strong>) legges automatisk ved.
+          </div>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
+            <button type="button" onClick={onClose} style={{ ...btnStyle, background: '#f1f5f9', color: '#334155' }}>Avbryt</button>
+            <button type="submit" disabled={sending || !to.trim()} style={{ ...btnStyle, background: '#1e3a8a', color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Mail size={14} /> {sending ? 'Sender…' : 'Send nå'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+const inputBox: React.CSSProperties = {
+  display: 'block', marginTop: 4, padding: '8px 10px',
+  border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, width: '100%', boxSizing: 'border-box',
+};
 
 function StatusBadge({ status, paidAt }: { status: Invoice['status']; paidAt: string | null }) {
   const meta = paidAt

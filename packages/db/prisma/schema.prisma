@@ -711,6 +711,11 @@ model Invoice {
   /// Ekstern ID fra import-kilde (f.eks. "inv_3001" fra portal-hub).
   /// Brukes til idempotent upsert i seed-scriptene.
   externalId      String?             @map("external_id")
+  /// Når fakturaen sist ble sendt på epost via Sakspilot (POST /invoices/:id/send-email).
+  /// Null = aldri sendt fra Sakspilot (kan likevel være sendt manuelt utenfor).
+  sentEmailAt     DateTime?           @map("sent_email_at")
+  /// Mottakers epost-adresse (siste send). Vises i historikk.
+  sentEmailTo     String?             @map("sent_email_to")
   /// MVA-sats brukt på fakturaen. 25 = standard, 15 = mat, 12 = transport,
   /// 0 = ingen (utenlands, fritak). Default 25 fordi det er norsk standardsats.
   /// Frilansere under MVA-grensen (50k/år) skal sette dette til null på alle

@@ -13,8 +13,10 @@
  */
 import { Router, Request, Response } from "express";
 import { z } from "zod";
+import PDFDocument from "pdfkit";
 import prisma from "../lib/prisma";
 import { requireAuth } from "../middleware/auth";
+import { sendEmail } from "../lib/email";
 
 const router = Router();
 router.use(requireAuth);
@@ -323,6 +325,225 @@ router.delete("/:id", async (req: Request, res: Response) => {
   });
 
   return res.json({ ok: true });
+});
+
+// ── Send faktura på epost ────────────────────────────────────────
+const SendEmailSchema = z.object({
+  /** Mottaker — eposten fakturaen sendes til. */
+  to: z.string().email("Ugyldig epost"),
+  /** Valgfri CC, komma-separert eller array. */
+  cc: z.union([z.string(), z.array(z.string().email())]).optional(),
+  /** Valgfritt subject — default genereres fra fakturanummer. */
+  subject: z.string().min(1).max(200).optional(),
+  /** Valgfri brødtekst (HTML). Default: standard hilsen. */
+  body: z.string().max(20000).optional(),
+});
+
+/**
+ * POST /invoices/:id/send-email
+ * Generer faktura-PDF og send som vedlegg til kunden via Brevo SMTP.
+ * Loggfører send-tidspunkt + mottaker på Invoice for historikk.
+ *
+ * TODO refaktor: PDF-genereringen er duplisert fra invoicePdf.ts.
+ * Bør ekstraheres til shared lib `generateInvoicePdfBuffer()` slik at
+ * begge endpoints bruker samme kode.
+ */
+router.post("/:id/send-email", async (req: Request, res: Response) => {
+  const parsed = SendEmailSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: "Ugyldig input",
+      details: parsed.error.flatten().fieldErrors,
+    });
+  }
+
+  const session = req.session!;
+  const invoice = await prisma.invoice.findFirst({
+    where: { id: req.params.id, organizationId: session.organizationId },
+    include: {
+      sak: { include: { client: true } },
+      organization: true,
+    },
+  });
+  if (!invoice) return res.status(404).json({ error: "Faktura ikke funnet" });
+
+  // ── Generer PDF (kopiert fra invoicePdf.ts — refaktor planlagt) ──
+  const org = invoice.organization;
+  const client = invoice.sak?.client;
+  const customerName = client?.name || invoice.customerName || "(uten kunde)";
+  const customerAddress = client?.address || invoice.customerAddress || "";
+
+  function fmtKr(n: number): string {
+    return n.toLocaleString("nb-NO", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " kr";
+  }
+  function fmtDate(d: Date): string {
+    return d.toLocaleDateString("nb-NO", { year: "numeric", month: "2-digit", day: "2-digit" });
+  }
+  function fmtOrgNumber(orgNumber: string | null): string {
+    if (!orgNumber) return "(org.nr ikke satt)";
+    const digits = orgNumber.replace(/\D/g, "");
+    if (digits.length !== 9) return `Org.nr ${orgNumber}`;
+    return `Org.nr ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 9)} MVA`;
+  }
+
+  // Fall back til auto-generert nummer hvis ingen er satt på fakturaen
+  const invNum = invoice.invoiceNumber || `INV-${invoice.id.slice(0, 8).toUpperCase()}`;
+  const issuedAt = invoice.periodEnd;
+  const dueAt = invoice.dueDate || new Date(issuedAt.getTime() + 14 * 86400000);
+
+  const lineItems = Array.isArray(invoice.lineItems)
+    ? (invoice.lineItems as Array<{ description: string; quantity: number; unitPrice: number; sum?: number }>)
+    : null;
+
+  const doc = new PDFDocument({
+    size: "A4", margin: 50,
+    info: { Title: `Faktura ${invNum}`, Author: org.name, Creator: "Sakspilot" },
+  });
+  const chunks: Buffer[] = [];
+  doc.on("data", (c: Buffer) => chunks.push(c));
+
+  // Header
+  doc.fontSize(18).fillColor("#1E3A5F").text(org.name, 50, 50, { width: 280 });
+  doc.fontSize(9).fillColor("#5E6C84").text(fmtOrgNumber(org.orgNumber), 50, doc.y + 2);
+  if (org.address) doc.text(org.address, 50, doc.y + 2);
+  const cityLine = [org.postalCode, org.city].filter(Boolean).join(" ");
+  if (cityLine) doc.text(cityLine, 50, doc.y + 2);
+
+  doc.fontSize(28).fillColor("#172B4D").text("FAKTURA", 350, 50, { width: 200, align: "right" });
+  doc.fontSize(10).fillColor("#172B4D")
+    .text(`Fakturanr: ${invNum}`, 350, doc.y + 6, { width: 200, align: "right" })
+    .text(`Fakturadato: ${fmtDate(issuedAt)}`, 350, doc.y + 2, { width: 200, align: "right" })
+    .text(`Forfall: ${fmtDate(dueAt)}`, 350, doc.y + 2, { width: 200, align: "right" });
+
+  let y = 180;
+  doc.fontSize(10).fillColor("#5E6C84").text("Faktura til:", 50, y);
+  y += 14;
+  doc.fontSize(12).fillColor("#172B4D").text(customerName, 50, y);
+  y = doc.y + 4;
+  if (customerAddress) {
+    doc.fontSize(9).fillColor("#5E6C84").text(customerAddress, 50, y, { width: 280 });
+    y = doc.y + 4;
+  }
+  y += 20;
+
+  // Tabell-header
+  doc.fontSize(9).fillColor("#5E6C84")
+    .text("Beskrivelse", 50, y)
+    .text("Antall", 360, y, { width: 50, align: "right" })
+    .text("Pris", 415, y, { width: 60, align: "right" })
+    .text("Sum", 480, y, { width: 65, align: "right" });
+  y += 12;
+  doc.moveTo(50, y).lineTo(545, y).strokeColor("#E6E9EF").stroke();
+  y += 6;
+
+  let subtotal = 0;
+  if (lineItems && lineItems.length > 0) {
+    for (const li of lineItems) {
+      const sum = li.sum ?? li.quantity * li.unitPrice;
+      subtotal += sum;
+      doc.fontSize(9).fillColor("#172B4D")
+        .text(li.description, 50, y, { width: 300 })
+        .text(String(li.quantity), 360, y, { width: 50, align: "right" })
+        .text(fmtKr(li.unitPrice), 415, y, { width: 60, align: "right" })
+        .text(fmtKr(sum), 480, y, { width: 65, align: "right" });
+      y = Math.max(doc.y, y) + 6;
+    }
+  } else {
+    subtotal = Number(invoice.totalAmount);
+    doc.fontSize(9).fillColor("#172B4D")
+      .text(`Tjenester ${fmtDate(invoice.periodStart)} – ${fmtDate(invoice.periodEnd)}`, 50, y, { width: 300 })
+      .text(String(invoice.totalHours), 360, y, { width: 50, align: "right" })
+      .text("—", 415, y, { width: 60, align: "right" })
+      .text(fmtKr(subtotal), 480, y, { width: 65, align: "right" });
+    y = doc.y + 6;
+  }
+
+  y += 12;
+  doc.moveTo(360, y).lineTo(545, y).strokeColor("#cbd5e1").lineWidth(1.5).stroke();
+  y += 8;
+
+  doc.fontSize(11).fillColor("#172B4D").font("Helvetica-Bold")
+    .text("Total:", 360, y, { width: 115, align: "right" })
+    .text(`${fmtKr(subtotal)}`, 480, y, { width: 65, align: "right" });
+  doc.font("Helvetica");
+
+  y += 32;
+  if (org.bankAccount) {
+    doc.fontSize(9).fillColor("#5E6C84")
+      .text(`Innbetales til: ${org.bankAccount}`, 50, y)
+      .text(`Forfall: ${fmtDate(dueAt)}`, 50, doc.y + 4);
+  }
+
+  if (invoice.paidAt) {
+    doc.fontSize(36).fillColor("#22c55e").opacity(0.3)
+      .text("BETALT", 200, 400, { width: 200, align: "center" }).opacity(1);
+  } else if (invoice.status === "cancelled") {
+    doc.fontSize(36).fillColor("#dc2626").opacity(0.3)
+      .text("ANNULLERT", 180, 400, { width: 240, align: "center" }).opacity(1);
+  }
+
+  if (invoice.note) {
+    doc.fontSize(8).fillColor("#94a3b8").text(invoice.note, 50, 770, { width: 495 });
+  }
+
+  doc.end();
+  await new Promise<void>((resolve) => doc.on("end", () => resolve()));
+  const pdfBuffer = Buffer.concat(chunks);
+
+  // ── Bygg epost ─────────────────────────────────────────────
+  const totalStr = fmtKr(subtotal);
+  const subject = parsed.data.subject || `Faktura ${invNum} fra ${org.name}`;
+  const bodyHtml = parsed.data.body || `
+    <p>Hei ${customerName},</p>
+    <p>Vedlagt finner du faktura <strong>${invNum}</strong> på <strong>${totalStr}</strong> med forfall ${fmtDate(dueAt)}.</p>
+    ${org.bankAccount ? `<p>Innbetales til kontonummer <strong>${org.bankAccount}</strong>. Merk innbetalingen med fakturanummer.</p>` : ""}
+    <p>Si fra hvis det er noe spørsmål om fakturaen.</p>
+    <p>Mvh<br>${org.name}</p>
+  `;
+
+  // ── Send ───────────────────────────────────────────────────
+  const result = await sendEmail({
+    to: parsed.data.to,
+    cc: parsed.data.cc,
+    subject,
+    html: bodyHtml,
+    attachments: [
+      {
+        filename: `faktura-${invNum}.pdf`,
+        content: pdfBuffer,
+        contentType: "application/pdf",
+      },
+    ],
+  });
+
+  if (!result.ok) {
+    return res.status(502).json({
+      error: "Kunne ikke sende epost",
+      details: result.error,
+    });
+  }
+
+  // ── Logg send på Invoice ───────────────────────────────────
+  await prisma.invoice.update({
+    where: { id: invoice.id },
+    data: {
+      sentEmailAt: new Date(),
+      sentEmailTo: parsed.data.to,
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId: session.userId,
+      organizationId: session.organizationId,
+      action: "invoice.email_sent",
+      entityType: "invoice",
+      entityId: invoice.id,
+      metadata: { to: parsed.data.to, subject },
+    },
+  });
+
+  return res.json({ ok: true, messageId: result.messageId, sentAt: new Date().toISOString() });
 });
 
 export default router;

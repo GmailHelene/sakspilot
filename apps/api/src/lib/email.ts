@@ -50,6 +50,18 @@ export interface EmailMessage {
   subject: string;
   html: string;
   text?: string;
+  /** Valgfri CC-mottaker(e). Komma-separert eller string-array. */
+  cc?: string | string[];
+  /**
+   * Filvedlegg. content kan være Buffer (binær) eller string (tekst).
+   * filename vises som vedleggsnavn i mottakers innboks.
+   * contentType er valgfritt — nodemailer gjetter fra filendelse hvis null.
+   */
+  attachments?: Array<{
+    filename: string;
+    content: Buffer | string;
+    contentType?: string;
+  }>;
 }
 
 export interface EmailResult {
@@ -71,9 +83,11 @@ export async function sendEmail(msg: EmailMessage): Promise<EmailResult> {
     const info = await t.sendMail({
       from,
       to: msg.to,
+      cc: msg.cc,
       subject: msg.subject,
       html: msg.html,
       text: msg.text || stripHtml(msg.html),
+      attachments: msg.attachments,
     });
     return { ok: true, messageId: info.messageId };
   } catch (err) {
