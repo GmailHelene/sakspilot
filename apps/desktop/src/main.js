@@ -57,6 +57,7 @@ process.on('unhandledRejection', (err) => logCrash('unhandledRejection', err));
 const store = require('./settings');
 const { Poller } = require('./poller');
 const { buildWorkSessionReport } = require('./report');
+const { NotifPoller } = require('./notif-poller');
 
 // ── Global state ────────────────────────────────────────────────
 let tray = null;
@@ -65,6 +66,7 @@ let poller = null;
 let syncTimer = null;
 let rulesRefreshTimer = null;
 let reminderTimer = null;
+let notifPoller = null;  // System-toast for nye forespørsler/fakturaer/etc
 
 // ── Personlig hub (kun for Helene) ──────────────────────────────
 // Tray-menyitems som peker på Helenes private dashboard-filer/URLer.
@@ -217,6 +219,26 @@ function initializeAgent() {
   // Sjekk påminnelser én gang ved oppstart så bruker får etterslepne varsler
   // umiddelbart (ikke etter første minutt).
   checkStickyReminders();
+  startNotifPoller();
+}
+
+/**
+ * Start NotifPoller — system-toast for nye forespørsler/fakturaer/etc.
+ * Idempotent: starter ikke ny hvis det allerede kjører en.
+ *
+ * Kjører helt uavhengig av Poller (arbeidsøkt) — varsler kommer også når
+ * brukeren IKKE har startet arbeidsøkt, så lenge appen er åpen og innlogget.
+ */
+function startNotifPoller() {
+  if (!notifPoller) {
+    notifPoller = new NotifPoller({
+      apiCall,
+      store,
+      notify,
+      isLoggedIn: () => !!store.get('token'),
+    });
+  }
+  notifPoller.start();
 }
 
 // ── Personlig hub (kun Helene) — hjelpefunksjoner ───────────────
@@ -1227,14 +1249,77 @@ function logout() {
   if (syncTimer) clearInterval(syncTimer);
   if (rulesRefreshTimer) clearInterval(rulesRefreshTimer);
   if (reminderTimer) { clearInterval(reminderTimer); reminderTimer = null; }
+  if (notifPoller) { notifPoller.stop(); notifPoller.reset(); }
   updateTrayMenu();
   notify('Sakspilot', 'Logget ut');
 }
 
-function notify(title, body) {
-  if (Notification.isSupported()) {
-    new Notification({ title, body, silent: true }).show();
+/**
+ * Vis en native OS-notifikasjon (Windows Action Center / macOS Notification
+ * Center / Linux libnotify).
+ *
+ * Signatur er bakoverkompatibel:
+ *   notify('Tittel', 'Body')                  — gammel callsite, ingen klikk-action
+ *   notify({ title, body })                   — objekt-form
+ *   notify({ title, body, areaPath: '/foresporsler' })
+ *                                             — klikk åpner dashbordet + navigerer
+ *                                               til /foresporsler
+ *
+ * silent: true unngår "ding" på Windows for de fleste varsler — vi bruker
+ * lyd kun ved nye leads (forespørsler).
+ */
+function notify(arg1, arg2) {
+  if (!Notification.isSupported()) return;
+
+  const opts = typeof arg1 === 'string'
+    ? { title: arg1, body: arg2 || '', silent: true }
+    : { title: arg1.title, body: arg1.body || '', silent: arg1.silent !== false };
+
+  const n = new Notification({ title: opts.title, body: opts.body, silent: opts.silent });
+
+  // Klikk-handler: åpne dashbordet + naviger hvis areaPath er gitt
+  if (typeof arg1 === 'object' && arg1.areaPath) {
+    n.on('click', () => {
+      try {
+        navigateDashboardTo(arg1.areaPath);
+      } catch (err) {
+        console.warn('[notify] click-handler feilet:', err.message);
+      }
+    });
   }
+
+  n.show();
+}
+
+/**
+ * Åpne dashbordet (lager nytt vindu hvis ingen finnes) og naviger til path.
+ * Brukes av notification-click-handler.
+ */
+function navigateDashboardTo(targetPath) {
+  // Bygg full URL ut fra samme logikk som openDashboardWindow bruker
+  const apiUrl = store.get('apiUrl') || 'https://api.sakspilot.no';
+  const webUrl = apiUrl.includes('sakspilot.no')
+    ? 'https://sakspilot.no'
+    : apiUrl.includes('onrender.com')
+      ? 'https://sakspilot-web.vercel.app'
+      : apiUrl.replace(/:\d+$/, ':3001').replace('/api', '');
+  const fullUrl = `${webUrl}${targetPath}`;
+
+  if (!dashboardWindow || dashboardWindow.isDestroyed()) {
+    // Åpne dashbordet (det laster til sakspilot.no, så naviger etter load)
+    openDashboardWindow();
+    if (dashboardWindow) {
+      dashboardWindow.webContents.once('did-finish-load', () => {
+        try { dashboardWindow.loadURL(fullUrl); } catch {}
+      });
+    }
+    return;
+  }
+
+  // Vindu finnes — vis det, fokuser, naviger
+  dashboardWindow.show();
+  dashboardWindow.focus();
+  try { dashboardWindow.loadURL(fullUrl); } catch {}
 }
 
 function ts() { return new Date().toTimeString().slice(0, 8); }
