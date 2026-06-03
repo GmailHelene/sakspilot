@@ -181,6 +181,17 @@ const oauthLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// PDF-generering er CPU-tungt (50+ MB minne per pdfkit-instans) — vi vil
+// ikke at noen kan trigge 1000 PDF-generations per minutt. 30/min er
+// rikelig for legitim bruk (én bruker laster sjelden ned > 5 PDFer i minuttet).
+const pdfLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "For mange PDF-genereringer — vent et minutt." },
+});
+
 // Public endepunkter (delte saker) — sikrer mot enumeration
 const publicLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -208,7 +219,8 @@ app.use("/klienter", klienterRouter);
 app.use("/foresporsler", foresporslerRouter);
 app.use("/invoices", invoicesRouter);
 app.use("/utgifter", utgifterRouter);
-app.use("/pdf-reports", pdfReportsRouter);
+// Rate-limit på alle PDF-genereringer (CPU/minne-tungt)
+app.use("/pdf-reports", pdfLimiter, pdfReportsRouter);
 app.use("/mva-rapport", mvaRapportRouter);
 app.use("/notifications", notificationsRouter);
 app.use("/agent", agentRouter);
@@ -230,7 +242,7 @@ app.use("/accounting", accountingRouter);
 app.use("/integrations/tripletex", tripletexRouter);
 app.use("/billing", billingRouter);
 app.use("/feedback", feedbackRouter);
-app.use("/invoice-pdf", invoicePdfRouter);
+app.use("/invoice-pdf", pdfLimiter, invoicePdfRouter);
 app.use("/custom-domains", customDomainRouter);
 // Team-routes — listing/invite/management av team-medlemmer.
 // POST /team/invites og DELETE /team/invites er bak requireAuth + requireRole(owner).
