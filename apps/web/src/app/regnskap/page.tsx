@@ -12,11 +12,11 @@
  * Forenklet — ikke et fullt regnskapsverktøy, men gir frilanseren
  * et raskt bilde av cash flow.
  */
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
 import { api, downloadPdf } from '@/lib/api';
-import { Plus, X, Trash2, FileDown } from 'lucide-react';
+import { Plus, X, Trash2, FileDown, Paperclip, ImagePlus } from 'lucide-react';
 
 interface Utgift {
   id: string;
@@ -26,7 +26,26 @@ interface Utgift {
   mvaSats: number | null;
   kategori: string | null;
   leverandor: string | null;
+  kvitteringUrl: string | null;
   notes: string | null;
+}
+
+// Max 5 MB for kvittering — base64-encoded blir det ~6.7 MB string,
+// godt under Postgres TEXT-grensen og Zod-grensen vi satte (8 MB).
+const MAX_KVITTERING_BYTES = 5 * 1024 * 1024;
+const ALLOWED_KVITTERING_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+
+/**
+ * Konverter en File til base64 data-URL ('data:image/jpeg;base64,...').
+ * Brukes både i ny-utgift-modal og for å legge til kvittering på eksisterende.
+ */
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result as string);
+    r.onerror = () => reject(new Error('Kunne ikke lese fila'));
+    r.readAsDataURL(file);
+  });
 }
 
 interface UtgiftResponse {
@@ -82,6 +101,50 @@ export default function RegnskapPage() {
     if (!confirm('Slette utgiften?')) return;
     await api(`/utgifter/${id}`, { method: 'DELETE' });
     load();
+  }
+
+  async function uploadKvittering(utgiftId: string, file: File) {
+    if (file.size > MAX_KVITTERING_BYTES) {
+      setError(`Fila er for stor (max 5 MB). Komprimer eller skann med lavere kvalitet.`);
+      return;
+    }
+    if (!ALLOWED_KVITTERING_TYPES.includes(file.type)) {
+      setError(`Bare JPG/PNG/WebP/PDF er støttet.`);
+      return;
+    }
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      await api(`/utgifter/${utgiftId}`, {
+        method: 'PATCH',
+        body: { kvitteringUrl: dataUrl },
+      });
+      load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Opplasting feilet');
+    }
+  }
+
+  async function removeKvittering(utgiftId: string) {
+    if (!confirm('Fjerne kvitteringen?')) return;
+    await api(`/utgifter/${utgiftId}`, { method: 'PATCH', body: { kvitteringUrl: null } });
+    load();
+  }
+
+  // Klikk på thumbnail åpner full preview i nytt vindu
+  function openKvitteringPreview(dataUrl: string) {
+    const isPdf = dataUrl.startsWith('data:application/pdf');
+    if (isPdf) {
+      // Browser åpner PDF native — bare ny tab
+      const w = window.open();
+      if (w) {
+        w.document.write(`<iframe src="${dataUrl}" style="width:100vw;height:100vh;border:none"></iframe>`);
+      }
+    } else {
+      const w = window.open();
+      if (w) {
+        w.document.write(`<img src="${dataUrl}" style="max-width:100vw;max-height:100vh" />`);
+      }
+    }
   }
 
   // Beregninger
@@ -199,6 +262,7 @@ export default function RegnskapPage() {
                   <th style={th}>Leverandør</th>
                   <th style={{ ...th, textAlign: 'right' }}>Beløp</th>
                   <th style={{ ...th, textAlign: 'right' }}>MVA</th>
+                  <th style={{ ...th, textAlign: 'center' }}>Kvittering</th>
                   <th style={th}></th>
                 </tr>
               </thead>
@@ -213,6 +277,14 @@ export default function RegnskapPage() {
                       {parseFloat(u.belopInkMva).toLocaleString('nb-NO')} kr
                     </td>
                     <td style={{ ...td, textAlign: 'right' }}>{u.mvaSats != null ? `${u.mvaSats} %` : '—'}</td>
+                    <td style={{ ...td, textAlign: 'center' }}>
+                      <KvitteringCell
+                        utgift={u}
+                        onUpload={(f) => uploadKvittering(u.id, f)}
+                        onPreview={openKvitteringPreview}
+                        onRemove={() => removeKvittering(u.id)}
+                      />
+                    </td>
                     <td style={td}>
                       <button onClick={() => deleteUtgift(u.id)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#dc2626' }}>
                         <Trash2 size={14} />
@@ -256,13 +328,33 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
   const [mvaSats, setMvaSats] = useState('25');
   const [kategori, setKategori] = useState('');
   const [leverandor, setLeverandor] = useState('');
+  const [kvitteringFile, setKvitteringFile] = useState<File | null>(null);
+  const [kvitteringError, setKvitteringError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setKvitteringError(null);
+    const file = e.target.files?.[0];
+    if (!file) { setKvitteringFile(null); return; }
+    if (file.size > MAX_KVITTERING_BYTES) {
+      setKvitteringError('For stor — max 5 MB');
+      e.target.value = '';
+      return;
+    }
+    if (!ALLOWED_KVITTERING_TYPES.includes(file.type)) {
+      setKvitteringError('Bare JPG/PNG/WebP/PDF');
+      e.target.value = '';
+      return;
+    }
+    setKvitteringFile(file);
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!beskrivelse.trim() || !belop) return;
     setSaving(true);
     try {
+      const kvitteringUrl = kvitteringFile ? await fileToDataUrl(kvitteringFile) : undefined;
       await api('/utgifter', {
         method: 'POST',
         body: {
@@ -272,6 +364,7 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
           mvaSats: mvaSats ? parseInt(mvaSats) : null,
           kategori: kategori.trim() || undefined,
           leverandor: leverandor.trim() || undefined,
+          kvitteringUrl,
         },
       });
       onCreated();
@@ -318,6 +411,31 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
             <option value="Drift" /><option value="Kontor" /><option value="Programvare" />
             <option value="Reise" /><option value="Abonnement" /><option value="Annet" />
           </datalist>
+          {/* Kvittering — opplastbar JPG/PNG/WebP/PDF, max 5 MB. Norske
+              regnskaps-krav 5 år oppbevaring, så lagring i DB er OK for
+              de fleste små frilansere. */}
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
+              Kvittering (valgfri)
+            </label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              onChange={onFileChange}
+              style={{ fontSize: 13 }}
+            />
+            {kvitteringFile && (
+              <div style={{ fontSize: 11, color: '#14532d', marginTop: 4 }}>
+                ✓ {kvitteringFile.name} ({(kvitteringFile.size / 1024).toFixed(0)} KB)
+              </div>
+            )}
+            {kvitteringError && (
+              <div style={{ fontSize: 11, color: '#dc2626', marginTop: 4 }}>{kvitteringError}</div>
+            )}
+            <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>
+              JPG, PNG, WebP eller PDF · max 5 MB
+            </div>
+          </div>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
             <button type="button" onClick={onClose} style={{ ...btnStyle, background: '#f1f5f9', color: '#334155' }}>Avbryt</button>
             <button type="submit" disabled={saving} style={{ ...btnStyle, background: tokens.color.navy, color: 'white' }}>
@@ -362,3 +480,84 @@ const btnStyle: React.CSSProperties = {
   padding: '8px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer',
 };
 const errBox: React.CSSProperties = { background: '#fee2e2', color: '#991b1b', padding: 12, borderRadius: 8, marginBottom: 16 };
+
+/**
+ * KvitteringCell — viser thumbnail hvis kvittering finnes, ellers
+ * en liten upload-knapp. Klikk thumbnail = preview i nytt vindu.
+ *
+ * For PDF-er viser vi bare ikon (umulig å lage thumbnail uten ekstra dep).
+ * For bilder bruker vi data-URL direkte som img src — fungerer pga data:
+ * URL ikke krever ekstra request.
+ */
+function KvitteringCell({
+  utgift,
+  onUpload,
+  onPreview,
+  onRemove,
+}: {
+  utgift: Utgift;
+  onUpload: (file: File) => void;
+  onPreview: (url: string) => void;
+  onRemove: () => void;
+}) {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  if (utgift.kvitteringUrl) {
+    const isPdf = utgift.kvitteringUrl.startsWith('data:application/pdf')
+      || utgift.kvitteringUrl.toLowerCase().endsWith('.pdf');
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+        <button
+          onClick={() => onPreview(utgift.kvitteringUrl!)}
+          title="Se kvittering"
+          style={{
+            width: 32, height: 32, padding: 0, border: '1px solid #e2e8f0',
+            borderRadius: 4, background: 'white', cursor: 'pointer', overflow: 'hidden',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          {isPdf ? (
+            <Paperclip size={14} color="#dc2626" />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={utgift.kvitteringUrl} alt="Kvittering" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }} />
+          )}
+        </button>
+        <button
+          onClick={onRemove}
+          title="Fjern kvittering"
+          style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: 2 }}
+        >
+          <X size={12} />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,application/pdf"
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) onUpload(f);
+          e.target.value = '';
+        }}
+      />
+      <button
+        onClick={() => fileInputRef.current?.click()}
+        title="Last opp kvittering (JPG/PNG/WebP/PDF, max 5 MB)"
+        style={{
+          background: 'transparent', border: '1px dashed #cbd5e1', borderRadius: 4,
+          cursor: 'pointer', color: '#64748b', padding: '4px 8px', fontSize: 11,
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+        }}
+      >
+        <ImagePlus size={12} /> Legg ved
+      </button>
+    </>
+  );
+}
