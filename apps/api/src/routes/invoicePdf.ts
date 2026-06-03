@@ -26,6 +26,7 @@ import { z } from "zod";
 import PDFDocument from "pdfkit";
 import prisma from "../lib/prisma";
 import { requireAuth } from "../middleware/auth";
+import { safeParseLineItems } from "../lib/invoiceLineItems";
 
 const router = Router();
 router.use(requireAuth);
@@ -470,10 +471,10 @@ router.get("/invoice/:invoiceId", async (req: Request, res: Response) => {
   const issuedAt = invoice.periodEnd;
   const dueAt = invoice.dueDate || new Date(issuedAt.getTime() + DUE_DAYS * 86400000);
 
-  // lineItems lagres som Json — bruk type-cast for å unngå any
-  const lineItems = Array.isArray(invoice.lineItems)
-    ? (invoice.lineItems as Array<{ description: string; quantity: number; unitPrice: number; sum?: number }>)
-    : null;
+  // lineItems lagres som Json — trygg parsing med Zod-validering så vi ikke
+  // krasjer hvis form-en er korrupt (gammel data, manuell DB-edit).
+  const lineItemsParsed = safeParseLineItems(invoice.lineItems);
+  const lineItems = lineItemsParsed.length > 0 ? lineItemsParsed : null;
 
   const doc = new PDFDocument({
     size: "A4", margin: 50,

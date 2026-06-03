@@ -17,6 +17,7 @@ import PDFDocument from "pdfkit";
 import prisma from "../lib/prisma";
 import { requireAuth } from "../middleware/auth";
 import { sendEmail } from "../lib/email";
+import { safeParseLineItems } from "../lib/invoiceLineItems";
 
 const router = Router();
 router.use(requireAuth);
@@ -391,9 +392,8 @@ router.post("/:id/send-email", async (req: Request, res: Response) => {
   const issuedAt = invoice.periodEnd;
   const dueAt = invoice.dueDate || new Date(issuedAt.getTime() + 14 * 86400000);
 
-  const lineItems = Array.isArray(invoice.lineItems)
-    ? (invoice.lineItems as Array<{ description: string; quantity: number; unitPrice: number; sum?: number }>)
-    : null;
+  const lineItemsParsed = safeParseLineItems(invoice.lineItems);
+  const lineItems = lineItemsParsed.length > 0 ? lineItemsParsed : null;
 
   const doc = new PDFDocument({
     size: "A4", margin: 50,

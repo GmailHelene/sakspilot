@@ -82,7 +82,10 @@ router.patch("/profile", async (req: Request, res: Response) => {
 router.get("/export", async (req: Request, res: Response) => {
   const { userId, organizationId } = req.session!;
 
-  const [user, organization, clients, saker, timeEntries, stickyNotes, agentSessions, auditLogs] = await Promise.all([
+  const [
+    user, organization, clients, saker, timeEntries, stickyNotes,
+    agentSessions, auditLogs, foresporsler, invoices, utgifter,
+  ] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId } }),
     prisma.organization.findUnique({ where: { id: organizationId } }),
     prisma.client.findMany({ where: { organizationId } }),
@@ -102,6 +105,13 @@ router.get("/export", async (req: Request, res: Response) => {
       orderBy: { createdAt: "desc" },
       take: 1000,
     }),
+    // ── Modeller lagt til i juni 2026 ───────────────────────────
+    prisma.foresporsel.findMany({ where: { organizationId } }),
+    prisma.invoice.findMany({
+      where: { organizationId },
+      include: { timeEntries: { select: { id: true } } },  // bare ID-er — full timeEntry-data er allerede i seksjonen over
+    }),
+    prisma.utgift.findMany({ where: { organizationId } }),
   ]);
 
   const exportData = {
@@ -115,6 +125,9 @@ router.get("/export", async (req: Request, res: Response) => {
     stickyNotes,
     agentSessions,
     auditLogs,
+    foresporsler,
+    invoices,
+    utgifter,
     counts: {
       clients: clients.length,
       saker: saker.length,
@@ -122,6 +135,9 @@ router.get("/export", async (req: Request, res: Response) => {
       stickyNotes: stickyNotes.length,
       agentSessions: agentSessions.length,
       auditLogs: auditLogs.length,
+      foresporsler: foresporsler.length,
+      invoices: invoices.length,
+      utgifter: utgifter.length,
     },
   };
 
