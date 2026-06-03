@@ -45,6 +45,7 @@ router.get("/", async (req: Request, res: Response) => {
   const { organizationId } = req.session!;
   const year = req.query.year ? parseInt(req.query.year as string, 10) : null;
   const kategori = (req.query.kategori as string) || null;
+  const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
 
   let dateRange: { gte: Date; lt: Date } | undefined;
   if (year && !isNaN(year)) {
@@ -58,6 +59,14 @@ router.get("/", async (req: Request, res: Response) => {
     organizationId,
     ...(dateRange ? { dato: dateRange } : {}),
     ...(kategori ? { kategori } : {}),
+    ...(q ? {
+      OR: [
+        { beskrivelse: { contains: q, mode: "insensitive" as const } },
+        { leverandor: { contains: q, mode: "insensitive" as const } },
+        { kategori: { contains: q, mode: "insensitive" as const } },
+        { notes: { contains: q, mode: "insensitive" as const } },
+      ],
+    } : {}),
   };
 
   const utgifter = await prisma.utgift.findMany({

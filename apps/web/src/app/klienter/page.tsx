@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';
+import { SearchBar } from '@/components/SearchBar';
 import { tokens, clientColor } from '@/lib/tokens';
 import { api } from '@/lib/api';
 
@@ -28,10 +29,12 @@ interface Client {
 
 export default function KlienterPage() {
   const [clients, setClients] = useState<Client[] | null>(null);
+  const [q, setQ] = useState('');
 
   useEffect(() => {
-    api<{ clients: Client[] }>('/klienter').then((res) => setClients(res.clients));
-  }, []);
+    const url = q ? `/klienter?q=${encodeURIComponent(q)}` : '/klienter';
+    api<{ clients: Client[] }>(url).then((res) => setClients(res.clients));
+  }, [q]);
 
   return (
     <AppLayout>
@@ -52,19 +55,22 @@ export default function KlienterPage() {
               {clients ? `${clients.length} ${clients.length === 1 ? 'klient' : 'klienter'}` : 'Henter…'}
             </p>
           </div>
-          <Link
-            href="/klienter/ny"
-            style={{
-              background: tokens.color.navy,
-              color: tokens.color.white,
-              padding: '10px 18px',
-              borderRadius: tokens.radius.md,
-              fontWeight: 600,
-              fontSize: 14,
-            }}
-          >
-            + Ny klient
-          </Link>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <SearchBar value={q} onChange={setQ} placeholder="Søk klienter…" />
+            <Link
+              href="/klienter/ny"
+              style={{
+                background: tokens.color.navy,
+                color: tokens.color.white,
+                padding: '10px 18px',
+                borderRadius: tokens.radius.md,
+                fontWeight: 600,
+                fontSize: 14,
+              }}
+            >
+              + Ny klient
+            </Link>
+          </div>
         </div>
 
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '12px 24px 24px' }}>

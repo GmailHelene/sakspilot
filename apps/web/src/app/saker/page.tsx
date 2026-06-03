@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';
+import { SearchBar } from '@/components/SearchBar';
 import { tokens, clientColor } from '@/lib/tokens';
 import { api } from '@/lib/api';
 
@@ -86,16 +87,22 @@ export default function SakerPage() {
   const isTouch = useIsTouchDevice();
   const [statusModalSak, setStatusModalSak] = useState<Sak | null>(null);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [q, setQ] = useState('');
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem(VIEW_STORAGE) as View | null;
       if (stored === 'tabell' || stored === 'kanban') setView(stored);
     } catch {}
-    api<{ saker: Sak[] }>('/saker')
+  }, []);
+
+  // Re-fetch ved søk-endring (debounce skjer inne i SearchBar)
+  useEffect(() => {
+    const url = q ? `/saker?q=${encodeURIComponent(q)}` : '/saker';
+    api<{ saker: Sak[] }>(url)
       .then((res) => setSaker(res.saker))
       .catch((err) => setError(err.message));
-  }, []);
+  }, [q]);
 
   function changeView(v: View) {
     setView(v);
@@ -136,7 +143,8 @@ export default function SakerPage() {
               {saker ? `${saker.length} ${saker.length === 1 ? 'aktivt prosjekt' : 'aktive prosjekter'}` : 'Henter…'}
             </p>
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <SearchBar value={q} onChange={setQ} placeholder="Søk prosjekter…" />
             <ViewToggle current={view} onChange={changeView} />
             <Link href="/saker/ny" style={primaryButtonStyle}>+ Nytt prosjekt</Link>
           </div>

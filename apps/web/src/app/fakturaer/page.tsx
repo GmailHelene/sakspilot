@@ -19,6 +19,7 @@ import { useEffect, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
 import { api, downloadPdf, ApiError } from '@/lib/api';
+import { SearchBar } from '@/components/SearchBar';
 import { Download, ExternalLink, X, Check, Trash2, Plus, FileDown, Mail } from 'lucide-react';
 
 interface LineItem {
@@ -75,6 +76,7 @@ export default function FakturaerPage() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [q, setQ] = useState('');
 
   async function downloadListPdf() {
     setDownloadingPdf(true);
@@ -93,6 +95,7 @@ export default function FakturaerPage() {
     try {
       const qs = new URLSearchParams({ year: String(year) });
       if (statusFilter !== 'all') qs.set('status', statusFilter);
+      if (q) qs.set('q', q);
       const res = await api<ApiResponse>(`/invoices?${qs}`);
       setData(res);
     } catch (e) {
@@ -100,7 +103,7 @@ export default function FakturaerPage() {
     }
   }
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [year, statusFilter]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [year, statusFilter, q]);
 
   async function markPaid(id: string) {
     if (!confirm('Markere som betalt nå?')) return;
@@ -163,6 +166,7 @@ export default function FakturaerPage() {
 
         {/* Filter-rad */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'center' }}>
+          <SearchBar value={q} onChange={setQ} placeholder="Søk fakturanr / kunde / sak…" width={280} />
           <select value={year} onChange={(e) => setYear(parseInt(e.target.value))} style={selectStyle}>
             {[currentYear, currentYear - 1, currentYear - 2].map((y) => (
               <option key={y} value={y}>{y}</option>

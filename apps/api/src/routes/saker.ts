@@ -45,7 +45,8 @@ const UpdateSakSchema = CreateSakSchema.partial();
  */
 router.get("/", async (req: Request, res: Response) => {
   const { organizationId } = req.session!;
-  const { status, clientId, includeArchived } = req.query;
+  const { status, clientId, includeArchived, q: qRaw } = req.query;
+  const q = typeof qRaw === "string" ? qRaw.trim() : "";
 
   const where: Prisma.SakWhereInput = { organizationId };
   if (status && typeof status === "string") {
@@ -53,6 +54,14 @@ router.get("/", async (req: Request, res: Response) => {
   }
   if (clientId && typeof clientId === "string") where.clientId = clientId;
   if (includeArchived !== "true") where.archived = false;
+  if (q) {
+    where.OR = [
+      { title: { contains: q, mode: "insensitive" } },
+      { description: { contains: q, mode: "insensitive" } },
+      { saksnummer: { contains: q, mode: "insensitive" } },
+      { client: { name: { contains: q, mode: "insensitive" } } },
+    ];
+  }
 
   const saker = await prisma.sak.findMany({
     where,

@@ -16,6 +16,7 @@ import React, { useEffect, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
 import { api, downloadPdf } from '@/lib/api';
+import { SearchBar } from '@/components/SearchBar';
 import { Plus, X, Trash2, FileDown, Paperclip, ImagePlus } from 'lucide-react';
 
 interface Utgift {
@@ -81,11 +82,14 @@ export default function RegnskapPage() {
   const [inv, setInv] = useState<InvoiceSummary | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [q, setQ] = useState('');
 
   async function load() {
     try {
+      const utgQs = new URLSearchParams({ year: String(year) });
+      if (q) utgQs.set('q', q);
       const [u, i] = await Promise.all([
-        api<UtgiftResponse>(`/utgifter?year=${year}`),
+        api<UtgiftResponse>(`/utgifter?${utgQs}`),
         api<InvoiceSummary>(`/invoices?year=${year}&status=exported`),
       ]);
       setUtg(u);
@@ -95,7 +99,7 @@ export default function RegnskapPage() {
     }
   }
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [year]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [year, q]);
 
   async function deleteUtgift(id: string) {
     if (!confirm('Slette utgiften?')) return;
@@ -235,14 +239,17 @@ export default function RegnskapPage() {
         )}
 
         {/* Utgifter-tabell */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 12, flexWrap: 'wrap' }}>
           <h2 style={{ fontSize: 18, color: tokens.color.navy, margin: 0 }}>Utgifter</h2>
-          <button
-            onClick={() => setCreating(true)}
-            style={{ ...btnStyle, background: tokens.color.navy, color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}
-          >
-            <Plus size={14} /> Ny utgift
-          </button>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <SearchBar value={q} onChange={setQ} placeholder="Søk utgifter…" />
+            <button
+              onClick={() => setCreating(true)}
+              style={{ ...btnStyle, background: tokens.color.navy, color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              <Plus size={14} /> Ny utgift
+            </button>
+          </div>
         </div>
 
         {!utg && <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>Laster…</div>}

@@ -68,6 +68,7 @@ router.get("/", async (req: Request, res: Response) => {
   const status = StatusSchema.safeParse(req.query.status);
   const year = req.query.year ? parseInt(req.query.year as string, 10) : null;
   const clientId = (req.query.clientId as string) || null;
+  const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
 
   // År-filter konverteres til [yearStart, yearEnd] periodStart-range
   let dateRange: { gte: Date; lt: Date } | undefined;
@@ -83,6 +84,15 @@ router.get("/", async (req: Request, res: Response) => {
     ...(status.success ? { status: status.data } : {}),
     ...(dateRange ? { periodStart: dateRange } : {}),
     ...(clientId ? { sak: { clientId } } : {}),
+    ...(q ? {
+      OR: [
+        { invoiceNumber: { contains: q, mode: "insensitive" as const } },
+        { customerName: { contains: q, mode: "insensitive" as const } },
+        { note: { contains: q, mode: "insensitive" as const } },
+        { sak: { title: { contains: q, mode: "insensitive" as const } } },
+        { sak: { client: { name: { contains: q, mode: "insensitive" as const } } } },
+      ],
+    } : {}),
   };
 
   const invoices = await prisma.invoice.findMany({

@@ -30,11 +30,22 @@ const UpdateClientSchema = CreateClientSchema.partial().extend({
 router.get("/", async (req: Request, res: Response) => {
   const { organizationId } = req.session!;
   const includeArchived = req.query.includeArchived === "true";
+  const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
 
   const clients = await prisma.client.findMany({
     where: {
       organizationId,
       ...(includeArchived ? {} : { archived: false }),
+      ...(q ? {
+        OR: [
+          { name: { contains: q, mode: "insensitive" as const } },
+          { orgNumber: { contains: q, mode: "insensitive" as const } },
+          { contactEmail: { contains: q, mode: "insensitive" as const } },
+          { contactPhone: { contains: q, mode: "insensitive" as const } },
+          { address: { contains: q, mode: "insensitive" as const } },
+          { notes: { contains: q, mode: "insensitive" as const } },
+        ],
+      } : {}),
     },
     include: { _count: { select: { saker: true } } },
     orderBy: { name: "asc" },

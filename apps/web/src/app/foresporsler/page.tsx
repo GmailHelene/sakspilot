@@ -13,6 +13,7 @@
  */
 import { useEffect, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
+import { SearchBar } from '@/components/SearchBar';
 import { tokens } from '@/lib/tokens';
 import { api } from '@/lib/api';
 import { Plus, ArrowRight, X } from 'lucide-react';
@@ -59,22 +60,25 @@ export default function ForesporslerPage() {
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<Foresporsel | null>(null);
   const [includeArchived, setIncludeArchived] = useState(false);
+  const [q, setQ] = useState('');
   // DnD-state: hvilken kolonne kortet hovrer over (for visuell feedback).
   // dragOverStatus settes på dragEnter + tømmes på dragLeave/drop.
   const [dragOverStatus, setDragOverStatus] = useState<Status | null>(null);
 
   async function load() {
     try {
-      const res = await api<ApiResponse>(
-        `/foresporsler${includeArchived ? '?includeArchived=true' : ''}`
-      );
+      const qs = new URLSearchParams();
+      if (includeArchived) qs.set('includeArchived', 'true');
+      if (q) qs.set('q', q);
+      const url = `/foresporsler${qs.toString() ? `?${qs}` : ''}`;
+      const res = await api<ApiResponse>(url);
       setData(res);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ukjent feil');
     }
   }
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [includeArchived]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [includeArchived, q]);
 
   async function changeStatus(id: string, newStatus: Status) {
     await api(`/foresporsler/${id}`, { method: 'PATCH', body: { status: newStatus } });
@@ -152,6 +156,7 @@ export default function ForesporslerPage() {
             </p>
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <SearchBar value={q} onChange={setQ} placeholder="Søk forespørsler…" />
             <label style={{ fontSize: 13, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
               <input
                 type="checkbox"

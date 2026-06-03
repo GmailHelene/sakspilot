@@ -61,12 +61,26 @@ router.get("/", async (req: Request, res: Response) => {
   const { organizationId } = req.session!;
   const statusFilter = StatusSchema.safeParse(req.query.status);
   const includeArchived = req.query.includeArchived === "true";
+  // Søk: case-insensitiv "contains" på name + message + source + notes.
+  // Tomt q → ingen filter. Vi bruker Postgres mode: 'insensitive' så ILIKE
+  // brukes under panseret — ingen ekstra index trengs for små datasett.
+  const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
 
   const foresporsler = await prisma.foresporsel.findMany({
     where: {
       organizationId,
       ...(statusFilter.success ? { status: statusFilter.data } : {}),
       ...(includeArchived ? {} : { status: { not: "arkivert" } }),
+      ...(q ? {
+        OR: [
+          { name: { contains: q, mode: "insensitive" } },
+          { message: { contains: q, mode: "insensitive" } },
+          { source: { contains: q, mode: "insensitive" } },
+          { notes: { contains: q, mode: "insensitive" } },
+          { email: { contains: q, mode: "insensitive" } },
+          { phone: { contains: q, mode: "insensitive" } },
+        ],
+      } : {}),
     },
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],
   });
