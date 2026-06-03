@@ -716,6 +716,12 @@ model Invoice {
   sentEmailAt     DateTime?           @map("sent_email_at")
   /// Mottakers epost-adresse (siste send). Vises i historikk.
   sentEmailTo     String?             @map("sent_email_to")
+  /// Sist sendt purring (manuell eller via auto-cron). Brukes som debounce
+  /// for cron-jobben — vi purrer ikke samme faktura mer enn én gang per uke.
+  reminderSentAt  DateTime?           @map("reminder_sent_at")
+  /// Antall purringer sendt totalt. Brukes for cron-eskalering (1. purring
+  /// vennlig, 2. mer pressende, 3. siste).
+  reminderCount   Int                 @default(0) @map("reminder_count")
   /// MVA-sats brukt på fakturaen. 25 = standard, 15 = mat, 12 = transport,
   /// 0 = ingen (utenlands, fritak). Default 25 fordi det er norsk standardsats.
   /// Frilansere under MVA-grensen (50k/år) skal sette dette til null på alle

@@ -556,4 +556,219 @@ router.post("/:id/send-email", async (req: Request, res: Response) => {
   return res.json({ ok: true, messageId: result.messageId, sentAt: new Date().toISOString() });
 });
 
+// ── Send purring på forfalt faktura ──────────────────────────────
+const SendReminderSchema = z.object({
+  /** Mottaker — default fra sak.client.contactEmail eller forrige sentEmailTo. */
+  to: z.string().email().optional(),
+  /** Valgfri custom subject/body. Default genereres basert på reminderCount. */
+  subject: z.string().min(1).max(200).optional(),
+  body: z.string().max(20000).optional(),
+});
+
+/**
+ * POST /invoices/:id/send-reminder
+ * Send en betalings-påminnelse (purring) til kunden på epost.
+ * Bare lov for fakturaer som er FORFALT og UBETALT.
+ *
+ * Eskalering basert på reminderCount:
+ *   0 → "Vennlig påminnelse"        (1. gang)
+ *   1 → "Andre påminnelse"          (2. gang)
+ *   2+ → "Siste purring før inkasso" (3. gang +)
+ *
+ * Vi sender IKKE faktisk til inkasso — bare språket eskaleres.
+ * Faktura-PDF legges ved som vedlegg.
+ *
+ * Loggfører reminderSentAt + reminderCount + auditLog.
+ */
+router.post("/:id/send-reminder", async (req: Request, res: Response) => {
+  const parsed = SendReminderSchema.safeParse(req.body || {});
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: "Ugyldig input",
+      details: parsed.error.flatten().fieldErrors,
+    });
+  }
+
+  const session = req.session!;
+  const invoice = await prisma.invoice.findFirst({
+    where: { id: req.params.id, organizationId: session.organizationId },
+    include: {
+      sak: { include: { client: true } },
+      organization: true,
+    },
+  });
+  if (!invoice) return res.status(404).json({ error: "Faktura ikke funnet" });
+
+  // Forretningsregler
+  if (invoice.paidAt) {
+    return res.status(400).json({ error: "Fakturaen er allerede betalt — ingen purring nødvendig" });
+  }
+  if (invoice.status === "cancelled") {
+    return res.status(400).json({ error: "Fakturaen er annullert" });
+  }
+  if (!invoice.dueDate || invoice.dueDate > new Date()) {
+    return res.status(400).json({ error: "Fakturaen er ikke forfalt enda — kan ikke purre" });
+  }
+
+  // Mottaker: body.to → siste sendEmailTo → klientens contactEmail
+  const toAddress = parsed.data.to
+    || invoice.sentEmailTo
+    || invoice.sak?.client?.contactEmail
+    || null;
+  if (!toAddress) {
+    return res.status(400).json({
+      error: "Ingen epost-adresse å sende til. Oppgi 'to' i request, eller sett kontakt-epost på klienten.",
+    });
+  }
+
+  // Beregn dager forsinket
+  const daysOverdue = Math.floor((Date.now() - invoice.dueDate.getTime()) / 86400000);
+  const reminderNum = invoice.reminderCount + 1; // hva DETTE blir (1, 2, 3, ...)
+
+  // ── Generer PDF (samme logikk som send-email) ─────────────
+  // TODO refaktor: ekstrahere PDF-genereringen til shared lib.
+  const org = invoice.organization;
+  const client = invoice.sak?.client;
+  const customerName = client?.name || invoice.customerName || "(uten kunde)";
+  const customerAddress = client?.address || invoice.customerAddress || "";
+
+  function fmtKr(n: number): string {
+    return n.toLocaleString("nb-NO", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " kr";
+  }
+  function fmtDate(d: Date): string {
+    return d.toLocaleDateString("nb-NO", { year: "numeric", month: "2-digit", day: "2-digit" });
+  }
+  function fmtOrgNumber(orgNumber: string | null): string {
+    if (!orgNumber) return "(org.nr ikke satt)";
+    const digits = orgNumber.replace(/\D/g, "");
+    if (digits.length !== 9) return `Org.nr ${orgNumber}`;
+    return `Org.nr ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 9)} MVA`;
+  }
+
+  const invNum = invoice.invoiceNumber || `INV-${invoice.id.slice(0, 8).toUpperCase()}`;
+  const lineItemsParsed = safeParseLineItems(invoice.lineItems);
+  const lineItems = lineItemsParsed.length > 0 ? lineItemsParsed : null;
+
+  const doc = new PDFDocument({
+    size: "A4", margin: 50,
+    info: { Title: `Purring ${invNum}`, Author: org.name, Creator: "Sakspilot" },
+  });
+  const chunks: Buffer[] = [];
+  doc.on("data", (c: Buffer) => chunks.push(c));
+
+  doc.fontSize(18).fillColor("#1E3A5F").text(org.name, 50, 50, { width: 280 });
+  doc.fontSize(9).fillColor("#5E6C84").text(fmtOrgNumber(org.orgNumber), 50, doc.y + 2);
+  if (org.address) doc.text(org.address, 50, doc.y + 2);
+
+  doc.fontSize(28).fillColor("#dc2626").text("PURRING", 350, 50, { width: 200, align: "right" });
+  doc.fontSize(10).fillColor("#172B4D")
+    .text(`Fakturanr: ${invNum}`, 350, doc.y + 6, { width: 200, align: "right" })
+    .text(`Opprinnelig forfall: ${fmtDate(invoice.dueDate)}`, 350, doc.y + 2, { width: 200, align: "right" })
+    .text(`Dager forsinket: ${daysOverdue}`, 350, doc.y + 2, { width: 200, align: "right" });
+
+  let y = 180;
+  doc.fontSize(10).fillColor("#5E6C84").text("Til:", 50, y);
+  y += 14;
+  doc.fontSize(12).fillColor("#172B4D").text(customerName, 50, y);
+  if (customerAddress) doc.fontSize(9).text(customerAddress, 50, doc.y + 4);
+  y = doc.y + 20;
+
+  // Linjer
+  let subtotal = 0;
+  if (lineItems && lineItems.length > 0) {
+    for (const li of lineItems) subtotal += li.sum ?? li.quantity * li.unitPrice;
+  } else {
+    subtotal = Number(invoice.totalAmount);
+  }
+
+  doc.fontSize(11).fillColor("#172B4D")
+    .text(`Vi har ikke registrert betaling for faktura ${invNum} datert ${fmtDate(invoice.periodEnd)}.`, 50, y, { width: 495 });
+  y = doc.y + 12;
+  doc.text(`Utestående beløp: `, 50, y, { continued: true }).font("Helvetica-Bold").text(fmtKr(subtotal));
+  doc.font("Helvetica");
+  y = doc.y + 16;
+
+  const sluttsetning = reminderNum === 1
+    ? "Vi ber deg vennligst betale snarest mulig."
+    : reminderNum === 2
+      ? "Vi ber deg overføre beløpet umiddelbart for å unngå videre purringer."
+      : "Dette er SISTE purring før vi vurderer videre inkassotiltak. Vennligst betal innen 7 dager.";
+  doc.text(sluttsetning, 50, y, { width: 495 });
+
+  y = doc.y + 24;
+  if (org.bankAccount) {
+    doc.fontSize(10).fillColor("#5E6C84")
+      .text(`Innbetales til: ${org.bankAccount}`, 50, y)
+      .text(`Merk med fakturanummer: ${invNum}`, 50, doc.y + 4);
+  }
+
+  doc.end();
+  await new Promise<void>((resolve) => doc.on("end", () => resolve()));
+  const pdfBuffer = Buffer.concat(chunks);
+
+  // ── Bygg epost ─────────────────────────────────────────────
+  const subjectPrefix = reminderNum === 1
+    ? "Påminnelse"
+    : reminderNum === 2
+      ? "Andre påminnelse"
+      : "Siste purring";
+  const subject = parsed.data.subject || `${subjectPrefix}: Faktura ${invNum} fra ${org.name}`;
+
+  const defaultBody = `
+    <p>Hei ${customerName},</p>
+    <p>Vi har dessverre ikke registrert betaling for faktura <strong>${invNum}</strong> på <strong>${fmtKr(subtotal)}</strong>, som hadde forfall ${fmtDate(invoice.dueDate)} (${daysOverdue} dager siden).</p>
+    <p>${sluttsetning}</p>
+    ${org.bankAccount ? `<p>Innbetales til <strong>${org.bankAccount}</strong>. Merk innbetalingen med fakturanummer <strong>${invNum}</strong>.</p>` : ""}
+    <p>Hvis du allerede har betalt — beklager mas. Send oss gjerne kvittering så vi får registrert det.</p>
+    <p>Mvh<br>${org.name}</p>
+  `;
+
+  const result = await sendEmail({
+    to: toAddress,
+    subject,
+    html: parsed.data.body || defaultBody,
+    attachments: [
+      {
+        filename: `purring-${invNum}.pdf`,
+        content: pdfBuffer,
+        contentType: "application/pdf",
+      },
+    ],
+  });
+
+  if (!result.ok) {
+    return res.status(502).json({
+      error: "Kunne ikke sende purring",
+      details: result.error,
+    });
+  }
+
+  // Oppdater Invoice — reminderCount + tidspunkt
+  await prisma.invoice.update({
+    where: { id: invoice.id },
+    data: {
+      reminderSentAt: new Date(),
+      reminderCount: invoice.reminderCount + 1,
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId: session.userId,
+      organizationId: session.organizationId,
+      action: "invoice.reminder_sent",
+      entityType: "invoice",
+      entityId: invoice.id,
+      metadata: { to: toAddress, reminderNum, daysOverdue },
+    },
+  });
+
+  return res.json({
+    ok: true,
+    reminderNum,
+    daysOverdue,
+    sentAt: new Date().toISOString(),
+  });
+});
+
 export default router;

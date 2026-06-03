@@ -20,7 +20,7 @@ import AppLayout from '@/components/AppLayout';
 import { tokens } from '@/lib/tokens';
 import { api, downloadPdf, ApiError } from '@/lib/api';
 import { SearchBar } from '@/components/SearchBar';
-import { Download, ExternalLink, X, Check, Trash2, Plus, FileDown, Mail } from 'lucide-react';
+import { Download, ExternalLink, X, Check, Trash2, Plus, FileDown, Mail, Bell } from 'lucide-react';
 
 interface LineItem {
   description: string;
@@ -49,6 +49,8 @@ interface Invoice {
   note: string | null;
   sentEmailAt: string | null;
   sentEmailTo: string | null;
+  reminderSentAt: string | null;
+  reminderCount: number;
   createdAt: string;
   sak?: { id: string; title: string; client?: { id: string; name: string; contactEmail?: string | null } | null } | null;
   _count?: { timeEntries: number };
@@ -463,6 +465,33 @@ function DetailModal({
   invoice: inv, onClose, onMarkPaid, onDelete,
 }: { invoice: Invoice; onClose: () => void; onMarkPaid: () => void; onDelete: () => void }) {
   const [sendOpen, setSendOpen] = useState(false);
+  const [sendingReminder, setSendingReminder] = useState(false);
+  const [reminderResult, setReminderResult] = useState<string | null>(null);
+
+  const isOverdue = inv.dueDate && new Date(inv.dueDate) < new Date();
+  const canRemind = isOverdue && !inv.paidAt && inv.status !== 'cancelled';
+
+  async function sendReminder() {
+    const reminderNum = inv.reminderCount + 1;
+    const label = reminderNum === 1 ? 'Vennlig påminnelse' : reminderNum === 2 ? 'Andre påminnelse' : 'SISTE purring';
+    if (!confirm(`Send "${label}" til kunden nå?\n\nFakturaen er ${Math.floor((Date.now() - new Date(inv.dueDate!).getTime()) / 86400000)} dager forsinket.`)) return;
+    setSendingReminder(true);
+    setReminderResult(null);
+    try {
+      const res = await api<{ ok: boolean; reminderNum: number; daysOverdue: number }>(`/invoices/${inv.id}/send-reminder`, {
+        method: 'POST',
+        body: {},  // bruk default mottaker + body
+      });
+      setReminderResult(`✓ ${label} sendt (purring ${res.reminderNum})`);
+    } catch (err) {
+      const msg = err instanceof ApiError
+        ? `${err.message}: ${typeof err.details === 'string' ? err.details : ''}`.trim()
+        : err instanceof Error ? err.message : 'Send feilet';
+      setReminderResult(`✗ ${msg}`);
+    } finally {
+      setSendingReminder(false);
+    }
+  }
   return (
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', zIndex: 100,
@@ -549,6 +578,22 @@ function DetailModal({
           </div>
         )}
 
+        {/* Purring-historikk */}
+        {inv.reminderCount > 0 && inv.reminderSentAt && (
+          <div style={{ marginTop: 8, padding: 10, background: '#fef3c7', borderRadius: 6, fontSize: 12, color: '#92400e' }}>
+            🔔 {inv.reminderCount} purring{inv.reminderCount === 1 ? '' : 'er'} sendt — sist {new Date(inv.reminderSentAt).toLocaleString('nb-NO')}
+          </div>
+        )}
+
+        {/* Resultat av nylig purring-send */}
+        {reminderResult && (
+          <div style={{
+            marginTop: 8, padding: 10, borderRadius: 6, fontSize: 12,
+            background: reminderResult.startsWith('✓') ? '#dcfce7' : '#fee2e2',
+            color: reminderResult.startsWith('✓') ? '#14532d' : '#991b1b',
+          }}>{reminderResult}</div>
+        )}
+
         {/* Aksjoner */}
         <div style={{ display: 'flex', gap: 8, marginTop: 20, flexWrap: 'wrap' }}>
           <button
@@ -566,6 +611,22 @@ function DetailModal({
           {!inv.paidAt && inv.status !== 'cancelled' && (
             <button onClick={onMarkPaid} style={{ ...btnStyle, background: '#14532d', color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Check size={14} /> Marker betalt
+            </button>
+          )}
+          {canRemind && (
+            <button
+              onClick={sendReminder}
+              disabled={sendingReminder}
+              style={{ ...btnStyle, background: '#92400e', color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              <Bell size={14} />
+              {sendingReminder
+                ? 'Sender purring…'
+                : inv.reminderCount === 0
+                  ? 'Send purring'
+                  : inv.reminderCount === 1
+                    ? 'Send andre påminnelse'
+                    : 'Send siste purring'}
             </button>
           )}
           {inv.status === 'draft' && (
