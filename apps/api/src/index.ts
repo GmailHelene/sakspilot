@@ -67,6 +67,7 @@ import accountingRouter from "./routes/accounting";
 import tripletexRouter from "./routes/tripletex";
 import billingRouter from "./routes/billing";
 import feedbackRouter from "./routes/feedback";
+import pilotStatsRouter from "./routes/pilotStats";
 import invoicePdfRouter from "./routes/invoicePdf";
 import clientPortalRouter from "./routes/clientPortal";
 import teamRouter, { acceptInviteRouter } from "./routes/team";
@@ -249,6 +250,7 @@ app.use("/accounting", accountingRouter);
 app.use("/integrations/tripletex", tripletexRouter);
 app.use("/billing", billingRouter);
 app.use("/feedback", feedbackRouter);
+app.use("/admin/pilot-stats", pilotStatsRouter);
 app.use("/invoice-pdf", pdfLimiter, invoicePdfRouter);
 app.use("/custom-domains", customDomainRouter);
 // Team-routes, listing/invite/management av team-medlemmer.
