@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { tokens } from '@/lib/tokens';
+import { api, ApiError } from '@/lib/api';
 
 // Konfigurer per-plattform URL via NEXT_PUBLIC_DESKTOP_DOWNLOAD_URL_<OS> i Vercel.
 // Faller tilbake til den generiske URL-en eller mailto hvis ingen er satt.
@@ -56,14 +57,67 @@ const OS_NAME: Record<OS, string> = {
   linux: 'Linux',
 };
 
+// Mapper UI-OS-navn til backend-platform-enum
+const OS_TO_PLATFORM: Record<OS, 'win' | 'mac-arm' | 'linux'> = {
+  windows: 'win',
+  mac: 'mac-arm',
+  linux: 'linux',
+};
+
+// LocalStorage-flagg sa returbesokere ikke maa fylle ut e-post pa nytt.
+// Bare en boolean - vi lagrer ikke e-post i klartekst pa klient.
+const UNLOCKED_KEY = 'sakspilot_download_unlocked';
+
 export default function LastNedClient() {
   // SSR-default = windows (mest sannsynlig brukergruppe). Hydreres til
   // faktisk OS på client-side så CTA-knappen blir riktig før første interact.
   const [os, setOs] = useState<OS>('windows');
+  // Email-gate-state: brukeren maa registrere e-post for download-knappene
+  // aktiveres. Lagres som flagg i localStorage sa returbesokere slipper.
+  const [unlocked, setUnlocked] = useState(false);
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [consent, setConsent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     setOs(detectOS());
+    if (typeof window !== 'undefined' && localStorage.getItem(UNLOCKED_KEY) === '1') {
+      setUnlocked(true);
+    }
   }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setFormError(null);
+    if (!email.trim()) { setFormError('Fyll inn e-postadresse'); return; }
+    if (!consent) { setFormError('Du må godta at vi sender deg en oppfølging'); return; }
+    setSubmitting(true);
+    try {
+      await api('/downloads/lead', {
+        method: 'POST',
+        body: {
+          email: email.trim(),
+          name: name.trim() || undefined,
+          platform: OS_TO_PLATFORM[os],
+          source: 'last-ned-side',
+        },
+      });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(UNLOCKED_KEY, '1');
+      }
+      setUnlocked(true);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setFormError(err.message);
+      } else {
+        setFormError('Noe gikk galt. Prøv igjen.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   const primary = DOWNLOADS[os];
 
@@ -95,94 +149,182 @@ export default function LastNedClient() {
           </p>
         </div>
 
-        {/* Hovedkort - primær CTA for detektert OS */}
-        <div
-          style={{
-            background: 'white',
-            borderRadius: tokens.radius.lg,
-            border: `1px solid ${tokens.color.border}`,
-            padding: 32,
-            marginBottom: 16,
-            boxShadow: tokens.shadow.md,
-          }}
-        >
-          <div
+        {/* Email-gate ELLER download-kort, avhengig av unlocked-state */}
+        {!unlocked ? (
+          <form
+            onSubmit={handleSubmit}
             style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 16,
-              marginBottom: 24,
+              background: 'white',
+              borderRadius: tokens.radius.lg,
+              border: `1px solid ${tokens.color.border}`,
+              padding: 32,
+              marginBottom: 16,
+              boxShadow: tokens.shadow.md,
             }}
           >
-            <div>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: tokens.color.textMuted,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  marginBottom: 4,
-                }}
-              >
-                Versjon {VERSION} · {primary.label}
-              </div>
-              <div style={{ fontSize: 14, color: tokens.color.textMuted }}>
-                {primary.sizeMb} MB · {primary.ext}-fil · ingen installasjon
-              </div>
+            <h2 style={{ fontSize: 18, color: tokens.color.navy, margin: '0 0 6px 0' }}>
+              Få nedlastingen og en kort intro på e-post
+            </h2>
+            <p style={{ fontSize: 13, color: tokens.color.textMuted, margin: '0 0 18px 0', lineHeight: 1.5 }}>
+              Vi sender deg lenke til oppsettsguiden og spør hvordan det går etter et par dager.
+              Ikke nyhetsbrev, bare oppfølging på prøvingen.
+            </p>
+            <div style={{ display: 'grid', gap: 12, marginBottom: 14 }}>
+              <label style={{ fontSize: 12, color: tokens.color.textMuted, fontWeight: 600 }}>
+                E-post *
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="navn@firma.no"
+                  style={{
+                    display: 'block', width: '100%', marginTop: 4,
+                    padding: '10px 12px', fontSize: 14,
+                    border: `1px solid ${tokens.color.border}`, borderRadius: tokens.radius.sm,
+                    fontFamily: 'inherit',
+                  }}
+                />
+              </label>
+              <label style={{ fontSize: 12, color: tokens.color.textMuted, fontWeight: 600 }}>
+                Navn (valgfritt)
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Fornavn Etternavn"
+                  style={{
+                    display: 'block', width: '100%', marginTop: 4,
+                    padding: '10px 12px', fontSize: 14,
+                    border: `1px solid ${tokens.color.border}`, borderRadius: tokens.radius.sm,
+                    fontFamily: 'inherit',
+                  }}
+                />
+              </label>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: tokens.color.textMuted, lineHeight: 1.5, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)}
+                  style={{ marginTop: 3, flexShrink: 0 }}
+                />
+                Greit at dere sender en kort oppfølgings-epost. Jeg kan svare "Slutt" når som helst.
+              </label>
             </div>
-            <a
-              href={primary.url}
+            {formError && (
+              <div style={{
+                padding: '10px 12px', background: '#FEE2E2', color: '#991B1B',
+                borderRadius: tokens.radius.sm, fontSize: 13, marginBottom: 12,
+              }}>
+                {formError}
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={submitting}
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '14px 28px',
+                padding: '12px 24px',
                 background: tokens.gradient.navy,
-                color: 'white',
-                textDecoration: 'none',
-                borderRadius: tokens.radius.md,
-                fontWeight: 700,
-                fontSize: 15,
+                color: 'white', border: 'none', borderRadius: tokens.radius.md,
+                fontSize: 15, fontWeight: 700, cursor: submitting ? 'wait' : 'pointer',
                 boxShadow: tokens.shadow.colored('#1E3A5F'),
               }}
             >
-              ⬇ Last ned for {OS_NAME[os]}
-            </a>
-          </div>
-
-          {/* Andre OS som sekundære lenker */}
+              {submitting ? 'Lagrer...' : `Hent ${OS_NAME[os]}-nedlastingen`}
+            </button>
+            <p style={{ fontSize: 11, color: tokens.color.textSubtle, marginTop: 14, lineHeight: 1.5 }}>
+              Allerede registrert bruker? <Link href="/login" style={{ color: tokens.color.navy }}>Logg inn</Link> og last ned fra dashboardet i stedet.
+            </p>
+          </form>
+        ) : (
           <div
             style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 12,
-              fontSize: 13,
-              color: tokens.color.textMuted,
-              borderTop: `1px solid ${tokens.color.border}`,
-              paddingTop: 16,
+              background: 'white',
+              borderRadius: tokens.radius.lg,
+              border: `1px solid ${tokens.color.border}`,
+              padding: 32,
+              marginBottom: 16,
+              boxShadow: tokens.shadow.md,
             }}
           >
-            <span style={{ marginRight: 4 }}>Annen plattform?</span>
-            {(Object.keys(DOWNLOADS) as OS[])
-              .filter((p) => p !== os)
-              .map((p) => (
-                <a
-                  key={p}
-                  href={DOWNLOADS[p].url}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 16,
+                marginBottom: 24,
+              }}
+            >
+              <div>
+                <div
                   style={{
-                    color: tokens.color.navy,
+                    fontSize: 12,
+                    color: tokens.color.textMuted,
                     fontWeight: 600,
-                    textDecoration: 'none',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                    marginBottom: 4,
                   }}
                 >
-                  {OS_ICON[p]} {OS_NAME[p]} ({DOWNLOADS[p].sizeMb} MB)
-                </a>
-              ))}
+                  Versjon {VERSION} · {primary.label}
+                </div>
+                <div style={{ fontSize: 14, color: tokens.color.textMuted }}>
+                  {primary.sizeMb} MB · {primary.ext}-fil · ingen installasjon
+                </div>
+              </div>
+              <a
+                href={primary.url}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '14px 28px',
+                  background: tokens.gradient.navy,
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: tokens.radius.md,
+                  fontWeight: 700,
+                  fontSize: 15,
+                  boxShadow: tokens.shadow.colored('#1E3A5F'),
+                }}
+              >
+                ⬇ Last ned for {OS_NAME[os]}
+              </a>
+            </div>
+
+            {/* Andre OS som sekundære lenker */}
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 12,
+                fontSize: 13,
+                color: tokens.color.textMuted,
+                borderTop: `1px solid ${tokens.color.border}`,
+                paddingTop: 16,
+              }}
+            >
+              <span style={{ marginRight: 4 }}>Annen plattform?</span>
+              {(Object.keys(DOWNLOADS) as OS[])
+                .filter((p) => p !== os)
+                .map((p) => (
+                  <a
+                    key={p}
+                    href={DOWNLOADS[p].url}
+                    style={{
+                      color: tokens.color.navy,
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    {OS_ICON[p]} {OS_NAME[p]} ({DOWNLOADS[p].sizeMb} MB)
+                  </a>
+                ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Plattform-spesifikk advarsel */}
         {os === 'windows' && (

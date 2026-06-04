@@ -68,6 +68,7 @@ import tripletexRouter from "./routes/tripletex";
 import billingRouter from "./routes/billing";
 import feedbackRouter from "./routes/feedback";
 import pilotStatsRouter from "./routes/pilotStats";
+import downloadsRouter from "./routes/downloads";
 import invoicePdfRouter from "./routes/invoicePdf";
 import clientPortalRouter from "./routes/clientPortal";
 import teamRouter, { acceptInviteRouter } from "./routes/team";
@@ -251,6 +252,9 @@ app.use("/integrations/tripletex", tripletexRouter);
 app.use("/billing", billingRouter);
 app.use("/feedback", feedbackRouter);
 app.use("/admin/pilot-stats", pilotStatsRouter);
+// Offentlig (utlogget) download-lead-capture for /last-ned-siden.
+// publicLimiter gir 60/min per IP - mer enn nok for normal trafikk, hindrer spam-bots.
+app.use("/downloads", publicLimiter, downloadsRouter);
 app.use("/invoice-pdf", pdfLimiter, invoicePdfRouter);
 app.use("/custom-domains", customDomainRouter);
 // Team-routes, listing/invite/management av team-medlemmer.

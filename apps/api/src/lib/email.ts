@@ -418,6 +418,49 @@ export function videocallOfferEmail(user: OnboardingUser): EmailMessage {
 // ──────────────────────────────────────────────────────────────
 
 /**
+ * Download-lead-oppfolgning. Sendes umiddelbart etter at en utlogget
+ * besokende har fylt inn email paa /last-ned for aa fa download-tilgang.
+ * Tone: lavprofil, ikke "selger" - bare nyttig kontekst og en lenke til
+ * registrering. Hvis de ikke registrerer seg innen 3 dager, sender vi en
+ * "har du faatt provd det"-oppfolger via onboarding-drip-jobben.
+ */
+export function downloadLeadFollowupEmail(opts: {
+  email: string;
+  name: string | null;
+  platform: "win" | "mac-arm" | "mac-intel" | "linux";
+}): EmailMessage {
+  const greeting = opts.name ? `Hei ${opts.name.split(" ")[0]}` : "Hei";
+  const platformLabel =
+    opts.platform === "win" ? "Windows"
+    : opts.platform === "linux" ? "Linux"
+    : "macOS";
+  const inner = `
+    <h1 style="font-size:22px;color:#1F1F1F;margin:0 0 16px 0;">${greeting}, takk for at du vil prove Sakspilot Desktop</h1>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
+      Nedlastingen for ${platformLabel} startet (eller starter snart). Pakk ut zip-en og
+      dobbeltklikk Sakspilot for aa kjore den - ingen installasjon kreves.
+    </p>
+    <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
+      <strong>For aa bruke desktop-appen trenger du en gratis konto:</strong>
+    </p>
+    <p style="margin:0 0 24px 0;">
+      <a href="https://sakspilot.no/registrer" style="display:inline-block;padding:12px 24px;background:#1F1F1F;color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">Opprett konto (gratis ut 2026)</a>
+    </p>
+    <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:0 0 8px 0;">
+      Hvis du har problemer eller spoersmaal, bare svar paa denne e-posten.
+    </p>
+    <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:0;">
+      - Helene, Sakspilot
+    </p>
+  `;
+  return {
+    to: opts.email,
+    subject: "Takk for nedlastingen - neste steg",
+    html: baseEmailLayout(inner),
+  };
+}
+
+/**
  * Sendes når frilanseren inviterer en klient til klient-portalen.
  * Klienten klikker lenken → setter passord → får login-tilgang.
  */
