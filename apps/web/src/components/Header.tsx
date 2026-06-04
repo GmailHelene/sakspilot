@@ -4,30 +4,27 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { tokens } from '@/lib/tokens';
-import { api, getToken, isTokenValid, setToken } from '@/lib/api';
+import { api, isTokenValid, setToken } from '@/lib/api';
+import { fetchMe, readCachedMe, clearCachedMe, type Me } from '@/lib/me';
 
-interface MeResponse {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  organizationName: string;
-  organizationPlan: string;
-}
+// Lokal alias for bakoverkompatibilitet med eksisterende type-bruk
+type MeResponse = Me;
 
 export default function Header() {
   const router = useRouter();
-  const [me, setMe] = useState<MeResponse | null>(null);
+  // Tilbakemelding 4. juni: header viste kort "Logg inn" mens /auth/me var i flight.
+  // Initialiserer me fra sessionStorage-cache hvis tilgjengelig. Det fjerner flickeren
+  // for innloggede brukere som navigerer internt (cache er fersk fra forrige side).
+  const [me, setMe] = useState<MeResponse | null>(() => readCachedMe());
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     if (!isTokenValid()) return;
-    api<MeResponse>('/auth/me')
-      .then(setMe)
-      .catch(() => {
-        // 401 — token er ikke gyldig på serveren
-        setToken(null);
+    fetchMe()
+      .then((data) => {
+        if (data) setMe(data);
+        else setToken(null);
       });
   }, []);
 
@@ -35,9 +32,10 @@ export default function Header() {
     try {
       await api('/auth/logout', { method: 'POST' });
     } catch {
-      // ignorer — vi rydder lokalt uansett
+      // ignorer, vi rydder lokalt uansett
     }
     setToken(null);
+    clearCachedMe();
     setMe(null);
     router.push('/');
   }
@@ -106,7 +104,7 @@ export default function Header() {
           flexShrink: 0,
         }}
       >
-        {mounted && me ? (
+        {me ? (
           <>
             <Link href="/saker" style={navLinkStyle} className="sp-header-nav-hide-mobile">
               Prosjekter
@@ -134,7 +132,7 @@ export default function Header() {
               Logg ut
             </button>
           </>
-        ) : mounted ? (
+        ) : mounted && !isTokenValid() ? (
           <>
             <Link href="/login" style={navLinkStyle}>
               Logg inn

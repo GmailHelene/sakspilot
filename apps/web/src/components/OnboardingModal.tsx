@@ -16,12 +16,14 @@
  */
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   Briefcase, Scale, Building, Calculator, Palette, Lightbulb, Code,
   Stethoscope, Pencil, ArrowRight, Check, X, Sparkles,
 } from 'lucide-react';
 import { tokens } from '@/lib/tokens';
 import { api, isTokenValid } from '@/lib/api';
+import { fetchMe } from '@/lib/me';
 import { events } from '@/lib/analytics';
 import { getDefaultLaunchersFor, type Profession } from '@/lib/professionLaunchers';
 import ThemePicker from '@/components/ThemePicker';
@@ -74,24 +76,38 @@ export default function OnboardingModal() {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [profession, setProfession] = useState<Profession | null>(null);
+  const pathname = usePathname() ?? '';
+
+  // Ruter hvor onboarding-modalen IKKE skal popp opp automatisk.
+  // Tilbakemelding 4. juni: nar bruker apnet "Nytt prosjekt" og hadde
+  // tomt pakrevd felt, dukket onboarding opp midt i opprettelses-flyten.
+  // De to flytene skal aldri kollidere. Vi skipper alle /ny-ruter, evt.
+  // dypere /[id]-ruter der bruker er i en aktiv interaksjon.
+  const isCreationOrDetailFlow =
+    pathname.endsWith('/ny') ||
+    pathname.includes('/ny/') ||
+    pathname.includes('/rediger') ||
+    pathname.includes('/innstillinger') ||
+    /\/[^/]+\/[a-f0-9-]{16,}$/.test(pathname); // /saker/{uuid}, /fakturaer/{uuid} osv.
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!isTokenValid()) return;
+    if (isCreationOrDetailFlow) return;
 
     // Sjekk om innlogga user er en NY bruker (forskjellig fra forrige sesjon).
     // Hvis ja: tøm alle client-prefs så vi får frisk onboarding.
     let cancelled = false;
     (async () => {
-      try {
-        const me = await api<{ id: string; email: string }>('/auth/me');
+      // Bruker cached /auth/me-henter for aa unngaa duplikate API-kall
+      // sammen med Header. Tilbakemelding 4. juni om over-henting.
+      const me = await fetchMe();
+      if (me) {
         const lastUser = localStorage.getItem(USER_TAG_KEY);
         if (lastUser !== me.id) {
           resetClientPrefsForNewUser();
           localStorage.setItem(USER_TAG_KEY, me.id);
         }
-      } catch {
-        // ignorer — kan være /auth/me som ikke returnerer id
       }
       if (cancelled) return;
       if (localStorage.getItem(STORAGE_KEY)) return;
@@ -101,7 +117,7 @@ export default function OnboardingModal() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isCreationOrDetailFlow]);
 
   async function finish() {
     if (typeof window !== 'undefined') {

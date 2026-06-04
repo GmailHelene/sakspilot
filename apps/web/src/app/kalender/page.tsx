@@ -144,7 +144,7 @@ export default function KalenderPage() {
                 const d = new Date();
                 setCurrentMonth(new Date(d.getFullYear(), d.getMonth(), 1));
               }}
-              style={{ ...navButtonStyle, padding: '6px 14px' }}
+              style={{ ...navButtonStyle, padding: '6px 14px', whiteSpace: 'nowrap' }}
             >
               I dag
             </button>

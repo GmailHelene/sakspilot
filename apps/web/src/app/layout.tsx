@@ -1,10 +1,23 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
 import PwaInit from '@/components/PwaInit';
 import DesktopShortcutOverlay from '@/components/DesktopShortcutOverlay';
 import DesktopAgentControls from '@/components/DesktopAgentControls';
 import OnboardingModal from '@/components/OnboardingModal';
 import ThemeInit from '@/components/ThemeInit';
+
+// Tilbakemelding 4. juni: Google Fonts (Inter) returnerte 503 ved kall fra
+// fonts.googleapis.com under feedback-okten. Vi self-hoster naa via next/font,
+// som henter font-filene paa byggetidspunktet og serverer dem fra /_next/static.
+// Resultat: ingen kjoretids-avhengighet til Google, raskere first paint,
+// fungerer fortsatt offline (etter forste lasting).
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sakspilot.no'),
@@ -113,14 +126,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="nb">
+    <html lang="nb" className={inter.variable}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
+        {/* Fonten er na self-hosted via next/font/google. Se inter-konstanten over. */}
         {/* Umami Analytics - GDPR-vennlig, ingen cookies */}
         <script
           defer

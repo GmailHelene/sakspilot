@@ -198,27 +198,49 @@ export default function StatistikkPage() {
               </Section>
             )}
 
-            {/* Lead-konvertering visualisering */}
+            {/* Lead-konvertering visualisering. Tilbakemelding 4. juni:
+                viser tomtilstand i stedet for tom graa plassholder naar
+                ingen foresporsler er registrert enda. */}
             <Section title="Forespørsler - fordeling">
               <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, padding: 16 }}>
-                <div style={{ display: 'flex', height: 32, borderRadius: 4, overflow: 'hidden', background: '#f1f5f9' }}>
-                  {(['ny', 'i_dialog', 'vunnet', 'tapt', 'arkivert'] as const).map((s) => {
-                    const count = foresporsler.countsByStatus[s] ?? 0;
-                    const total = Object.values(foresporsler.countsByStatus).reduce<number>((a, b) => (a ?? 0) + (b ?? 0), 0);
-                    if (count === 0 || total === 0) return null;
-                    const colors: Record<typeof s, string> = {
-                      ny: '#dbeafe', i_dialog: '#fef3c7', vunnet: '#86efac', tapt: '#fca5a5', arkivert: '#cbd5e1',
-                    };
+                {(() => {
+                  const total = Object.values(foresporsler.countsByStatus).reduce<number>((a, b) => (a ?? 0) + (b ?? 0), 0);
+                  if (total === 0) {
                     return (
-                      <div key={s} title={`${s}: ${count}`} style={{ width: `${(count / total) * 100}%`, background: colors[s] }} />
+                      <div style={{ textAlign: 'center', padding: '20px 12px' }}>
+                        <div style={{ fontSize: 13, color: '#475569', marginBottom: 4 }}>Ingen forespørsler registrert ennå</div>
+                        <div style={{ fontSize: 12, color: '#94a3b8' }}>
+                          Når du legger til en forespørsel under{' '}
+                          <a href="/forespoersler" style={{ color: '#475569', textDecoration: 'underline' }}>
+                            Forespørsler
+                          </a>
+                          {' '}vises konvertering ny → vunnet/tapt her.
+                        </div>
+                      </div>
                     );
-                  })}
-                </div>
-                <div style={{ display: 'flex', gap: 16, marginTop: 12, fontSize: 12, color: '#64748b', flexWrap: 'wrap' }}>
-                  {Object.entries(foresporsler.countsByStatus).map(([s, c]) => (
-                    <span key={s}>{s}: <strong>{c}</strong></span>
-                  ))}
-                </div>
+                  }
+                  return (
+                    <>
+                      <div style={{ display: 'flex', height: 32, borderRadius: 4, overflow: 'hidden', background: '#f1f5f9' }}>
+                        {(['ny', 'i_dialog', 'vunnet', 'tapt', 'arkivert'] as const).map((s) => {
+                          const count = foresporsler.countsByStatus[s] ?? 0;
+                          if (count === 0) return null;
+                          const colors: Record<typeof s, string> = {
+                            ny: '#dbeafe', i_dialog: '#fef3c7', vunnet: '#86efac', tapt: '#fca5a5', arkivert: '#cbd5e1',
+                          };
+                          return (
+                            <div key={s} title={`${s}: ${count}`} style={{ width: `${(count / total) * 100}%`, background: colors[s] }} />
+                          );
+                        })}
+                      </div>
+                      <div style={{ display: 'flex', gap: 16, marginTop: 12, fontSize: 12, color: '#64748b', flexWrap: 'wrap' }}>
+                        {Object.entries(foresporsler.countsByStatus).map(([s, c]) => (
+                          <span key={s}>{s}: <strong>{c}</strong></span>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </Section>
           </>

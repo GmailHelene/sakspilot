@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/components/Header';
+import { useConfirm } from '@/components/ConfirmDialog';
 import { tokens } from '@/lib/tokens';
 import { api, isTokenValid, ApiError } from '@/lib/api';
 import { events } from '@/lib/analytics';
@@ -26,6 +27,7 @@ export default function SakDetailPage() {
   const [sak, setSak] = useState<Sak | null>(null);
   const [summary, setSummary] = useState<TimeSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const confirm = useConfirm();
 
   const refresh = useCallback(async () => {
     try {
@@ -72,12 +74,13 @@ export default function SakDetailPage() {
   }
 
   async function handleDelete() {
-    if (
-      !confirm(
-        'Sletter prosjektet permanent. Time-entries beholdes (frikoblet). Sikker?'
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: 'Slette prosjektet?',
+      body: 'Prosjektet slettes permanent. Time-entries beholdes (frikoblet fra prosjektet).',
+      confirmLabel: 'Slett prosjektet',
+      danger: true,
+    });
+    if (!ok) return;
     await api(`/saker/${sakId}`, { method: 'DELETE' });
     router.push('/saker');
   }
