@@ -6,6 +6,7 @@ import { Check, Clock, Mail, FileText, Zap, Share2, Lock, Smartphone, Target, Bo
 import DemoVideoModal from './_components/DemoVideoModal';
 import ComparisonTable from './_components/ComparisonTable';
 import Testimonials from './_components/Testimonials';
+import AppPreview from './_components/AppPreview';
 import { FAQ_HOME, landingJsonLd } from './_components/landing-faq';
 
 export default function LandingPage() {
@@ -270,6 +271,11 @@ export default function LandingPage() {
             ))}
           </div>
         </section>
+
+        {/* ============================================================ */}
+        {/* APP-PREVIEW - figurer som viser hva man faktisk får           */}
+        {/* ============================================================ */}
+        <AppPreview />
 
         {/* ============================================================ */}
         {/* TESTIMONIALS (placeholder)                                    */}

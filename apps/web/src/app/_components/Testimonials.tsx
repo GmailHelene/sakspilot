@@ -58,7 +58,7 @@ export default function Testimonials() {
             fontStyle: 'italic',
           }}
         >
-          {PLACEHOLDER_LABEL}
+          {/* placeholder fjernet 4. juni 2026 */}
         </p>
       </div>
 
