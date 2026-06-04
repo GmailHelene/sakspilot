@@ -1,13 +1,14 @@
 import { tokens } from '@/lib/tokens';
 
 /**
- * TODO (Helene): Bytt ut med ekte sitater fra piloter når de har testet.
- * Helst med fornavn + yrke + (valgfritt) lenke til LinkedIn/firma.
- * Behold visuell layout — bare endre TESTIMONIALS-arrayen og fjern
- * PLACEHOLDER_LABEL-banneret.
+ * STATUS 4. juni 2026: Komponenten returnerer null inntil vi har ekte
+ * pilot-sitater. Tilbakemelding fra Helene: placeholder-sitater virker
+ * ufyselig profesjonelt og er bedre helt skjult enn merket "eksempel".
+ *
+ * Når piloter har testet, fyll inn TESTIMONIALS-arrayen under med
+ * (quote, name, role) og fjern `return null` i Testimonials-funksjonen.
+ * Helst med lenke til LinkedIn/firma der det er greit for piloten.
  */
-
-const PLACEHOLDER_LABEL = '(eksempel - ekte sitater kommer når piloter har testet)';
 
 const TESTIMONIALS = [
   {
@@ -34,6 +35,10 @@ const TESTIMONIALS = [
 ];
 
 export default function Testimonials() {
+  // Skjult inntil ekte pilot-sitater er på plass (4. juni 2026).
+  return null;
+
+  // eslint-disable-next-line no-unreachable
   return (
     <section
       style={{

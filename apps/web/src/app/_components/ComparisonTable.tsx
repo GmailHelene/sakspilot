@@ -9,12 +9,21 @@ import { Check, X } from 'lucide-react';
 
 const COMPETITORS = ['Sakspilot', 'Tripletex', 'Toggl', 'Notion'] as const;
 
+// Ærlig sammenligning. Vi gir konkurrenter haker der de fortjener det,
+// og X til Sakspilot der vi mangler funksjoner. Ikke en reklamefilm.
 const ROWS: Array<{ feature: string; values: boolean[] }> = [
-  { feature: 'Automatisk tidsregistrering', values: [true, false, false, false] },
-  { feature: 'Klient-CRM med kanban', values: [true, false, false, false] },
-  { feature: 'Bransje-onboarding (advokat / arkitekt / konsulent)', values: [true, false, false, false] },
-  { feature: 'Norsk språk + EU-data', values: [true, true, false, false] },
-  { feature: 'Gratis i pilotperiode', values: [true, false, true, false] },
+  // Sakspilot, Tripletex, Toggl, Notion
+  { feature: 'Automatisk tidsregistrering (vindustittel)', values: [true,  false, false, false] },
+  { feature: 'Klient-CRM med kanban og tabell',           values: [true,  false, false, true ] },
+  { feature: 'Faktura-generering med MVA-rapport',        values: [true,  true,  false, false] },
+  { feature: 'Bransje-onboarding for ENK',                values: [true,  false, false, false] },
+  { feature: 'AI-utkast for klient-eposter',              values: [true,  false, false, true ] },
+  { feature: 'Norsk språk og EU-data',                    values: [true,  true,  false, false] },
+  { feature: 'Full regnskapsføring (bilag, lønn)',        values: [false, true,  false, false] },
+  { feature: 'Offentlige bank-integrasjoner',             values: [false, true,  false, false] },
+  { feature: 'Stor mal-markedsplass',                     values: [false, false, false, true ] },
+  { feature: 'Mobil-apper (iOS/Android native)',          values: [false, true,  true,  true ] },
+  { feature: 'Gratis tilgang i pilotperioden',            values: [true,  false, true,  true ] },
 ];
 
 function Cell({ ok, isUs }: { ok: boolean; isUs: boolean }) {
