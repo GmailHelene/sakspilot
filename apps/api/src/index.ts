@@ -147,12 +147,18 @@ app.use(customDomainMiddleware);
 // Tidligere brukte begge typer samme 30/15min-limit, som lett ble brukt opp
 // av normal navigasjon (Helene rapporterte: 'For mange forsøk' uten å ha
 // gjort noe spesielt). Skill nå tydelig på sikkerhetsbehov.
+// Skip rate-limiting i NODE_ENV=test sa integration-tester ikke treffer
+// 30/15min-grensen nar de registrerer flere brukere paa rad. Live rate-
+// limiting er fortsatt aktiv paa alle andre miljoer.
+const isTestEnv = process.env.NODE_ENV === "test";
+
 const authWriteLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 30,                     // 30 login/register/forgot/reset per 15 min per IP
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "For mange påloggings-forsøk - prøv igjen om 15 minutter." },
+  skip: () => isTestEnv,
 });
 
 const authReadLimiter = rateLimit({
@@ -161,6 +167,7 @@ const authReadLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "For mange sesjons-sjekker - vent et minutt." },
+  skip: () => isTestEnv,
 });
 
 // AI er dyrt, strammere limit per IP (forhindrer "API-tyveri" ved
