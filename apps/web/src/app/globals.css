@@ -102,6 +102,61 @@ a, button, [role="button"] {
   }
 }
 
+/* ────────────────────────────────────────────────────────────────
+ * Bredere responsiv-tilpasning. Tilbakemelding 4. juni 2026.
+ * Helene fikk en fast desktop-layout på mobil. Mye av appen var
+ * allerede skalerbar via auto-fit-grid og clamp() på fontstørrelse,
+ * men noen mønstre trengte eksplisitt mobil-overstyring:
+ *   - main-padding er ofte 24px, gir trang lesning på 360px-skjerm
+ *   - tabeller faller utenfor med horisontal scroll uten visuell hint
+ *   - kort-grids skalert auto-fit men container hadde max-width som
+ *     ble større enn skjermen
+ * ──────────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  /* Strammer padding på main-content slik at innholdet ikke skubber
+     mot skjermkant på 360px. Brukes som standard padding-mønster i
+     mange page.tsx-filer (24px). */
+  main > section,
+  main > div {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  /* Hero-overskrifter blir ofte FOR store på mobil. Justerer maks-størrelse
+     i clamp() funker via global rule for h1 inne i hero. */
+  main h1 {
+    font-size: clamp(26px, 7vw, 36px) !important;
+    line-height: 1.15 !important;
+  }
+  main h2 {
+    font-size: clamp(20px, 5vw, 24px) !important;
+  }
+  /* Tabeller (i app + landings) får horisontal scroll med visuell hint.
+     Brukerens stylesheet kan overstyre med .sp-table-no-scroll. */
+  main table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+  /* Brede flexrows som ofte bygges som "to-kolonne split" blir vertikalt
+     stablet. */
+  .sp-row-split {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  /* Beskytter mot horisontal body-scroll fra elementer med fast bredde. */
+  body {
+    overflow-x: hidden;
+  }
+}
+
+/* Tablet-spennvidde: kompakt 2-kol der vi har plass. */
+@media (min-width: 601px) and (max-width: 900px) {
+  main h1 {
+    font-size: clamp(28px, 5vw, 40px) !important;
+  }
+}
+
 /* Sak-kort i kanban og listen - løft og skygge på hover */
 a[href^="/saker/"]:not([href="/saker"]):not([href="/saker/ny"]):hover,
 a[href^="/klienter/"]:not([href="/klienter"]):not([href="/klienter/ny"]):hover {
