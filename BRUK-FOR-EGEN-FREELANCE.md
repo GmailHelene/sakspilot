@@ -21,8 +21,8 @@ Basert på din portefølje (fra MEMORY.md):
 | Sjakktrening.no (Kristoffer Gressli) | 800 kr/t |
 | Toraderklubben | 900 kr/t (hack-cleanup ofte høyere) |
 | Fotovegg.no (Steinar Jokstad) | 800 kr/t |
-| ConsentPilot (eget produkt, intern) | – |
-| aioptimalisering (eget produkt) | – |
+| ConsentPilot (eget produkt, intern) |, |
+| aioptimalisering (eget produkt) |, |
 
 ### Saker - én per oppdrag/feature
 

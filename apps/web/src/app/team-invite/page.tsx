@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Team-invite — godta invitasjon (public side, ingen auth).
+ * Team-invite, godta invitasjon (public side, ingen auth).
  *
  * Brukeren kommer hit fra e-posten med ?token=... i URL.
  * Skriver inn navn + passord (min 12 tegn), backend verifiserer token via bcrypt,

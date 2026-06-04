@@ -1,5 +1,5 @@
 /**
- * Custom domener (whitelabel) — egne domener som peker til frilanserens
+ * Custom domener (whitelabel), egne domener som peker til frilanserens
  * klient-portal med deres egen branding.
  *
  * Flow:
@@ -12,18 +12,18 @@
  *      → hvis match: verified=true, verifiedAt=now, audit-log
  *   4. Frilanser oppdaterer branding via PATCH /custom-domains/:id/branding
  *   5. Helene legger til domenet manuelt i Vercel-prosjektet (utenfor scope
- *      for MVP — auto-SSL/Vercel API-integrasjon kommer senere)
+ *      for MVP, auto-SSL/Vercel API-integrasjon kommer senere)
  *   6. Klient-portal lastet på hostnamet leser branding via customDomain-
  *      middleware → /client-portal/me-respons inneholder branding-felter
  *
  * Sikkerhet:
  *   - requireAuth + organisasjons-scope på alle endpoints (cross-org-tilgang
  *     umulig fordi vi filtrerer på session.organizationId)
- *   - Owner-only på POST/PATCH/DELETE (verify kan member også gjøre — det
+ *   - Owner-only på POST/PATCH/DELETE (verify kan member også gjøre, det
  *     er en sjekk, ikke en konfigurasjons-mutasjon)
  *   - Hostname-validering: lowercase, gyldig DNS-syntax (FQDN), ikke i
  *     blocked-liste (sakspilot.no, vercel.app, *.vercel.app etc.)
- *   - verificationToken bevares som ren tekst i DB (det er IKKE et secret —
+ *   - verificationToken bevares som ren tekst i DB (det er IKKE et secret , 
  *     poenget er å bevise DNS-kontroll. Hvis noen leser DB-en har de allerede
  *     verifisert det andre domenet)
  *   - DNS-lookup har timeout via Promise.race (Node dns/promises har ikke
@@ -51,7 +51,7 @@ router.use(requireAuth);
 const HOSTNAME_REGEX = /^([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 
 /**
- * Domener vi nekter — egne brand-domener + kjente reserverte.
+ * Domener vi nekter, egne brand-domener + kjente reserverte.
  * Forhindrer at noen "kaprer" sakspilot.no eller vercel.app-subdomener.
  */
 const BLOCKED_SUFFIXES = [
@@ -107,8 +107,8 @@ const BrandingSchema = z.object({
 // ── Hjelpere ────────────────────────────────────────────────────
 
 function generateVerificationToken(): string {
-  // 16 bytes = 32 hex tegn = 128 bits entropi — mer enn nok for et offentlig
-  // verifiserings-token (det er IKKE et secret — alle som kan lese DNS kan se
+  // 16 bytes = 32 hex tegn = 128 bits entropi, mer enn nok for et offentlig
+  // verifiserings-token (det er IKKE et secret, alle som kan lese DNS kan se
   // det. Poenget er å bevise DNS-kontroll).
   return crypto.randomBytes(16).toString("hex");
 }
@@ -119,7 +119,7 @@ function buildDnsInstructions(hostname: string, token: string) {
       record: `_sakspilot-verify.${hostname}`,
       value: token,
       description:
-        "Legg til en TXT-record hos din DNS-leverandør med disse verdiene. Etter at den er propagert (vanligvis 5–60 min), trykk 'Verifiser nå'.",
+        "Legg til en TXT-record hos din DNS-leverandør med disse verdiene. Etter at den er propagert (vanligvis 5-60 min), trykk 'Verifiser nå'.",
     },
     cname: {
       record: hostname,
@@ -132,7 +132,7 @@ function buildDnsInstructions(hostname: string, token: string) {
 
 /**
  * DNS TXT-lookup med timeout. Node dns/promises kaster ENODATA/ENOTFOUND
- * hvis recorden ikke finnes — vi normaliserer til tom array.
+ * hvis recorden ikke finnes, vi normaliserer til tom array.
  */
 async function resolveTxtWithTimeout(
   recordName: string,
@@ -192,7 +192,7 @@ router.post("/", requireRole("owner"), async (req: Request, res: Response) => {
   }
   const hostname = parsed.data.hostname;
 
-  // Sjekk konflikt — hostname @unique globalt
+  // Sjekk konflikt, hostname @unique globalt
   const conflict = await prisma.customDomain.findUnique({
     where: { hostname },
     select: { id: true, organizationId: true },
@@ -274,7 +274,7 @@ router.post("/:id/verify", async (req: Request, res: Response) => {
     return res.status(424).json({
       error: "DNS-oppslag feilet",
       message,
-      hint: `Sjekk at TXT-recorden er lagt til på ${recordName} og at DNS er propagert (kan ta 5–60 min).`,
+      hint: `Sjekk at TXT-recorden er lagt til på ${recordName} og at DNS er propagert (kan ta 5-60 min).`,
     });
   }
 
@@ -340,7 +340,7 @@ router.patch(
     }
 
     // Tom streng → null (frontend kan sende "" når brukeren tømmer feltet).
-    // Vi setter kun felter brukeren faktisk sendte med — udefinerte felter
+    // Vi setter kun felter brukeren faktisk sendte med, udefinerte felter
     // forblir uendret i DB.
     const norm = (v: string | null): string | null => {
       if (v === null) return null;

@@ -1,5 +1,5 @@
 /**
- * Token-kryptering — AES-256-GCM.
+ * Token-kryptering, AES-256-GCM.
  *
  * Brukes for sensitive token-felter i DB (refresh-tokens for OAuth-providere).
  * Nøkkelen MÅ være satt som ENCRYPTION_KEY (64 hex tegn = 32 bytes) på prod.
@@ -19,7 +19,7 @@ function getKey(): Buffer {
   const hex = process.env.ENCRYPTION_KEY;
   if (!hex || hex.length !== 64) {
     // Fail-hard utenfor lokal dev. Tidligere falt vi tilbake til "0000..." for
-    // alt som ikke var NODE_ENV='production' — men feilkonfigurerte staging-/CI-
+    // alt som ikke var NODE_ENV='production', men feilkonfigurerte staging-/CI-
     // miljøer kunne dermed lese krypterte tokens som om de var i klartekst.
     // Nå: bare NODE_ENV='development' tillates fallback, alt annet throws ved
     // første kallforsøk så feilen oppdages med en gang.

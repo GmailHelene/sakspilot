@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * VoiceNoteRecorder — kompakt inline-opptaker for klistrelapper.
+ * VoiceNoteRecorder, kompakt inline-opptaker for klistrelapper.
  *
  * Bruker native MediaRecorder + getUserMedia (ingen avhengigheter). Lagrer
  * opptaket som base64 webm/opus (eller browser-default som fallback) og
@@ -12,7 +12,7 @@
  *  - Max 60 sek per opptak: auto-stopp ved grensen. Begrunnelse: holder
  *    DB-størrelse rimelig (~150 KB per notat ved opus@32 kbps) og bruker
  *    bør heller dele lengre tanker opp i flere notater.
- *  - Slipper alltid mikrofon-tracks når opptak er ferdig — viktig på Mac
+ *  - Slipper alltid mikrofon-tracks når opptak er ferdig, viktig på Mac
  *    for å skru av rød LED ved siden av kameraet og i Windows for å
  *    fjerne "i bruk"-ikonet i system-tray.
  *  - Hvis MediaRecorder eller opus ikke støttes, brukes browserens default
@@ -43,7 +43,7 @@ const PREFERRED_MIME = 'audio/webm;codecs=opus';
 
 /**
  * Velger første støttede mimeType i prioritert rekkefølge. Returnerer
- * tom streng hvis ingen er støttet — da lar vi MediaRecorder velge
+ * tom streng hvis ingen er støttet, da lar vi MediaRecorder velge
  * browser-default (Safari bruker f.eks. audio/mp4).
  */
 function pickMimeType(): string {
@@ -58,7 +58,7 @@ function pickMimeType(): string {
     try {
       if (MediaRecorder.isTypeSupported(c)) return c;
     } catch {
-      // Eldre browsere kaster på ukjente typer — bare hopp over.
+      // Eldre browsere kaster på ukjente typer, bare hopp over.
     }
   }
   return '';
@@ -85,7 +85,7 @@ async function blobToBase64(blob: Blob): Promise<string> {
         reject(new Error('Kunne ikke lese opptak'));
         return;
       }
-      // FileReader gir "data:audio/webm;base64,XXXX" — vi vil bare ha XXXX.
+      // FileReader gir "data:audio/webm;base64,XXXX", vi vil bare ha XXXX.
       const comma = result.indexOf(',');
       resolve(comma >= 0 ? result.slice(comma + 1) : result);
     };
@@ -186,7 +186,7 @@ export default function VoiceNoteRecorder({
     };
     recorder.onstop = async () => {
       const recordedSec = Math.max(1, Math.round((Date.now() - startTsRef.current) / 1000));
-      // Bruk faktisk mimeType fra recorder hvis tilgjengelig — kan avvike
+      // Bruk faktisk mimeType fra recorder hvis tilgjengelig, kan avvike
       // litt fra det vi ba om (f.eks. Safari kan gi audio/mp4 selv om vi ba
       // om webm).
       const actualMime = recorder.mimeType || mimeRef.current || 'audio/webm';
@@ -226,7 +226,7 @@ export default function VoiceNoteRecorder({
       const sec = Math.floor((Date.now() - startTsRef.current) / 1000);
       setElapsedSec(sec);
       if (sec >= maxSec) {
-        // Auto-stopp — onstop-handleren tar resten.
+        // Auto-stopp, onstop-handleren tar resten.
         stopRecording();
       }
     }, 250);
@@ -400,7 +400,7 @@ const errStyle: React.CSSProperties = {
 
 /**
  * Hjelper: kompakt avspillings-pill for visning utenfor edit-modus.
- * Ikke brukt internt — eksportert så andre views kan vise audio uten
+ * Ikke brukt internt, eksportert så andre views kan vise audio uten
  * full recorder-UI.
  */
 export function VoiceNoteBadge({ value }: { value: VoiceNoteValue }) {

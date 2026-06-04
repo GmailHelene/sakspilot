@@ -22,7 +22,7 @@ import { tokens } from '@/lib/tokens';
  *
  * Strategi: in-app toast er hovedkanalen (fungerer alltid, ingen permissions
  * nødvendig). Native Notification er bonus når tillatt. Web Push (med
- * service-worker + VAPID) er ikke implementert nå — kommer hvis brukere
+ * service-worker + VAPID) er ikke implementert nå, kommer hvis brukere
  * spør etter varsler når Sakspilot-tab er helt lukket.
  *
  * Edge cases:
@@ -69,7 +69,7 @@ export default function ReminderPoller() {
         return [...prev, ...fresh];
       });
     } catch {
-      // Stille feil — vi prøver igjen ved neste poll
+      // Stille feil, vi prøver igjen ved neste poll
     }
   }, []);
 
@@ -82,7 +82,7 @@ export default function ReminderPoller() {
       Notification.permission === 'default'
     ) {
       // Bruker-gesture er ikke strengt påkrevd i de fleste browsere lenger,
-      // men noen (Safari iOS) krever det. Vi prøver — feiler stille.
+      // men noen (Safari iOS) krever det. Vi prøver, feiler stille.
       try {
         Notification.requestPermission().catch(() => {});
       } catch {
@@ -101,7 +101,7 @@ export default function ReminderPoller() {
     try {
       await api(`/stickies/${reminder.id}/mark-notified`, { method: 'POST' });
     } catch {
-      // Hvis dette feiler kommer samme påminnelse igjen ved neste poll —
+      // Hvis dette feiler kommer samme påminnelse igjen ved neste poll , 
       // det er greit. shownIdsRef-en glemmer den hvis brukeren reloader.
     }
   }
@@ -117,7 +117,7 @@ export default function ReminderPoller() {
         body: { remindAt: newRemindAt },
       });
     } catch {
-      // Hvis det feiler vises ingen ny påminnelse — bruker kan sette ny
+      // Hvis det feiler vises ingen ny påminnelse, bruker kan sette ny
       // tid manuelt fra klistrelapp-siden.
     }
   }
@@ -226,7 +226,7 @@ function maybeShowNativeNotification(r: DueReminder) {
     };
   } catch {
     // Safari og noen browsere kan kaste hvis Notification konstrueres
-    // utenom en aktiv user-gesture — ignorer.
+    // utenom en aktiv user-gesture, ignorer.
   }
 }
 

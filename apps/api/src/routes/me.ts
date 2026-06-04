@@ -1,10 +1,10 @@
 /**
- * /me-routes — bruker-konto, GDPR, sikkerhet.
+ * /me-routes, bruker-konto, GDPR, sikkerhet.
  *
- *   GET    /me/export   — full data-eksport (GDPR art. 15 — innsynsrett)
- *   POST   /me/delete   — slett konto + all data (GDPR art. 17 — sletteplikt)
- *   GET    /me/sessions — aktive desktop-agent-sesjoner
- *   GET    /me/audit    — siste 50 audit-log-entries for innloggings-bruker
+ *   GET    /me/export  , full data-eksport (GDPR art. 15, innsynsrett)
+ *   POST   /me/delete  , slett konto + all data (GDPR art. 17, sletteplikt)
+ *   GET    /me/sessions, aktive desktop-agent-sesjoner
+ *   GET    /me/audit   , siste 50 audit-log-entries for innloggings-bruker
  */
 import { Router, Request, Response } from "express";
 import { z } from "zod";
@@ -16,7 +16,7 @@ import { verifyPassword } from "../services/auth";
 const router = Router();
 router.use(requireAuth);
 
-// ── Profession (bransje) — settes ved onboarding ─────────────────
+// ── Profession (bransje), settes ved onboarding ─────────────────
 
 const ProfessionSchema = z.enum([
   "it_konsulent",
@@ -162,7 +162,7 @@ router.get("/export", async (req: Request, res: Response) => {
 
 /**
  * POST /me/delete
- * Sletter all data tilknyttet brukeren — irreversibelt.
+ * Sletter all data tilknyttet brukeren, irreversibelt.
  * Krever bekreftelse i body: { password, confirm: "SLETT MIN KONTO" }
  */
 const DeleteSchema = z.object({
@@ -193,7 +193,7 @@ router.post("/delete", async (req: Request, res: Response) => {
   // Sjekk om brukeren er eneste eier i organisasjonen
   const orgUsers = await prisma.user.count({ where: { organizationId: session.organizationId } });
 
-  // Slett bruker — Cascade slettinger i schemaet tar resten:
+  // Slett bruker, Cascade slettinger i schemaet tar resten:
   //   - user → cascade → timeEntries, agentSessions, graphAccount
   //   - I tillegg: sletter org hvis dette er siste bruker (annet ville etterlate spøkelsesorg)
   await prisma.$transaction(async (tx) => {
@@ -257,7 +257,7 @@ router.get("/audit", async (req: Request, res: Response) => {
 });
 
 // ──────────────────────────────────────────────────────────────
-// UI-preferanser — cloud-synket localStorage-erstatning
+// UI-preferanser, cloud-synket localStorage-erstatning
 // Lagrer snarveier, sites, mapper, tema, hidden-nav osv per bruker
 // så data overlever ny .exe-installasjon, browser-bytte, cache-wipe.
 // ──────────────────────────────────────────────────────────────
@@ -284,7 +284,7 @@ router.get("/preferences", async (req: Request, res: Response) => {
  * fra localStorage hver gang noe endres (debounced 5s).
  *
  * Body: { sakspilot_my_sites: "[...]", sakspilot_shortcuts: "[...]", ... }
- *       — alle verdier må være strings (matcher localStorage-format).
+ *      , alle verdier må være strings (matcher localStorage-format).
  */
 router.put("/preferences", async (req: Request, res: Response) => {
   const { userId } = req.session!;
@@ -316,7 +316,7 @@ router.put("/preferences", async (req: Request, res: Response) => {
 });
 
 // ──────────────────────────────────────────────────────────────
-// Tidsmål — uke/mnd-mål for fakturerbare (eller totale) timer
+// Tidsmål, uke/mnd-mål for fakturerbare (eller totale) timer
 // Brukes til progress-widget på /hjem og varsler hvis brukeren henger etter.
 // ──────────────────────────────────────────────────────────────
 
@@ -364,7 +364,7 @@ router.patch("/goals", async (req: Request, res: Response) => {
  * GET /me/goals/progress
  * Returnerer fremdrift mot uke- og månedsmål. Uke = mandag-søndag,
  * måned = 1. til siste dag i kalendermåneden. Tidssone: Europe/Oslo
- * (vi bruker server-lokal tid via Date — Render-servere er UTC, men siden
+ * (vi bruker server-lokal tid via Date, Render-servere er UTC, men siden
  * pro-rata bare regnes på dager og ikke timer-i-døgnet er det robust nok).
  *
  * prorataTarget = hvor mange timer brukeren BURDE ha logget akkurat nå
@@ -406,7 +406,7 @@ router.get("/goals/progress", async (req: Request, res: Response) => {
   const monthDaysIn = Math.min(daysInMonth, now.getDate());
 
   // Hent alle TimeEntry-rader for begge periodene i ett kall (måneden
-  // dekker uka i 6 av 7 dager — vi henter alt månedens og filtrerer).
+  // dekker uka i 6 av 7 dager, vi henter alt månedens og filtrerer).
   // Edge case: ved månedsskifte (f.eks. torsdag 1. november) går uka delvis
   // tilbake i forrige måned. Da må vi hente fra MIN(weekStart, monthStart).
   const fetchFrom = weekStart < monthStart ? weekStart : monthStart;
@@ -458,7 +458,7 @@ router.get("/goals/progress", async (req: Request, res: Response) => {
 });
 
 // ──────────────────────────────────────────────────────────────
-// iCal-feed — brukeren kan abonnere på sine frister/milepæler
+// iCal-feed, brukeren kan abonnere på sine frister/milepæler
 // fra Google Calendar / Apple Calendar / Outlook via en URL.
 // Token er random hex (16 bytes = 128 bits entropy), unikt per user.
 // Selve feeden serveres av PUBLIC routen /ical/:token (icalFeed.ts).
@@ -479,7 +479,7 @@ function buildIcalUrl(req: Request, token: string): string {
 /**
  * GET /me/ical
  * Returnerer status på brukerens iCal-feed. Vi sender med selve URL-en
- * hvis aktivert — den er ikke hemmelig på samme måte som passord-hash,
+ * hvis aktivert, den er ikke hemmelig på samme måte som passord-hash,
  * og brukeren trenger den for å vise i UI / kopiere på nytt.
  */
 router.get("/ical", async (req: Request, res: Response) => {
@@ -501,11 +501,11 @@ router.get("/ical", async (req: Request, res: Response) => {
 /**
  * POST /me/ical/generate
  * Genererer (eller regenererer) iCal-token. Hvis brukeren allerede har
- * en URL aktivert blir den UGYLDIG umiddelbart — gammelt token erstattes.
+ * en URL aktivert blir den UGYLDIG umiddelbart, gammelt token erstattes.
  * Returnerer full URL + advarsel om at hvem som helst med lenken kan se
  * brukerens frister.
  *
- * Vi logger handlingen i audit-loggen (skrive-handling) — men IKKE selve
+ * Vi logger handlingen i audit-loggen (skrive-handling), men IKKE selve
  * tokenet. Bare "ical.generated" + userId.
  */
 router.post("/ical/generate", async (req: Request, res: Response) => {
@@ -537,13 +537,13 @@ router.post("/ical/generate", async (req: Request, res: Response) => {
 
 /**
  * DELETE /me/ical
- * Nullstiller tokenet — kalender-abonnement slutter umiddelbart å virke
+ * Nullstiller tokenet, kalender-abonnement slutter umiddelbart å virke
  * (neste poll fra Google/Apple/Outlook får 404). Brukes hvis URL-en har
  * lekket eller brukeren vil deaktivere feeden.
  */
 router.delete("/ical", async (req: Request, res: Response) => {
   const { userId, organizationId } = req.session!;
-  // Sett til null direkte — Prisma håndterer unique-constraint korrekt
+  // Sett til null direkte, Prisma håndterer unique-constraint korrekt
   // (flere brukere kan ha null icalToken siden NULL ikke regnes som dupe
   // i Postgres unique-indekser).
   await prisma.user.update({

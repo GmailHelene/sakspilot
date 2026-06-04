@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * /innstillinger/kalender — abonner på iCal-feed med dine frister.
+ * /innstillinger/kalender, abonner på iCal-feed med dine frister.
  *
  * Brukeren genererer et token én gang. Resultatet er en URL som
  * Google Calendar / Apple Calendar / Outlook kan abonnere på.
@@ -9,7 +9,7 @@
  * dukker opp i kalenderen ved neste poll (typisk hver time).
  *
  * Sikkerhetsadvarsel er fremtredende: URL-en autentiserer ene og
- * alene — hvem som helst som har den kan se brukerens åpne saker
+ * alene, hvem som helst som har den kan se brukerens åpne saker
  * og frister. Vi tilbyr "Slett og lag ny" for rotering hvis URL
  * lekker.
  */
@@ -335,7 +335,7 @@ function Instructions() {
             'Klikk på + ved siden av "Andre kalendere" i venstremenyen.',
             'Velg "Fra URL".',
             'Lim inn URL-en ovenfor og klikk "Legg til kalender".',
-            'Det kan ta opptil noen timer før hendelsene dukker opp første gang. Google polleren typisk hver 8.–24. time.',
+            'Det kan ta opptil noen timer før hendelsene dukker opp første gang. Google polleren typisk hver 8., 24. time.',
           ]}
         />
         <InstructionBlock

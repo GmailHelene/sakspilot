@@ -8,9 +8,9 @@
  *   cd C:\Users\helen\Desktop\sakspilot
  *   npm run db:seed-personal
  *
- * Re-kjør så ofte du vil — eksisterende prosjekter oppdateres (basert på
+ * Re-kjør så ofte du vil, eksisterende prosjekter oppdateres (basert på
  * tittel + organizationId), ingen duplikater. Sletter ikke prosjekter
- * som finnes i DB men ikke i HTML — du må slette dem manuelt.
+ * som finnes i DB men ikke i HTML, du må slette dem manuelt.
  *
  * Mapping HTML status → SakStatus:
  *   focus    → pagaaende
@@ -120,7 +120,7 @@ async function main() {
         data: {
           organizationId,
           name: CLIENT_NAME,
-          notes: "Egne prosjekter — importert fra prosjekt-oversikt.html",
+          notes: "Egne prosjekter, importert fra prosjekt-oversikt.html",
         },
       });
       console.log(`[seed]   ✓ opprettet klient ${client.id}`);
@@ -180,7 +180,7 @@ async function main() {
         console.log(`  +  ${p.name} (opprettet)`);
       }
 
-      // Milestones from "next" — only add ones that don't exist yet (by title)
+      // Milestones from "next", only add ones that don't exist yet (by title)
       if (p.next && p.next.length > 0) {
         const existingMilestones = await prisma.milestone.findMany({
           where: { sakId },

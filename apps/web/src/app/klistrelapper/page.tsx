@@ -156,14 +156,14 @@ function StickyCard({
 
   function handleAudioChange(v: VoiceNoteValue | null) {
     if (v) {
-      // Nytt opptak — send alle 3 feltene; backend stempler recordedAt.
+      // Nytt opptak, send alle 3 feltene; backend stempler recordedAt.
       onUpdate({
         audioBase64: v.audioBase64,
         audioDurationSec: v.audioDurationSec,
         audioMimeType: v.audioMimeType,
       } as Partial<StickyNote>);
     } else {
-      // Slett — null på audioBase64 trigger nullstilling av alle 4 felter
+      // Slett, null på audioBase64 trigger nullstilling av alle 4 felter
       // i backend-handleren (se apps/api/src/routes/stickies.ts).
       onUpdate({
         audioBase64: null,
@@ -397,7 +397,7 @@ function StickyCard({
 
 function toLocalDatetimeInputValue(d: Date): string {
   // <input type="datetime-local"> trenger "YYYY-MM-DDTHH:mm" i lokal tid.
-  // d.toISOString() gir UTC — vi må skifte til lokal og strippe sekunder/tz.
+  // d.toISOString() gir UTC, vi må skifte til lokal og strippe sekunder/tz.
   const pad = (n: number) => String(n).padStart(2, '0');
   return (
     d.getFullYear() +

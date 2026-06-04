@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Team-side — owner-only.
+ * Team-side, owner-only.
  *
  * Lister medlemmer + pending invites. Owner kan:
  *   - Invitere ny (e-post + rolle)

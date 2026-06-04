@@ -44,7 +44,7 @@ export default function KalenderPage() {
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
-  // Klikkbar dag-modal — null = ikke åpen, ellers valgt dato
+  // Klikkbar dag-modal, null = ikke åpen, ellers valgt dato
   const [createForDate, setCreateForDate] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export default function KalenderPage() {
     try {
       const { saker: list } = await api<{ saker: Sak[] }>('/saker');
       setSaker(list);
-      // Hent detaljer for hver sak (for å få milestones) — kunne vært
+      // Hent detaljer for hver sak (for å få milestones), kunne vært
       // ett samle-endepunkt, men for nå er denne tilstrekkelig for ~50 saker
       const details = await Promise.all(
         list.map((s) => api<Sak & { milestones: Milestone[] }>(`/saker/${s.id}`))

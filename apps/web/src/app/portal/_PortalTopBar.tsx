@@ -8,10 +8,10 @@
  *   - Hvis requesten kom inn på et verifisert CustomDomain, returnerer backend
  *     branding-info i /client-portal/me-responsen (brandName, brandTagline,
  *     brandPrimaryColor, brandLogoUrl).
- *   - brandName overstyrer "Sakspilot — Klient-portal" i topp-baren.
+ *   - brandName overstyrer "Sakspilot, Klient-portal" i topp-baren.
  *   - brandPrimaryColor settes som --sp-primary CSS-variabel på <html> så
  *     hele portal-UI får hovedfargen overstyrt (tokens.color.navy peker på
- *     denne CSS-varen — se lib/tokens.ts).
+ *     denne CSS-varen, se lib/tokens.ts).
  *   - brandLogoUrl vises som <img> til venstre for navnet hvis satt.
  */
 import { useEffect } from 'react';
@@ -45,7 +45,7 @@ export function PortalTopBar({
 
   // Propager primær-farge til CSS-var så resten av portal-UI tar den i bruk.
   // ThemeInit på frilanser-siden bruker samme var-navn (--sp-primary), men
-  // portal-layout har ikke ThemeInit — vi setter den her direkte på <html>.
+  // portal-layout har ikke ThemeInit, vi setter den her direkte på <html>.
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const root = document.documentElement;
@@ -54,7 +54,7 @@ export function PortalTopBar({
       root.style.setProperty('--sp-primary-dark', branding.brandPrimaryColor);
       root.style.setProperty('--sp-primary-light', branding.brandPrimaryColor);
     }
-    // Cleanup: ikke nødvendig — portal-layout er isolert fra frilanser-UI,
+    // Cleanup: ikke nødvendig, portal-layout er isolert fra frilanser-UI,
     // og hvis brukeren navigerer bort fra portalen lastes hele dokumentet
     // på nytt uansett (separat Next.js segment).
   }, [branding?.brandPrimaryColor]);

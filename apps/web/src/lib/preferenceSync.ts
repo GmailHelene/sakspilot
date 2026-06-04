@@ -3,12 +3,12 @@
  *
  * Hvorfor: localStorage er per Electron-installasjon. Når Helene laster ned
  * ny .exe og pakker ut til ny mappe, blir alle Mine sites/mapper/snarveier
- * borte. Med cloud-sync følger alt brukeren overalt — pluss at samme bruker
+ * borte. Med cloud-sync følger alt brukeren overalt, pluss at samme bruker
  * kan logge inn på sakspilot.no i nettleser og se sine egne preferanser.
  *
  * Flyt:
  *   1. Ved app-mount: GET /me/preferences → populér manglende localStorage-keys
- *      (lokale verdier vinner — brukeren har kanskje endret noe lokalt)
+ *      (lokale verdier vinner, brukeren har kanskje endret noe lokalt)
  *   2. Hver 5. sekund: snapshot alle sakspilot_*-keys → hvis endret siden
  *      sist, PUT /me/preferences
  *   3. Ved logout/exit: best-effort siste push (kan miste 0-5 sek av endringer)
@@ -50,7 +50,7 @@ async function pushIfChanged() {
     await api('/me/preferences', { method: 'PUT', body: snap });
     lastSentHash = hash;
   } catch {
-    // ignorer feil — vi prøver igjen om 5 sek
+    // ignorer feil, vi prøver igjen om 5 sek
   }
 }
 
@@ -75,7 +75,7 @@ export async function initPreferenceSync(): Promise<void> {
       }
     }
   } catch {
-    // ignorer — vi prøver igjen ved neste pageload
+    // ignorer, vi prøver igjen ved neste pageload
   }
 
   lastSentHash = JSON.stringify(snapshot());

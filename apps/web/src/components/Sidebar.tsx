@@ -48,7 +48,7 @@ interface MySite {
   url: string;
 }
 
-// Sjekk om vi kjører i Sakspilot Desktop (Electron) — gir tilgang til
+// Sjekk om vi kjører i Sakspilot Desktop (Electron), gir tilgang til
 // shell.openFolder og openInWindow via preload-bridge
 function getDesktopAPI(): {
   isDesktop: boolean;
@@ -63,7 +63,7 @@ function getDesktopAPI(): {
   return api && api.isDesktop ? api : { isDesktop: false };
 }
 
-// Tomme defaults — brukeren legger til sine egne via + knappen.
+// Tomme defaults, brukeren legger til sine egne via + knappen.
 // Apper/snarveier styres nå av Launcher (bransje-spesifikke ved onboarding).
 const DEFAULT_SHORTCUTS: Shortcut[] = [];
 
@@ -105,8 +105,8 @@ export default function Sidebar() {
     });
   }
   // Auto-badges fra Electron-main, indeksert på URL.
-  // BARE i .exe-en — plukker opp tall fra fanetittel: "Inbox (3) - Gmail" → 3.
-  // Tjenester uten count i tittel (ChatGPT/Notion/Vercel) får ingen badge —
+  // BARE i .exe-en, plukker opp tall fra fanetittel: "Inbox (3) - Gmail" → 3.
+  // Tjenester uten count i tittel (ChatGPT/Notion/Vercel) får ingen badge , 
   // det er bevisst. Brukeren går selv inn på dem når de vil sjekke.
   const [autoBadges, setAutoBadges] = useState<Record<string, number>>({});
   const { counts } = useNotifications();
@@ -136,7 +136,7 @@ export default function Sidebar() {
       if (storedSites) setMySites(JSON.parse(storedSites));
     } catch {}
     // Hent brukerens rolle for å vise Team-link KUN for owners.
-    // Failer stille — sidebar fungerer uten dette.
+    // Failer stille, sidebar fungerer uten dette.
     if (isTokenValid()) {
       api<{ role: string }>('/auth/me')
         .then((me) => setUserRole(me.role))
@@ -267,7 +267,7 @@ export default function Sidebar() {
     { id: 'mva-rapport', href: '/mva-rapport', label: 'MVA-rapport', Icon: Receipt, primary: true },
     { id: 'statistikk', href: '/statistikk', label: 'Statistikk', Icon: PieChart, primary: true },
     { id: 'kalender', href: '/kalender', label: 'Kalender', Icon: Calendar, notif: 'kalender', primary: true },
-    // Under "Mer…" — sjeldnere brukte funksjoner
+    // Under "Mer…", sjeldnere brukte funksjoner
     { id: 'tidslinje', href: '/gantt', label: 'Tidslinje', Icon: GanttChartSquare },
     { id: 'rapport', href: '/rapport', label: 'Rapport', Icon: BarChart3 },
     { id: 'klistrelapper', href: '/klistrelapper', label: 'Klistrelapper', Icon: StickyNote, notif: 'klistrelapper' },
@@ -288,7 +288,7 @@ export default function Sidebar() {
   // navTick i deps tvinger re-eval når toggling skjer
   const navLinks = mounted
     ? (() => {
-        // void navTick — bare for å lytte
+        // void navTick, bare for å lytte
         void navTick;
         try {
           const hidden = new Set(JSON.parse(localStorage.getItem(HIDDEN_NAV_KEY) || '[]') as string[]);
@@ -662,12 +662,12 @@ export default function Sidebar() {
   );
 }
 
-// (Manuell badge-popover er fjernet 2026-06-03 — det var en dårlig UX.
+// (Manuell badge-popover er fjernet 2026-06-03, det var en dårlig UX.
 // Auto-badges fra Electron fanetittel-parsing er det vi beholder, siden
 // de speiler ekte varsel-tilstand i tjenester som Gmail/Outlook/Slack.)
 
 /**
- * SiteFavicon — viser favicon for et site med graceful fallback.
+ * SiteFavicon, viser favicon for et site med graceful fallback.
  * Prioritet: DuckDuckGo (mest pålitelig) → Google s2 → monogram (første bokstav i farget sirkel).
  */
 function SiteFavicon({ url, label }: { url: string; label: string }) {
@@ -677,7 +677,7 @@ function SiteFavicon({ url, label }: { url: string; label: string }) {
     hostname = new URL(url).hostname;
   } catch {}
   if (tier === 2) {
-    // Monogram-fallback — viser 2 initialer (LH, GM osv) i farget sirkel
+    // Monogram-fallback, viser 2 initialer (LH, GM osv) i farget sirkel
     const palette = ['#1E3A5F', '#C2185B', '#2C5F2D', '#0086CC', '#A358DF', '#FF7A45', '#00B884', '#E2445C'];
     let hash = 0;
     for (let i = 0; i < hostname.length; i++) hash = (hash * 31 + hostname.charCodeAt(i)) | 0;
@@ -704,7 +704,7 @@ function SiteFavicon({ url, label }: { url: string; label: string }) {
           textAlign: 'center',
           fontFamily:
             '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif',
-          // Bruker block + line-height i stedet for flex — mer pålitelig
+          // Bruker block + line-height i stedet for flex, mer pålitelig
           // sentrering med uppercase tekst på tvers av nettlesere
           display: 'block',
           boxSizing: 'border-box',

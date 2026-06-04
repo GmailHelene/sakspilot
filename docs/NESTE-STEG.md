@@ -1,4 +1,4 @@
-# Sakspilot — Hva gjenstår + videre arbeid
+# Sakspilot: Hva gjenstår + videre arbeid
 
 **Snapshot:** 31. mai 2026.
 **Status:** Funksjonelt komplett for pilotbruk. Hele pipeline (web → API → .exe → download) er live på sakspilot.no. Klar til å sende ut piloter. Auto-spor (én bryter, ingen regler trengs) er fersk leveranse.
@@ -7,12 +7,12 @@
 
 ## TL;DR
 
-**Klar for å poste FB-rekruttering + sende Nicole-eposten.** Sentry, Brevo SMTP og auto-spor er nå løst — pilotene får ekte reset-lenker på epost, feil fanges automatisk, og tidsføring krever ingen oppsett (bare slå på bryteren).
+**Klar for å poste FB-rekruttering + sende Nicole-eposten.** Sentry, Brevo SMTP og auto-spor er nå løst, pilotene får ekte reset-lenker på epost, feil fanges automatisk, og tidsføring krever ingen oppsett (bare slå på bryteren).
 
 **3 viktigste neste steg:**
 1. **Send Nicole-epost + post på LinkedIn + WP Norge FB** (`docs/pilot-epost-nicole.md`, `docs/linkedin-post.md`, `docs/post-fb-wp-norge.md`)
-2. **AI rate-limit per org** (1 time) — vern mot Claude-budsjett-eksplosjon ved 50+ piloter
-3. **Splitt `saker/[id]/page.tsx`** (1900+ linjer) — tech-debt som gjør bug-fixing tregere
+2. **AI rate-limit per org** (1 time), vern mot Claude-budsjett-eksplosjon ved 50+ piloter
+3. **Splitt `saker/[id]/page.tsx`** (1900+ linjer), tech-debt som gjør bug-fixing tregere
 
 ---
 
@@ -44,16 +44,16 @@ Se `docs/STATUS-2026-05-31.md` for komplett liste (eller `STATUS-2026-05-28.md` 
 - Vercel + Render + Neon i EU-regioner
 - 401-cleanup + onboarding-per-user
 - Reset-grensesnitt-funksjon
-- **(NY) Auto-spor — én bryter, alt åpnet via Sakspilot logges**
+- **(NY) Auto-spor, én bryter, alt åpnet via Sakspilot logges**
 - **(NY) Multi-tab BrowserView-snarveier**
 - **(NY) Egne ikon-opplastinger i Launcher**
 - **(NY) Cloud-sync av snarveier/sites/mapper (`UserPreferences`-blob)**
-- **(NY) Brevo SMTP — glemt-passord sender ekte epost**
+- **(NY) Brevo SMTP, glemt-passord sender ekte epost**
 - **(NY) Sentry aktivert i EU-region** (de.sentry.io)
-- **(NY) Split rate-limiters** — `auth/me` (120/min) vs login (30/15min)
+- **(NY) Split rate-limiters**, `auth/me` (120/min) vs login (30/15min)
 - **(NY) 401-handler scoped** til `/auth/me` (ingen random logouts)
 - **(NY) PWA-ikon (S på charcoal), multi-resolution favicon**
-- **(NY) Mobil-responsiveness** — hamburger + nav-hide på <600px
+- **(NY) Mobil-responsiveness**, hamburger + nav-hide på <600px
 - **(NY) Versjonsløs GitHub Releases-URL** (`releases/latest/download/...`)
 - **(NY) /sammenligning + llms.txt + JSON-LD** for SEO/AEO
 - **(NY) Build-størrelse 1 GB → 169 MB** (electron-packager ignore-regex)
@@ -69,21 +69,21 @@ Brevo SMTP er nå satt opp. `/forgot-password` sender ekte HTML-epost via `apps/
 
 ⚠️ **Sikkerhetsoppgave igjen:** Rotér Brevo SMTP-key i dashbordet (ble delt i chat under setup) og oppdater Render-env.
 
-### 2. Test demo-brukerflyt selv én gang — 15 min
+### 2. Test demo-brukerflyt selv én gang: 15 min
 **Logg inn med:**
 ```
 demo.advokat@sakspilot.no  /  Demo!uSQrPcaXKuu7
 ```
 Klikk gjennom: Hjem → Prosjekter → en sak → Kalender → Gantt → Rapport → Agenter → Klistrelapper. Verifiser at alt ser fint ut. Hvis noe ser rart ut, fiks før FB-post.
 
-### 3. Sjekk at /last-ned faktisk virker — 2 min
+### 3. Sjekk at /last-ned faktisk virker: 2 min
 Etter du har satt Vercel env-var: gå til `https://sakspilot.no/last-ned`, klikk **«⬇ Last ned for Windows»**. Skal starte nedlasting av 115 MB .zip fra GitHub.
 
 ---
 
 ## 🛡️ Bør gjøres FØR du har 10 piloter (1-2 uker)
 
-### 4. AI rate-limit per org — 1 time
+### 4. AI rate-limit per org: 1 time
 **Problem:** Hver Claude-kall koster $0.003-0.015. Én power-bruker som spammer AI-assistenten kan generere $50+/dag.
 
 **Fix:** Legg til counter i `apps/api/src/routes/ai.ts`:
@@ -93,7 +93,7 @@ Etter du har satt Vercel env-var: gå til `https://sakspilot.no/last-ned`, klikk
 - Eller bedre: cost-basert (sum av tokens × $/token)
 - Pilot-org får 10x kvote
 
-### 5. Send Nicole-eposten + post i FB — 30 min
+### 5. Send Nicole-eposten + post i FB: 30 min
 **Status:** Alt materiell ferdig i `docs/pilot-epost-nicole.md` og `docs/post-fb-wp-norge.md`. Bare å sende.
 
 **Anbefalt rekkefølge:**
@@ -107,7 +107,7 @@ Sentry-prosjekt opprettet via Claude Browser i `grnberg-tech-solution.sentry.io`
 
 **Valgfritt gjenstår:** `NEXT_PUBLIC_SENTRY_DSN` på Vercel for frontend-feil.
 
-### 7. Pilot-tilbakemelding-form — 30 min
+### 7. Pilot-tilbakemelding-form: 30 min
 Liten side `/feedback` (intern, krever innlogging) med:
 - Hva fungerer best?
 - Hva er mest frustrerende?
@@ -116,7 +116,7 @@ Liten side `/feedback` (intern, krever innlogging) med:
 
 POSTes til `/feedback`-endpoint som lagrer i ny `Feedback`-tabell. Helene leser via Prisma Studio eller liten admin-side.
 
-### 8. Onboarding-emails (drip-kampanje) — 1 time
+### 8. Onboarding-emails (drip-kampanje): 1 time
 Når noen registrerer seg:
 - **Dag 0:** Velkomst + lenke til /last-ned + lenke til bruksanvisning
 - **Dag 3:** «Har du installert Windows-appen? Den gir 80% av verdien»
@@ -129,7 +129,7 @@ Bruker Resend (samme som glemt-passord). Trigger via `User.createdAt + N days` c
 
 ## 📈 Bør gjøres FØR du har 50 piloter (1 måned)
 
-### 9. Splitt `apps/web/src/app/saker/[id]/page.tsx` — 2 timer
+### 9. Splitt `apps/web/src/app/saker/[id]/page.tsx`: 2 timer
 1901 linjer, blir tregere å bug-fixe. Splitt i:
 - `_sections/MilestonesSection.tsx`
 - `_sections/TimeEntriesSection.tsx`
@@ -140,25 +140,25 @@ Bruker Resend (samme som glemt-passord). Trigger via `User.createdAt + N days` c
 
 Hovedfilen blir <300 linjer.
 
-### 10. Cron-jobb for daglige automatisations-trigger — 1 time
+### 10. Cron-jobb for daglige automatisations-trigger: 1 time
 `milestone_due_soon` og `sak_status_changed` triggrer per request nå. Bør bli en cron-jobb (Render scheduled task, hver natt 02:00 Oslo-tid) som:
 - Sjekker alle milepæler med `dueDate - N dager < i dag`
 - Trigger relevante agenter
 - Logger til `AutomationRun`
 
-### 11. Database-backups + restore-test — 30 min
+### 11. Database-backups + restore-test: 30 min
 **Problem:** Neon free tier har 7-dagers point-in-time recovery, men ingen manuelle backups. Lag månedlig dump til S3/R2:
 - Cron-jobb: `pg_dump | gzip | aws s3 cp ...`
 - Test restore én gang i et staging-DB for å verifisere
 
-### 12. Splash-side / landing — 2 timer
+### 12. Splash-side / landing: 2 timer
 Forsiden (`/`) er OK men ganske «standard SaaS». Vurder:
 - Konkret demo-video (90 sek, screen-recording av demo-advokat-flyt)
-- Sosial bevis (sitater fra piloter — etter du har dem)
+- Sosial bevis (sitater fra piloter, etter du har dem)
 - Sammenligningstabell med Tripletex/Fiken/Tidsbanken (positivering: «vi kompletterer dem»)
 - FAQ-seksjon
 
-### 13. Mobil-optimalisering av kanban — 2-3 timer
+### 13. Mobil-optimalisering av kanban: 2-3 timer
 Drag-and-drop på kanban fungerer dårlig på mobil. Enten:
 - Bytt til simple click→velg→klikk-status
 - Eller installer `dnd-kit` for touch-støtte
@@ -168,7 +168,7 @@ Drag-and-drop på kanban fungerer dårlig på mobil. Enten:
 
 ## 💼 Forretningsmessig / før kommersiell lansering (Q1 2027)
 
-### 14. Stripe-integrasjon — 1-2 dager
+### 14. Stripe-integrasjon: 1-2 dager
 **Status:** `Subscription`-modell + `/billing/status`-endepunkt finnes (commit `e1be6db`), Stripe-felter er nullable.
 
 **Gjenstår:**
@@ -179,17 +179,17 @@ Drag-and-drop på kanban fungerer dårlig på mobil. Enten:
 - Faktura-PDFer fra Stripe (eller alternativ: manuell faktura via Fiken)
 - Vipps som alternativ (norsk-vennlig)
 
-### 15. Tripletex partner-godkjenning — venter på dem
+### 15. Tripletex partner-godkjenning: venter på dem
 **Status:** Søknad sendt (se `docs/tripletex-fiken-soknad.md`). Krever 3-5 dagers godkjenning og OAuth-impl etter det.
 
-### 16. Code-signing .exe — Krever EV cert (~500 USD/år)
+### 16. Code-signing .exe: Krever EV cert (~500 USD/år)
 **Status:** v0.0.1 utløser Windows SmartScreen-advarsel. Profesjonelt fix:
 - Kjøp EV code-signing-sertifikat fra DigiCert/Sectigo
 - Sett opp signing i CI (electron-builder støtter dette)
 - Reduserer friksjon for piloter betraktelig
 - **Anbefaling:** Vent til du har 10+ betalende kunder, så er kostnaden berettiget
 
-### 17. Engelsk språkversjon — 2-3 dager
+### 17. Engelsk språkversjon: 2-3 dager
 For internasjonale frilansere. Krever:
 - Sett opp `next-intl` eller `next-i18next`
 - Oversett alle UI-strenger til engelsk
@@ -203,17 +203,17 @@ Sortert etter «verdi vs innsats»:
 
 ### Høy verdi, lav innsats (gjør først hvis tid)
 - **Push-notifikasjoner for klistrelapper** med påminnelses-tid (web push API)
-- **Pomodoro-timer i tray-meny** — start 25/5-økt direkte
-- **Faktura-PDF generering** (Sakspilot-side, ikke avhengig av Fiken) — for de som ikke har Fiken/Tripletex
-- **Eksport av rapport som PDF** (Rapport-siden — i dag bare CSV)
+- **Pomodoro-timer i tray-meny**, start 25/5-økt direkte
+- **Faktura-PDF generering** (Sakspilot-side, ikke avhengig av Fiken), for de som ikke har Fiken/Tripletex
+- **Eksport av rapport som PDF** (Rapport-siden, i dag bare CSV)
 - **Tids-mål per uke/mnd** med varsel ved over/under («Du har logget 38/40 timer denne uka»)
 - **AI chat-historie per sak** (i dag er hver prompt isolert)
-- **Auto-kategorisering av timer** — AI foreslår sak basert på window-tittel hvis ingen regel matcher
+- **Auto-kategorisering av timer**, AI foreslår sak basert på window-tittel hvis ingen regel matcher
 
 ### Høy verdi, høy innsats
-- **Mac- og Linux-desktop-versjon** — `get-windows` finnes ikke der, må bytte til `active-win`
-- **Klient-portal med login** (i stedet for delelenke) — klienter ser sine egne saker og laster ned faktura
-- **Team-plan** — flere brukere per org, deling av saker, roller (admin/member)
+- **Mac- og Linux-desktop-versjon**, `get-windows` finnes ikke der, må bytte til `active-win`
+- **Klient-portal med login** (i stedet for delelenke), klienter ser sine egne saker og laster ned faktura
+- **Team-plan**, flere brukere per org, deling av saker, roller (admin/member)
 - **Tripletex direkte API** (avhenger av partner-status)
 - **Integrasjon med Google/Apple Cal** (iCal-feed eller two-way sync av frister)
 - **iOS/Android-app** (native React Native eller bare PWA-polering)
@@ -227,8 +227,8 @@ Sortert etter «verdi vs innsats»:
 - **Custom domener for klient-deling** (whitelabel)
 
 ### Spekulativt / lengre sikt
-- **Apple Watch-integrasjon** — registrer arbeidstid med tap
-- **Fitness-tracker-data** — koble pauser til fitness-data
+- **Apple Watch-integrasjon**, registrer arbeidstid med tap
+- **Fitness-tracker-data**, koble pauser til fitness-data
 - **AI som leser opp e-poster** (TTS)
 - **Marketplace for agent-templates** (brukere deler oppskrifter)
 - **API for tredjeparter** (Zapier, Make.com integrasjoner)
@@ -257,14 +257,14 @@ Antagelser: 50 betalende kunder à 199 kr/mnd = 9950 kr/mnd inntekt.
 
 ## 📋 Foreslått sprint-plan (neste 2 uker)
 
-### Uke 1 (29. mai – 4. juni) — oppdatert 31. mai
+### Uke 1 (29. mai: 4. juni): oppdatert 31. mai
 - ✅ **Tirs-fre (29.-30. mai):** Brevo SMTP, Sentry, auto-spor (én bryter), multi-tab, egne ikoner, PWA-fix, mobil-resp, build-size-fix, sammenligning-side, LinkedIn-post-utkast.
 - **Mandag 1. juni:** Send Nicole-eposten kl 09. Post på LinkedIn kl 11. Post i WP Norge FB kl 13.
 - **Tirsdag:** AI rate-limit per org (commit + test). Følg opp tidlig-piloter.
 - **Onsdag:** Pilot-feedback-form (`/feedback`).
-- **Torsdag-fredag:** Splitt `saker/[id]/page.tsx` — del 1 av 2 (matching-regler + milepæler ut i egne komponenter).
+- **Torsdag-fredag:** Splitt `saker/[id]/page.tsx`, del 1 av 2 (matching-regler + milepæler ut i egne komponenter).
 
-### Uke 2 (5.–11. juni)
+### Uke 2 (5., 11. juni)
 - **Mandag-tirsdag:** Splitt `saker/[id]/page.tsx`. Refactor uten å endre adferd.
 - **Onsdag:** Pilot-feedback-form (`/feedback`). Send link til alle aktive piloter.
 - **Torsdag:** Cron-jobb for daglige automasjons-trigger.
@@ -277,12 +277,12 @@ Det er stor sjanse for at piloter forteller om noe du ikke har forutsett. Vær �
 
 ## 🚨 Risikoer å være obs på
 
-1. **Anthropic API kan dø** — AI-assistenten er ikke kritisk, men hvis Claude er nede ser produktet halt ut. **Mitigering:** Bedrock-stub er klar, kan aktiveres på dager.
-2. **Neon stenger free tier-prosjekt etter 7 dagers inaktivitet** — sjekk ukentlig at sakspilot.no fungerer ved cold-start.
-3. **GitHub Releases kan ta unna trafikken** — gratis CDN, men hvis en post går viralt og 1000+ laster ned samtidig kan det bli rate-limit. **Mitigering:** Flytt til Cloudflare R2 ved bekymring.
-4. **Pilot-feedback kan avsløre at vi har bygd feil produkt** — mest sannsynlige risiko. Mitigation = lytt, ikke forsvar.
-5. **Nicole/første pilot sliter** — manuell support er kritisk de første 2 ukene. Bli kjent med deres workflow.
-6. **GDPR-klage fra én pilot** — vi har personvernerklæring + DPA + audit-log, men sjekk at faktisk sletting fungerer ende-til-ende.
+1. **Anthropic API kan dø**, AI-assistenten er ikke kritisk, men hvis Claude er nede ser produktet halt ut. **Mitigering:** Bedrock-stub er klar, kan aktiveres på dager.
+2. **Neon stenger free tier-prosjekt etter 7 dagers inaktivitet**, sjekk ukentlig at sakspilot.no fungerer ved cold-start.
+3. **GitHub Releases kan ta unna trafikken**, gratis CDN, men hvis en post går viralt og 1000+ laster ned samtidig kan det bli rate-limit. **Mitigering:** Flytt til Cloudflare R2 ved bekymring.
+4. **Pilot-feedback kan avsløre at vi har bygd feil produkt**, mest sannsynlige risiko. Mitigation = lytt, ikke forsvar.
+5. **Nicole/første pilot sliter**, manuell support er kritisk de første 2 ukene. Bli kjent med deres workflow.
+6. **GDPR-klage fra én pilot**, vi har personvernerklæring + DPA + audit-log, men sjekk at faktisk sletting fungerer ende-til-ende.
 
 ---
 
@@ -299,7 +299,7 @@ For å vite om det fungerer:
 | Time-entries logget i sum | 50 | 1000 |
 | Faktura sendt via Fiken | 0 | 2 |
 | Negative tilbakemeldinger | OK med 50% | Bør være < 20% |
-| «Vil du fortsette etter pilotperioden»-ja | — | 60% |
+| «Vil du fortsette etter pilotperioden»-ja |, | 60% |
 
 Hvis sluttall i uke 8 er < 50% av mål: produktet treffer ikke, rethink positionering eller målgruppe.
 
@@ -307,7 +307,7 @@ Hvis sluttall i uke 8 er < 50% av mål: produktet treffer ikke, rethink position
 
 ## 📝 Konklusjon
 
-Du er klar til å sende piloter. Hovedjobben fremover er **lytte + iterere**, ikke bygge mer. Holdningen «bygg ferdig før vi viser noen» er den vanligste startup-fellen. Sakspilot er mer enn ferdig nok — nå handler det om å validere produktmarkedstilpasning.
+Du er klar til å sende piloter. Hovedjobben fremover er **lytte + iterere**, ikke bygge mer. Holdningen «bygg ferdig før vi viser noen» er den vanligste startup-fellen. Sakspilot er mer enn ferdig nok, nå handler det om å validere produktmarkedstilpasning.
 
 **Top 3 ting denne uka:**
 1. ~~Sett Vercel env-var → test /last-ned virker~~ ✅

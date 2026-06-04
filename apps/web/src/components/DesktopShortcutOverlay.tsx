@@ -12,7 +12,7 @@
  *   - Klikk X på en tab → lukker den tab-en (de andre forblir åpne)
  *   - "Tilbake"-knapp → lukker ALLE (tilbake til Sakspilot)
  *
- * Kjører kun i Electron — i nettleser returneres null umiddelbart.
+ * Kjører kun i Electron, i nettleser returneres null umiddelbart.
  */
 
 import { useEffect, useState } from 'react';

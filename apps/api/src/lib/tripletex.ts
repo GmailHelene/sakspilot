@@ -1,5 +1,5 @@
 /**
- * Tripletex API-helper — direkte v2-integrasjon via Partner Consumer Token.
+ * Tripletex API-helper, direkte v2-integrasjon via Partner Consumer Token.
  *
  * Autentiserings-flyt (avviker fra Fiken sin enklere PAT-modell):
  *
@@ -22,15 +22,15 @@
  * SessionToken-utløp håndteres ved at vi alltid sjekker `expiresAt` med en
  * 5-minutters sikkerhetsmargin før vi gjenbruker. Hvis Tripletex revokerer
  * en SessionToken før utløp (lite sannsynlig), får første API-kall 401 og
- * caller må håndtere det (eller vi kan bygge en retry her — foreløpig
+ * caller må håndtere det (eller vi kan bygge en retry her, foreløpig
  * propagerer vi feilen oppover).
  *
  * Endepunkter brukt:
- *   - PUT  /v2/token/session/:create  — bygg SessionToken
- *   - GET  /v2/company                — verifiser + hent navn
- *   - GET  /v2/token/session/whoAmI   — hent employee-info
- *   - POST /v2/timesheet/entry        — push én timeoppføring
- *   - POST /v2/invoice                — opprett fakturadraft
+ *   - PUT  /v2/token/session/:create , bygg SessionToken
+ *   - GET  /v2/company               , verifiser + hent navn
+ *   - GET  /v2/token/session/whoAmI  , hent employee-info
+ *   - POST /v2/timesheet/entry       , push én timeoppføring
+ *   - POST /v2/invoice               , opprett fakturadraft
  *
  * Docs: https://tripletex.no/v2-docs/
  */
@@ -48,8 +48,8 @@ function getApiUrl(useTestEnv: boolean): string {
  * flagget på TripletexIntegration. Vi henter riktig token basert på det.
  *
  * Env-vars:
- *   TRIPLETEX_CONSUMER_TOKEN       — prod (fra partner-godkjenning)
- *   TRIPLETEX_TEST_CONSUMER_TOKEN  — test (fra api-test.tripletex.tech)
+ *   TRIPLETEX_CONSUMER_TOKEN      , prod (fra partner-godkjenning)
+ *   TRIPLETEX_TEST_CONSUMER_TOKEN , test (fra api-test.tripletex.tech)
  */
 function getConsumerToken(useTestEnv: boolean): string {
   if (useTestEnv) {
@@ -83,7 +83,7 @@ const sessionCache = new Map<string, SessionTokenCache>();
 const SESSION_BUFFER_MS = 5 * 60 * 1000; // gjenbruk ikke hvis utløper innen 5 min
 
 /**
- * Tøm cachen for én organisasjon — kalles ved disconnect og token-rotasjon.
+ * Tøm cachen for én organisasjon, kalles ved disconnect og token-rotasjon.
  */
 export function clearSessionCache(orgId: string): void {
   sessionCache.delete(orgId);
@@ -107,7 +107,7 @@ export async function getSessionToken(
   const consumerToken = getConsumerToken(useTestEnv);
 
   // Tripletex' session-create vil ha expirationDate som YYYY-MM-DD.
-  // Vi ber om gyldighet til i morgen — Tripletex gir en token med ca 1
+  // Vi ber om gyldighet til i morgen, Tripletex gir en token med ca 1
   // times faktisk levetid uavhengig av dette feltet, men API-et krever
   // datoen og avviser fortid.
   const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000)
@@ -139,7 +139,7 @@ export async function getSessionToken(
     );
   }
 
-  // Cache ~50 min (Tripletex-tokens varer typisk 60 min — vi konservativt
+  // Cache ~50 min (Tripletex-tokens varer typisk 60 min, vi konservativt
   // antar 50 min uten å parse expirationDate, det er en dato-streng).
   const expiresAt = Date.now() + 50 * 60 * 1000;
   sessionCache.set(orgId, { token, expiresAt });
@@ -266,7 +266,7 @@ export async function verifyEmployeeToken(
     const companyId = employee.companyId;
     const employeeId = employee.id;
 
-    // Hent firmanavn — separat kall siden companyId-relasjonen ikke har name inline
+    // Hent firmanavn, separat kall siden companyId-relasjonen ikke har name inline
     const company = await tripletexFetch<{
       value: { id: number; name: string };
     }>(tempOrgId, employeeToken, useTestEnv, `/company/${companyId}`);
@@ -290,7 +290,7 @@ export async function verifyEmployeeToken(
 // ── Push: én faktura-draft fra sak ──────────────────────────────
 
 export interface CreateInvoiceParams {
-  /// Tripletex customer (kunde) ID — må eksistere i Tripletex på forhånd.
+  /// Tripletex customer (kunde) ID, må eksistere i Tripletex på forhånd.
   /// Hvis null, prøver vi å finne/opprette basert på navn + epost.
   customerId?: number;
   /// Klient-info brukt til oppslag/opprettelse hvis customerId mangler
@@ -319,7 +319,7 @@ export interface InvoiceResult {
 /**
  * Opprett en fakturadraft i Tripletex.
  *
- * MVP-strategi: én faktura med én linje, "Tjeneste — X timer × Y kr/t".
+ * MVP-strategi: én faktura med én linje, "Tjeneste, X timer × Y kr/t".
  * Hvis customerId ikke er gitt: prøv å finne kunde basert på orgnr/epost,
  * ellers opprett ny.
  */
@@ -345,7 +345,7 @@ export async function createInvoiceDraft(
           customerId = search.values[0].id;
         }
       } catch {
-        // ignorer søk-feil — vi prøver å opprette
+        // ignorer søk-feil, vi prøver å opprette
       }
     }
 
@@ -455,10 +455,10 @@ export interface TimesheetEntryParams {
   date: string;
   /// Antall timer (1.5 = 1t 30min)
   hours: number;
-  /// Tripletex aktivitet-id — påkrevd. Brukeren bør kunne velge "default"
+  /// Tripletex aktivitet-id, påkrevd. Brukeren bør kunne velge "default"
   /// i innstillinger; foreløpig: caller må slå opp og sende inn.
   activityId: number;
-  /// Tripletex prosjekt-id — valgfri men anbefalt
+  /// Tripletex prosjekt-id, valgfri men anbefalt
   projectId?: number;
   /// Fritekst-kommentar (vises i Tripletex-timelisten)
   comment?: string;
@@ -471,7 +471,7 @@ export interface TimesheetEntryParams {
  * Push én timeoppføring til Tripletex.
  *
  * Tripletex krever at både `activity` og `employee` peker på eksisterende
- * id-er. Hvis vi ikke har dem, må brukeren konfigurere det først — vi gir
+ * id-er. Hvis vi ikke har dem, må brukeren konfigurere det først, vi gir
  * en tydelig feilmelding via TripletexError.
  */
 export async function pushTimesheetEntry(

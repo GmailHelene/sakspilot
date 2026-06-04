@@ -218,7 +218,7 @@ function parseCSV(text: string): { parsed: ParsedRow[]; formatName: string } {
   const sep = header.includes(';') ? ';' : ',';
   const cols = header.split(sep).map((c) => c.trim());
 
-  // Format-detektorer — basert på kolonneoverskrifter
+  // Format-detektorer, basert på kolonneoverskrifter
   // DNB: "Dato;Forklaring;Rentedato;Ut av konto;Inn på konto"
   if (cols.includes('ut av konto') && cols.includes('inn på konto')) {
     return parseDnb(lines, sep);
@@ -231,7 +231,7 @@ function parseCSV(text: string): { parsed: ParsedRow[]; formatName: string } {
   if (cols.some((c) => c.includes('bokført')) && cols.includes('beløp')) {
     return parseNordea(lines, sep);
   }
-  // Generic fallback — anta kolonner [dato, beskrivelse, ?, ut, inn] eller [dato, beskrivelse, beløp]
+  // Generic fallback, anta kolonner [dato, beskrivelse, ?, ut, inn] eller [dato, beskrivelse, beløp]
   return parseGeneric(lines, sep);
 }
 

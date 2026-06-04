@@ -17,7 +17,7 @@
  *   macOS:    release/Sakspilot-darwin-{arch}/Sakspilot.app + .zip + .dmg*
  *   Linux:    release/Sakspilot-linux-x64/Sakspilot + .tar.gz
  *
- *   * .dmg lages bare når host-OS er macOS (krever hdiutil — Apple-only).
+ *   * .dmg lages bare når host-OS er macOS (krever hdiutil, Apple-only).
  *     På Windows/Linux-host kan vi bygge .app + .zip cross-platform, men
  *     må kjøre GitHub Actions macos-latest for å få .dmg.
  */
@@ -78,7 +78,7 @@ async function main() {
   console.log(`Release:    ${RELEASE_DIR}`);
 
   // Advarsel ved cross-platform build (active-win er native, må compileres
-  // på target-OS for å fungere — krever rebuild eller bygging på riktig OS)
+  // på target-OS for å fungere, krever rebuild eller bygging på riktig OS)
   if (BUILD.platform !== process.platform) {
     console.log('\n⚠  Cross-platform-build: native modules (active-win) bygges normalt');
     console.log('   for host-OS, ikke target. Anbefales å kjøre denne builden PÅ');
@@ -117,7 +117,7 @@ async function main() {
   // Bytt package.json til å være ikke-workspace (standalone)
   const tempPkg = JSON.parse(fs.readFileSync(path.join(TEMP_DIR, 'package.json'), 'utf8'));
   delete tempPkg.workspaces;
-  // Fjern postinstall — vi har allerede ikoner kopiert, ikke generer dem på nytt
+  // Fjern postinstall, vi har allerede ikoner kopiert, ikke generer dem på nytt
   if (tempPkg.scripts) delete tempPkg.scripts.postinstall;
   fs.writeFileSync(
     path.join(TEMP_DIR, 'package.json'),
@@ -177,7 +177,7 @@ async function main() {
     arch: BUILD.arch,
     overwrite: true,
     asar: true,
-    // prune er TRUE by default — men i workspace-monorepo + npm v11 fungerte
+    // prune er TRUE by default, men i workspace-monorepo + npm v11 fungerte
     // det ikke (electron + @electron/packager + transitives havnet i app.asar).
     // Kjør manuell prune før packager (gjort under), pluss ignore-mønstre
     // som backup.
@@ -196,7 +196,7 @@ async function main() {
         OriginalFilename: 'Sakspilot.exe',
       },
     }),
-    // macOS code-signing — krever Apple Developer ID cert (~$99/år).
+    // macOS code-signing, krever Apple Developer ID cert (~$99/år).
     // TODO: aktiver når sertifikat er på plass via OSX_SIGN_IDENTITY env var.
     // ...(IS_MAC && process.env.OSX_SIGN_IDENTITY && {
     //   osxSign: { identity: process.env.OSX_SIGN_IDENTITY, 'hardened-runtime': true },
@@ -275,7 +275,7 @@ async function main() {
   if (!fs.existsSync(execPath)) {
     throw new Error(`${EXEC_NAME} ikke generert (forventet: ${execPath})`);
   }
-  // På mac er .app en mappe — vis bare at den eksisterer
+  // På mac er .app en mappe, vis bare at den eksisterer
   let sizeStr;
   if (IS_MAC) {
     const totalBytes = dirSize(execPath);
@@ -297,7 +297,7 @@ async function main() {
   const archivePath = path.join(RELEASE_DIR, archiveName);
   if (IS_LINUX) {
     // TODO: AppImage-pakking krever appimagetool (ekstra binær). Leverer
-    // .tar.gz nå — bruker pakker ut og kjører ./Sakspilot direkte.
+    // .tar.gz nå, bruker pakker ut og kjører ./Sakspilot direkte.
     await tarGzDirectory(appDir, archivePath);
   } else {
     await zipDirectory(appDir, archivePath);
@@ -306,7 +306,7 @@ async function main() {
   console.log(`      ✓ ${archiveName} (${archiveSize} MB)`);
 
   // ── .dmg-bygging (kun macOS-host) ─────────────────────────
-  // hdiutil er innebygd i macOS — finnes ikke på Windows/Linux.
+  // hdiutil er innebygd i macOS, finnes ikke på Windows/Linux.
   // GitHub Actions matrix kjører dette steget på macos-latest runner.
   // En .dmg gir Mac-brukere drag-to-Applications-vinduet de forventer
   // og er den de facto standarden for Mac-distribusjon.
@@ -450,7 +450,7 @@ function copyRecursive(src, dest, ignore = []) {
   if (stat.isDirectory()) {
     const base = path.basename(src);
     // Eksakt match (node_modules, release, dist) ELLER timestamped
-    // release-fallbacks (release-1780238407445 osv) — sistnevnte ble tidligere
+    // release-fallbacks (release-1780238407445 osv), sistnevnte ble tidligere
     // kopiert med, og hver build pakket forrige builds release-* inn i ny
     // asar → eksponentiell størrelsesvekst (460 MB → 1 GB → 3 GB).
     if (ignore.includes(base)) return;
@@ -535,7 +535,7 @@ function tarGzDirectory(sourceDir, outPath) {
     try { archiver = loadArchiver(); }
     catch { return reject(new Error('archiver ikke tilgjengelig - kan ikke tar.gz')); }
     const output = fs.createWriteStream(outPath);
-    // gzip-komprimert tar — standard på Linux. Bevarer exec-bit på Sakspilot-binaryen.
+    // gzip-komprimert tar, standard på Linux. Bevarer exec-bit på Sakspilot-binaryen.
     const archive = archiver('tar', { gzip: true, gzipOptions: { level: 9 } });
     output.on('close', resolve);
     archive.on('error', reject);

@@ -33,14 +33,14 @@ console.log(`Backup: ${file}\n`);
 
 console.log(`leads:    ${backup.leads?.length ?? 0}`);
 for (const l of backup.leads || []) {
-  console.log(`  ${mapLeadStatus(l.status).padEnd(8)} ${l.kunde || l.tittel} (kilde: ${l.kontakt || '—'})`);
+  console.log(`  ${mapLeadStatus(l.status).padEnd(8)} ${l.kunde || l.tittel} (kilde: ${l.kontakt || ', '})`);
 }
 
 console.log(`\ninvoices: ${backup.invoices?.length ?? 0}`);
 for (const i of backup.invoices || []) {
   const total = (i.linjer || []).reduce((s: number, l: { pris: number; antall: number }) => s + l.pris * l.antall, 0);
   const status = i.betalt ? 'BETALT' : 'UBETALT';
-  console.log(`  #${i.nummer || '—'} ${i.dato} ${i.kunde} ${total.toLocaleString('nb-NO')} kr [${status}]`);
+  console.log(`  #${i.nummer || ', '} ${i.dato} ${i.kunde} ${total.toLocaleString('nb-NO')} kr [${status}]`);
 }
 
 console.log(`\nexpenses: ${backup.expenses?.length ?? 0}`);

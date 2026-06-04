@@ -5,10 +5,10 @@
  * kreve inn feil MVA-beløp. Disse testene må passere før produksjons-utrulling.
  *
  * Norge har 4 MVA-satser:
- *   - 25 % (standard — varer/tjenester)
+ *   - 25 % (standard, varer/tjenester)
  *   - 15 % (mat/drikke til hjemmebruk)
  *   - 12 % (transport, hotell, kino)
- *   - 0 % (utenlands, helse, utdanning, bank — "fritak")
+ *   - 0 % (utenlands, helse, utdanning, bank, "fritak")
  */
 import { describe, it, expect } from 'vitest';
 import {
@@ -20,7 +20,7 @@ import {
   addToBucket,
 } from '../lib/mva';
 
-describe('calcMva — inklusiv MVA (hub-konvensjon)', () => {
+describe('calcMva, inklusiv MVA (hub-konvensjon)', () => {
   it('25 % MVA: 1250 kr inkl. → 250 MVA + 1000 netto', () => {
     const { netto, mva } = calcMva(1250, 25, true);
     expect(mva).toBe(250);
@@ -52,7 +52,7 @@ describe('calcMva — inklusiv MVA (hub-konvensjon)', () => {
   });
 });
 
-describe('calcMva — eksklusiv MVA (standard fakturering)', () => {
+describe('calcMva, eksklusiv MVA (standard fakturering)', () => {
   it('25 % MVA: 1000 kr eks. → 250 MVA + 1000 netto (1250 total)', () => {
     const { netto, mva } = calcMva(1000, 25, false);
     expect(mva).toBe(250);
@@ -72,7 +72,7 @@ describe('calcMva — eksklusiv MVA (standard fakturering)', () => {
   });
 });
 
-describe('bucket — MVA-sats klassifisering', () => {
+describe('bucket, MVA-sats klassifisering', () => {
   it('klassifiserer kjente satser riktig', () => {
     expect(bucket(25)).toBe('25');
     expect(bucket(15)).toBe('15');
@@ -135,7 +135,7 @@ describe('periodeRange', () => {
   });
 });
 
-describe('addToBucket — aggregering av flere fakturaer', () => {
+describe('addToBucket, aggregering av flere fakturaer', () => {
   it('25 % + 15 %: separerte buckets, totalt-summen er riktig', () => {
     const side = emptyMvaSide();
     addToBucket(side, 25, 1000, 250);   // 25%-bucket

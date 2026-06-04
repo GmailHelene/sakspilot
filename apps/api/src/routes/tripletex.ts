@@ -1,17 +1,17 @@
 /**
- * Tripletex-integrasjon — direkte v2-API mot Sakspilot's Partner Consumer Token.
+ * Tripletex-integrasjon, direkte v2-API mot Sakspilot's Partner Consumer Token.
  *
- *   GET    /integrations/tripletex/status        — koblet/ikke + statistikk
- *   POST   /integrations/tripletex/connect       — lim inn EmployeeToken + verifiser
- *   DELETE /integrations/tripletex/disconnect    — slett integrasjon + tøm session-cache
- *   POST   /integrations/tripletex/push-invoice  — opprett fakturadraft fra sak
- *   POST   /integrations/tripletex/push-timers   — push billable timer som timesheet-entries
+ *   GET    /integrations/tripletex/status       , koblet/ikke + statistikk
+ *   POST   /integrations/tripletex/connect      , lim inn EmployeeToken + verifiser
+ *   DELETE /integrations/tripletex/disconnect   , slett integrasjon + tøm session-cache
+ *   POST   /integrations/tripletex/push-invoice , opprett fakturadraft fra sak
+ *   POST   /integrations/tripletex/push-timers  , push billable timer som timesheet-entries
  *
  * Sikkerhet:
  *   - Alle ruter krever requireAuth
  *   - Skrive-operasjoner krever owner-rolle (tokenet er org-felles, kun owner
  *     bør kunne koble til/fra og pushe data utad)
- *   - EmployeeToken aldri i klartekst i DB — kryptert med AES-256-GCM
+ *   - EmployeeToken aldri i klartekst i DB, kryptert med AES-256-GCM
  *   - ConsumerToken bare i env, aldri returnert i responser
  *   - SessionToken cachet kun process-lokalt
  *   - Audit-log på connect/disconnect/push (uten tokens eller sak-innhold)

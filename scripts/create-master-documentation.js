@@ -1,18 +1,18 @@
 /**
- * Genererer Sakspilot-Komplett-Dokumentasjon-v1.docx — det levende
+ * Genererer Sakspilot-Komplett-Dokumentasjon-v1.docx, det levende
  * "masterdokumentet" for prosjektet. Erstatter de tre forrige Word-
  * dokumentene (konsept, intervjuguide, fremdriftsplan) som fortsatt
  * finnes for spesifikke formål.
  *
  * Innhold:
- *   Del 1 — Visjon og problem
- *   Del 2 — Marked og konkurranse
- *   Del 3 — Produktet (funksjoner, brukergrensesnitt)
- *   Del 4 — Brukermanual (how to use)
- *   Del 5 — Arkitektur og teknologi
- *   Del 6 — Fremdriftsplan (ferdig / pågående / planlagt)
- *   Del 7 — Forretningsmodell
- *   Del 8 — Risiko og avhengigheter
+ *   Del 1, Visjon og problem
+ *   Del 2, Marked og konkurranse
+ *   Del 3, Produktet (funksjoner, brukergrensesnitt)
+ *   Del 4, Brukermanual (how to use)
+ *   Del 5, Arkitektur og teknologi
+ *   Del 6, Fremdriftsplan (ferdig / pågående / planlagt)
+ *   Del 7, Forretningsmodell
+ *   Del 8, Risiko og avhengigheter
  */
 const fs = require('fs');
 const path = require('path');
@@ -97,14 +97,14 @@ const TOC = [
 ];
 
 // ════════════════════════════════════════════════════════════════
-// DEL 1 — Visjon og problem
+// DEL 1, Visjon og problem
 // ════════════════════════════════════════════════════════════════
 const DEL1 = [
   H1('Del 1 - Visjon og problem'),
 
   H2('1.1  Den menneskelige situasjonen'),
-  P('Nicole Torgersen er sentralt godkjent ansvarlig søker i byggebransjen. Hun jobber for seg selv, fakturerer per time, og har 5–10 aktive klientoppdrag samtidig. På en typisk arbeidsdag jobber hun i Word, AutoCAD, Holte, Outlook og PDF - om hverandre, ofte på samme sak innen samme 30-minutters periode.'),
-  P('Hun bruker Holte for byggesøk, Outlook for kommunikasjon, lokale Word-filer for notater. På slutten av dagen vet hun at hun har jobbet i 8–9 timer, men når hun skal fakturere kunden tipper hun "ca 6 timer" - fordi hun ikke har en presis logg. Hun lever stort sett ned 15–25 % av faktisk arbeidstid hver uke.'),
+  P('Nicole Torgersen er sentralt godkjent ansvarlig søker i byggebransjen. Hun jobber for seg selv, fakturerer per time, og har 5-10 aktive klientoppdrag samtidig. På en typisk arbeidsdag jobber hun i Word, AutoCAD, Holte, Outlook og PDF - om hverandre, ofte på samme sak innen samme 30-minutters periode.'),
+  P('Hun bruker Holte for byggesøk, Outlook for kommunikasjon, lokale Word-filer for notater. På slutten av dagen vet hun at hun har jobbet i 8-9 timer, men når hun skal fakturere kunden tipper hun "ca 6 timer" - fordi hun ikke har en presis logg. Hun lever stort sett ned 15-25 % av faktisk arbeidstid hver uke.'),
   P('Hun er ikke alene. Det samme gjelder arkitekter, advokater, regnskapsførere, designere, ingeniører og andre selvstendig næringsdrivende som fakturerer per time.'),
 
   H2('1.2  Hvorfor finnes ikke en løsning allerede?'),
@@ -127,7 +127,7 @@ const DEL1 = [
   BUL('Jobber med flere klienter/saker samtidig'),
   BUL('Fakturerer per time eller per sak'),
   BUL('Bruker mange ulike programmer i samme arbeidsdag'),
-  BUL('Driver alene eller i lite team (1–10 personer)'),
+  BUL('Driver alene eller i lite team (1-10 personer)'),
   P('Primær lansering: ansvarlige søkere, arkitekter, småentreprenører i byggebransjen.'),
   P('Sekundær: advokater, regnskapsførere, ingeniørrådgivere, designere, IT-konsulenter.'),
 
@@ -135,7 +135,7 @@ const DEL1 = [
 ];
 
 // ════════════════════════════════════════════════════════════════
-// DEL 2 — Marked og konkurranse
+// DEL 2, Marked og konkurranse
 // ════════════════════════════════════════════════════════════════
 const DEL2 = [
   H1('Del 2 - Marked og konkurranse'),
@@ -175,7 +175,7 @@ const DEL2 = [
   }),
 
   SPACER(),
-  CALLOUT('Sakspilot er den eneste norske løsningen som kombinerer passiv vinduslogging med sak-CRM. Risikoen er at Holte/SuperOffice kan kopiere på 12–18 mnd hvis de ser markedstraksjon - vi må kjøre fort og bygge moat via bredde (alle fag, ikke bare bygg) og fagsystem-agnostisme.', RED),
+  CALLOUT('Sakspilot er den eneste norske løsningen som kombinerer passiv vinduslogging med sak-CRM. Risikoen er at Holte/SuperOffice kan kopiere på 12-18 mnd hvis de ser markedstraksjon - vi må kjøre fort og bygge moat via bredde (alle fag, ikke bare bygg) og fagsystem-agnostisme.', RED),
 
   H2('2.2  Markedsstørrelse (Norge)'),
   BUL('~12 000 enkeltpersonforetak i bygge- og rådgiverbransjen (SSB)'),
@@ -186,16 +186,16 @@ const DEL2 = [
   BUL('Realistisk fangst i år 3: 1 % = 350 brukere = ~225k kr/mnd MRR'),
 
   H2('2.3  Konkurransefortrinn'),
-  NUM('Teknisk: passiv vinduslogging er ikke-trivielt (Windows accessibility API, regex/ML-matching, offline-kø). 6–12 mnd lead på etterkommere.'),
+  NUM('Teknisk: passiv vinduslogging er ikke-trivielt (Windows accessibility API, regex/ML-matching, offline-kø). 6-12 mnd lead på etterkommere.'),
   NUM('Bredde: vi treffer alle fag som fakturerer per time - Holte er låst til byggebransjen.'),
   NUM('Agnostisk: vi krever ikke at brukeren bytter fagsystem. Sakspilot ligger oppå Holte/AutoCAD/Tripletex.'),
-  NUM('Pris: 490–790 kr/mnd er under halvparten av Cordel + Memtime + SuperOffice kombinert.'),
+  NUM('Pris: 490-790 kr/mnd er under halvparten av Cordel + Memtime + SuperOffice kombinert.'),
 
   new Paragraph({ children: [new PageBreak()] }),
 ];
 
 // ════════════════════════════════════════════════════════════════
-// DEL 3 — Produktet
+// DEL 3, Produktet
 // ════════════════════════════════════════════════════════════════
 const DEL3 = [
   H1('Del 3 - Produktet'),
@@ -212,7 +212,7 @@ const DEL3 = [
       ]}),
       new TableRow({ children: [
         CELL('Passiv datafangst:\nLogger aktivt vindu hvert 15s i bakgrunnen. Kan "se" alle apper (Word, AutoCAD, Outlook, Holte i browser).\n\nKjører alltid. Ingen UI uten å høyreklikke tray-ikonet.\n\nStart/Stopp arbeidsøkt. Stopp gir Excel-rapport.', { width: 4680, size: 18 }),
-        CELL('Datavisning og planlegging:\nViser saker, klienter, tidssammendrag. Setter opp matching-regler. Genererer rapporter for klient og regnskap.\n\nÅpnes ved behov - typisk 1–3 ganger per dag.', { width: 4680, size: 18, fill: GRAY_LIGHT }),
+        CELL('Datavisning og planlegging:\nViser saker, klienter, tidssammendrag. Setter opp matching-regler. Genererer rapporter for klient og regnskap.\n\nÅpnes ved behov - typisk 1-3 ganger per dag.', { width: 4680, size: 18, fill: GRAY_LIGHT }),
       ]}),
     ],
   }),
@@ -274,7 +274,7 @@ const DEL3 = [
 ];
 
 // ════════════════════════════════════════════════════════════════
-// DEL 4 — Brukermanual
+// DEL 4, Brukermanual
 // ════════════════════════════════════════════════════════════════
 const DEL4 = [
   H1('Del 4 - Brukermanual (how-to)'),
@@ -359,7 +359,7 @@ const DEL4 = [
 ];
 
 // ════════════════════════════════════════════════════════════════
-// DEL 5 — Arkitektur
+// DEL 5, Arkitektur
 // ════════════════════════════════════════════════════════════════
 const DEL5 = [
   H1('Del 5 - Arkitektur og teknologi'),
@@ -441,7 +441,7 @@ const DEL5 = [
 ];
 
 // ════════════════════════════════════════════════════════════════
-// DEL 6 — Fremdriftsplan
+// DEL 6, Fremdriftsplan
 // ════════════════════════════════════════════════════════════════
 const DEL6 = [
   H1('Del 6 - Fremdriftsplan'),
@@ -500,7 +500,7 @@ const DEL6 = [
   }),
 
   SPACER(),
-  CALLOUT('Punkt 1–16 (16 av 28) = MVP-kjernen er ferdig. Sakspilot er kjørbar lokalt og kan demonstreres til pilotbrukere. Resten er fase 2 (Outlook + regnskap) + produksjonsmodning.', GREEN),
+  CALLOUT('Punkt 1-16 (16 av 28) = MVP-kjernen er ferdig. Sakspilot er kjørbar lokalt og kan demonstreres til pilotbrukere. Resten er fase 2 (Outlook + regnskap) + produksjonsmodning.', GREEN),
 
   H2('6.2  Tidslinje fra start til 25 betalende kunder'),
 
@@ -516,7 +516,7 @@ const DEL6 = [
         CELL('Status', { width: 1880, bold: true, fill: NAVY, color: 'FFFFFF', center: true }),
       ]}),
       ...[
-        ['0', 'Validering - intervju 6–8 personer', '2 uker', '10. juni', 'IKKE STARTET'],
+        ['0', 'Validering - intervju 6-8 personer', '2 uker', '10. juni', 'IKKE STARTET'],
         ['1', 'MVP-kjerne (backend + web + desktop POC)', '6 uker', 'gjort tidlig', 'FERDIG'],
         ['2', 'Outlook + Tripletex/Fiken + polish', '4 uker', '8. juli', 'PÅGÅR'],
         ['3', 'Pilot med 5 betalende brukere (gratis pilotperiode)', '4 uker', '5. august', '-'],
@@ -538,7 +538,7 @@ const DEL6 = [
 ];
 
 // ════════════════════════════════════════════════════════════════
-// DEL 7 — Forretningsmodell
+// DEL 7, Forretningsmodell
 // ════════════════════════════════════════════════════════════════
 const DEL7 = [
   H1('Del 7 - Forretningsmodell'),
@@ -572,9 +572,9 @@ const DEL7 = [
 
   SPACER(),
   H2('7.2  Inntektsmål'),
-  BUL('Mnd 1–4 (pilot): 5 brukere × 0 kr = 0 kr MRR (gratis pilotperiode)'),
-  BUL('Mnd 4–8 (soft launch): 25 brukere × 590 kr = 14 750 kr MRR'),
-  BUL('Mnd 8–12 (vekst): 75 brukere × 650 kr = 48 750 kr MRR'),
+  BUL('Mnd 1-4 (pilot): 5 brukere × 0 kr = 0 kr MRR (gratis pilotperiode)'),
+  BUL('Mnd 4-8 (soft launch): 25 brukere × 590 kr = 14 750 kr MRR'),
+  BUL('Mnd 8-12 (vekst): 75 brukere × 650 kr = 48 750 kr MRR'),
   BUL('Mål 12 mnd: 50 000 kr/mnd ≈ 600 000 kr ARR'),
 
   H2('7.3  Driftskostnader'),
@@ -590,7 +590,7 @@ const DEL7 = [
 ];
 
 // ════════════════════════════════════════════════════════════════
-// DEL 8 — Risiko
+// DEL 8, Risiko
 // ════════════════════════════════════════════════════════════════
 const DEL8 = [
   H1('Del 8 - Risiko og avhengigheter'),
@@ -606,7 +606,7 @@ const DEL8 = [
         CELL('Mitigasjon', { width: 4680, bold: true, fill: NAVY, color: 'FFFFFF' }),
       ]}),
       ...[
-        ['Holte kopierer passiv tidsreg. på 12–18 mnd', 'Middels', 'Bygg moat: bredere markedsposisjon, agnostisk overfor fagsystem, bedre UX'],
+        ['Holte kopierer passiv tidsreg. på 12-18 mnd', 'Middels', 'Bygg moat: bredere markedsposisjon, agnostisk overfor fagsystem, bedre UX'],
         ['Validering (fase 0) feiler - <4/8 vil betale', 'Lav-middels', 'Stopp uten kodeskriving. Tap = 2 uker, ikke 5 mnd'],
         ['Pilot (fase 3) konverterer ikke', 'Middels', 'Sleng pilot 4 uker til, intervju hva som mangler, vurder pivot'],
         ['Windows SmartScreen blokkerer .exe', 'Høy (uten sertifikat)', 'Kjøp code signing-sertifikat (~3000 kr/år) etter første 10 betalende'],
@@ -623,7 +623,7 @@ const DEL8 = [
   }),
 
   H2('8.2  Forutsetninger som MÅ holde'),
-  NUM('Nicole bekrefter interesse + introduserer 3–5 andre intervjuobjekter'),
+  NUM('Nicole bekrefter interesse + introduserer 3-5 andre intervjuobjekter'),
   NUM('Minst 4/8 intervjuobjekter sier de vil betale 500+ kr/mnd'),
   NUM('Minst 3/5 piloter konverterer til betalende etter pilotperioden'),
   NUM('Helene kan jobbe ~30t/uke på Sakspilot i 5 mnd uten å gå tom'),

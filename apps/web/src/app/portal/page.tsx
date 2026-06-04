@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Klient-portal — dashboard.
+ * Klient-portal, dashboard.
  * Viser alle saker klienten har hos sin frilanser, med status og fremdrift.
  */
 import { useEffect, useState } from 'react';

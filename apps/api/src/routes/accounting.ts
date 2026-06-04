@@ -1,18 +1,18 @@
 /**
- * Regnskap-integrasjon — Tripletex / Fiken direkte API.
+ * Regnskap-integrasjon, Tripletex / Fiken direkte API.
  *
- *   GET  /accounting/fiken/status          — viser om integrasjon er aktiv
- *   POST /accounting/fiken/connect         — lagrer PAT + company-slug + verifiserer
- *   POST /accounting/fiken/disconnect      — sletter integrasjonen
- *   POST /accounting/fiken/create-invoice  — oppretter faktura fra sak (billable timer)
+ *   GET  /accounting/fiken/status         , viser om integrasjon er aktiv
+ *   POST /accounting/fiken/connect        , lagrer PAT + company-slug + verifiserer
+ *   POST /accounting/fiken/disconnect     , sletter integrasjonen
+ *   POST /accounting/fiken/create-invoice , oppretter faktura fra sak (billable timer)
  *
- *   GET  /accounting/tripletex/status      — stub (krever partner-status)
+ *   GET  /accounting/tripletex/status     , stub (krever partner-status)
  *
  * Fiken-strategi: personal access token (PAT) per bruker, ikke OAuth.
  * Hver Sakspilot-bruker kobler til sin egen Fiken-konto. Tokenet lagres
  * kryptert (AES-256-GCM) i FikenIntegration-tabellen.
  *
- * Tripletex krever fortsatt partner-status (3-5 dagers godkjenning) — stubben
+ * Tripletex krever fortsatt partner-status (3-5 dagers godkjenning), stubben
  * blir værende.
  */
 import { Router, Request, Response } from "express";
@@ -229,7 +229,7 @@ router.post("/fiken/create-invoice", async (req: Request, res: Response) => {
     1200;
 
   // Slå opp / opprett kontakt i Fiken
-  // (Fiken krever contactId for faktura — vi prøver å gjenbruke existerende
+  // (Fiken krever contactId for faktura, vi prøver å gjenbruke existerende
   // basert på epost, ellers opprette ny.)
   const contactSearch = await fikenFetch<
     Array<{ contactId: number; name: string; email: string | null }>

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Sakspilot Desktop Agent — Proof of Concept
+ * Sakspilot Desktop Agent, Proof of Concept
  *
  * Mål: Bevise at vi kan registrere aktivt vindu på Windows (tittel, app,
  * filsti) med passende oppdateringsfrekvens, uten å brenne CPU og uten
@@ -262,7 +262,7 @@ function formatDur(sec) {
 
 // ── Start ───────────────────────────────────────────────────────
 (async () => {
-  // active-win er ESM-only — bruk dynamic import. Cross-platform (win/mac/linux).
+  // active-win er ESM-only, bruk dynamic import. Cross-platform (win/mac/linux).
   let activeWindow;
   try {
     const mod = await import('active-win');

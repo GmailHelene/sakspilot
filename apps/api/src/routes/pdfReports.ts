@@ -1,12 +1,12 @@
 /**
- * PDF-rapporter — eksport av regnskap/statistikk/faktura-liste til PDF.
+ * PDF-rapporter, eksport av regnskap/statistikk/faktura-liste til PDF.
  *
- *   GET /pdf-reports/regnskap?year=YYYY    — årsoversikt: inntekter/utgifter/resultat
- *   GET /pdf-reports/statistikk?year=YYYY  — KPI-dashboard: leads, omsetning, topp-klienter
- *   GET /pdf-reports/fakturaer?year=YYYY[&status=]  — liste over fakturaer
+ *   GET /pdf-reports/regnskap?year=YYYY   , årsoversikt: inntekter/utgifter/resultat
+ *   GET /pdf-reports/statistikk?year=YYYY , KPI-dashboard: leads, omsetning, topp-klienter
+ *   GET /pdf-reports/fakturaer?year=YYYY[&status=] , liste over fakturaer
  *
  * Brukes for: levere til regnskapsfører, vise til investor, egne arkiver.
- * Bruker pdfkit (samme som invoicePdf.ts) — ren node, ingen browser-driver.
+ * Bruker pdfkit (samme som invoicePdf.ts), ren node, ingen browser-driver.
  *
  * Multi-tenant: organizationId fra session, fail-closed på all data.
  */
@@ -466,7 +466,7 @@ router.get("/mva", async (req: Request, res: Response) => {
   ]);
   if (!org) return res.status(404).json({ error: "Organisasjon ikke funnet" });
 
-  // Buckets — bruker shared lib slik at MVA-logikken er identisk med
+  // Buckets, bruker shared lib slik at MVA-logikken er identisk med
   // mvaRapport.ts. Lokal struktur for å holde PDF-rendring enkel.
   type Bucket = { grunnlag: number; mva: number };
   const utgaaende = { totalt: 0, "25": { grunnlag: 0, mva: 0 } as Bucket, "15": { grunnlag: 0, mva: 0 } as Bucket, "12": { grunnlag: 0, mva: 0 } as Bucket, fritak: { grunnlag: 0, mva: 0 } as Bucket };
@@ -507,7 +507,7 @@ router.get("/mva", async (req: Request, res: Response) => {
     res.end(buffer);
   });
 
-  let y = writeHeader(doc, org, `MVA-rapport ${label}`, `${start.toISOString().slice(0, 10)} – ${new Date(end.getTime() - 86400000).toISOString().slice(0, 10)}`);
+  let y = writeHeader(doc, org, `MVA-rapport ${label}`, `${start.toISOString().slice(0, 10)}, ${new Date(end.getTime() - 86400000).toISOString().slice(0, 10)}`);
 
   // KPI-rad: utgående / inngående / netto
   y = drawKpiRow(doc, y, [

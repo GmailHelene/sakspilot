@@ -86,7 +86,7 @@ describe('Auth flow', () => {
 
     const oldToken = reg.body.token;
 
-    // Gammel token funker — sjekk via /auth/me
+    // Gammel token funker, sjekk via /auth/me
     const meBefore = await request(app)
       .get('/auth/me')
       .set('Authorization', `Bearer ${oldToken}`);

@@ -2,11 +2,11 @@
 
 /**
  * Synker varselstall til nettleser-fanen.
- *   - Tab-tittel: "(3) Sakspilot — ..." hvis det er nye varsler
+ *   - Tab-tittel: "(3) Sakspilot: ..." hvis det er nye varsler
  *   - Favicon: liten rød badge-prikk når sum > 0 (kun via canvas-overlay,
  *     ingen ekstra HTTP-request)
  *
- * Brukes inn fra AppLayout (eller layout.tsx) — én instans per side er nok.
+ * Brukes inn fra AppLayout (eller layout.tsx), én instans per side er nok.
  * Komponenten renderer ingenting.
  */
 import { useEffect, useRef } from 'react';
@@ -75,7 +75,7 @@ export function NotificationTitleSync() {
       link.href = dataUrl;
     };
     img.onerror = () => {
-      // Hvis favicon ikke kan loades (CORS osv) — bare oppdater tittel
+      // Hvis favicon ikke kan loades (CORS osv), bare oppdater tittel
     };
     img.src = originalFaviconRef.current;
   }, [counts]);

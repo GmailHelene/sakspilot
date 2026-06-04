@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Klient-portal — glemt passord.
+ * Klient-portal, glemt passord.
  * Tilsvarende /glemt-passord men mot /client-portal/forgot-password.
  */
 import { useState } from 'react';

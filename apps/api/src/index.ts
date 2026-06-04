@@ -1,5 +1,5 @@
 /**
- * Sakspilot API — Express bootstrap.
+ * Sakspilot API, Express bootstrap.
  *
  * Mønster portet fra ByggPilot:
  *   - helmet for sikkerhets-headere
@@ -13,14 +13,14 @@ import "dotenv/config";
 import "express-async-errors";
 
 // ⚠ Sentry MÅ initialiseres før Express importeres for at v8 auto-instrumentation
-// skal funke. Kalles bare hvis SENTRY_DSN er satt — krasjer ikke uten.
+// skal funke. Kalles bare hvis SENTRY_DSN er satt, krasjer ikke uten.
 import * as Sentry from "@sentry/node";
 if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV || "development",
     tracesSampleRate: 0.1, // 10% av requests sampled
-    // PII filtreres ut — vi vil ikke ha klient-emails/navn i error-rapporter
+    // PII filtreres ut, vi vil ikke ha klient-emails/navn i error-rapporter
     sendDefaultPii: false,
     beforeSend(event) {
       // Strip ev. token-headere fra requests
@@ -107,7 +107,7 @@ app.use(
       // I prod: tillat alle Vercel-deploy-URLer (sakspilot-web-*.vercel.app)
       // og alle Render-genererte URLer (sakspilot*.onrender.com).
       // Dette dekker preview-deploys uten å måtte oppdatere env-vars.
-      // VIKTIG: strengt regex — kun [a-z0-9-] mellom "sakspilot" og ".vercel.app"
+      // VIKTIG: strengt regex, kun [a-z0-9-] mellom "sakspilot" og ".vercel.app"
       // for å unngå at sakspilotXevil.vercel.app passerer.
       if (/^https:\/\/sakspilot(-[a-z0-9-]+)?\.vercel\.app$/.test(origin)) {
         return callback(null, true);
@@ -142,8 +142,8 @@ app.use(authMiddleware);
 app.use(customDomainMiddleware);
 
 // ── Rate-limit på /auth ─────────────────────────────────────────
-// Splittet i 'write' (login/register/forgot/reset — streng, mot brute-force)
-// og 'read' (me/logout — løs, kalles automatisk på hver page-load).
+// Splittet i 'write' (login/register/forgot/reset, streng, mot brute-force)
+// og 'read' (me/logout, løs, kalles automatisk på hver page-load).
 // Tidligere brukte begge typer samme 30/15min-limit, som lett ble brukt opp
 // av normal navigasjon (Helene rapporterte: 'For mange forsøk' uten å ha
 // gjort noe spesielt). Skill nå tydelig på sikkerhetsbehov.
@@ -163,7 +163,7 @@ const authReadLimiter = rateLimit({
   message: { error: "For mange sesjons-sjekker - vent et minutt." },
 });
 
-// AI er dyrt — strammere limit per IP (forhindrer "API-tyveri" ved
+// AI er dyrt, strammere limit per IP (forhindrer "API-tyveri" ved
 // stjålet JWT og forhindrer kostnads-bomb hvis bot misbruker)
 const aiLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -181,7 +181,7 @@ const oauthLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// PDF-generering er CPU-tungt (50+ MB minne per pdfkit-instans) — vi vil
+// PDF-generering er CPU-tungt (50+ MB minne per pdfkit-instans), vi vil
 // ikke at noen kan trigge 1000 PDF-generations per minutt. 30/min er
 // rikelig for legitim bruk (én bruker laster sjelden ned > 5 PDFer i minuttet).
 const pdfLimiter = rateLimit({
@@ -192,7 +192,7 @@ const pdfLimiter = rateLimit({
   message: { error: "For mange PDF-genereringer - vent et minutt." },
 });
 
-// Public endepunkter (delte saker) — sikrer mot enumeration
+// Public endepunkter (delte saker), sikrer mot enumeration
 const publicLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 60,
@@ -230,7 +230,7 @@ app.use("/automations", automationsRouter);
 app.use("/reports", reportsRouter);
 app.use("/saker", shareAuthRouter);   // /saker/:sakId/share (delt prefix med sakerRouter - fungerer)
 app.use("/public", publicLimiter, sharePublicRouter); // /public/sak/:token
-// iCal-feed — PUBLIC (token i URL er eneste auth). Bak publicLimiter for å
+// iCal-feed, PUBLIC (token i URL er eneste auth). Bak publicLimiter for å
 // hindre brute-force av tokens, men limit er løs nok til at kalender-klienter
 // som polleren hver time får plass (60/min per IP holder lenge).
 app.use("/ical", publicLimiter, icalFeedRouter);
@@ -244,7 +244,7 @@ app.use("/billing", billingRouter);
 app.use("/feedback", feedbackRouter);
 app.use("/invoice-pdf", pdfLimiter, invoicePdfRouter);
 app.use("/custom-domains", customDomainRouter);
-// Team-routes — listing/invite/management av team-medlemmer.
+// Team-routes, listing/invite/management av team-medlemmer.
 // POST /team/invites og DELETE /team/invites er bak requireAuth + requireRole(owner).
 // Rate-limit på write-paths som matcher auth-write (forhindrer at en kompromittert
 // owner-konto kan spam-invitere via brute-force).
@@ -263,7 +263,7 @@ app.use("/team", (req, res, next) => {
 // authWriteLimiter for å begrense token-brute-force.
 app.use("/team-invites", authWriteLimiter, acceptInviteRouter);
 
-// Klient-portal — egen JWT-scope (scope=client), separate cookies.
+// Klient-portal, egen JWT-scope (scope=client), separate cookies.
 // Rate-limit som auth-write for login/forgot/reset/accept-invite (brute-force-utsatt),
 // resten er authentisert via requireClientAuth-middleware i routeren selv.
 app.use("/client-portal", (req, res, next) => {
@@ -284,7 +284,7 @@ app.get("/", (_req: Request, res: Response) => {
   });
 });
 
-// ── Error-handler — fanger thrown errors fra async handlers ─────
+// ── Error-handler, fanger thrown errors fra async handlers ─────
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   // Send til Sentry hvis aktivert

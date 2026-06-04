@@ -1,5 +1,5 @@
 /**
- * MVA-rapport — Norsk merverdiavgift-oversikt for selvangivelse.
+ * MVA-rapport, Norsk merverdiavgift-oversikt for selvangivelse.
  *
  *   GET /mva-rapport?year=YYYY&periode=Q1|Q2|Q3|Q4|H1|H2|year
  *     → JSON med utgående MVA (på inntekter), inngående MVA (på utgifter),
@@ -34,7 +34,7 @@
  *   - MVA-grense: 50 000 kr/år omsetning. Under = ikke MVA-pliktig
  *   - Rapporteringsfrekvens: kvartalsvis (de fleste frilansere) eller bimåned (større)
  *
- * Helene har mvaGrense: 50000 i settings — den brukes ikke her enda, men
+ * Helene har mvaGrense: 50000 i settings, den brukes ikke her enda, men
  * kunne legges til som en advarsel hvis totalinntekt < grensen.
  */
 import { Router, Request, Response } from "express";
@@ -58,7 +58,7 @@ router.get("/", async (req: Request, res: Response) => {
 
   const { start, end, label } = periodeRange(year, periode);
 
-  // Hent fakturaer (eksporterte ELLER betalte — vi vil ikke ha utkast i MVA-rapport)
+  // Hent fakturaer (eksporterte ELLER betalte, vi vil ikke ha utkast i MVA-rapport)
   // og utgifter for perioden
   const [invoices, utgifter, org] = await Promise.all([
     prisma.invoice.findMany({
@@ -108,7 +108,7 @@ router.get("/", async (req: Request, res: Response) => {
     const total = Number(u.belopInkMva);
     if (u.mvaSats === null) {
       utgifterMissingMva++;
-      // Uten sats kan vi ikke beregne fradrag — fall tilbake til null-sats (ingen MVA)
+      // Uten sats kan vi ikke beregne fradrag, fall tilbake til null-sats (ingen MVA)
       addToBucket(inngaaende, null, total, 0);
       continue;
     }

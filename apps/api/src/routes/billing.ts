@@ -1,7 +1,7 @@
 /**
- * Billing-routes — subscription-status + manuell admin.
+ * Billing-routes, subscription-status + manuell admin.
  *
- *   GET  /billing/status — hvor er kontoen i livssyklusen?
+ *   GET  /billing/status, hvor er kontoen i livssyklusen?
  *
  * STATUS:
  *   - I pilotperioden: alle orgs har pilotUntil > now → returnerer "pilot"

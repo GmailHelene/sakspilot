@@ -10,7 +10,7 @@
  * 3 steg:
  *   1. Velkommen + velg bransje (advokat/arkitekt/regnskap/designer/konsulent/annet)
  *   2. Foreslå 3 ferdige agenter (basert på bransje)
- *   3. Klar — lenker til Saker, Agenter, Klienter
+ *   3. Klar, lenker til Saker, Agenter, Klienter
  *
  * Lagrer bransjen i localStorage så vi senere kan personalisere UI/maler.
  */
@@ -131,7 +131,7 @@ export default function OnboardingModal() {
         try {
           await api('/me/profile', { method: 'PATCH', body: { profession } });
         } catch {
-          // Hvis bruker ikke er innlogget eller API feiler — vi har localStorage som backup
+          // Hvis bruker ikke er innlogget eller API feiler, vi har localStorage som backup
         }
       }
     }

@@ -3,7 +3,7 @@
 /**
  * Knapp + modal for å laste ned en faktura-PDF generert av Sakspilot-API-et.
  *
- * Bruker /invoice-pdf/sak/:sakId — som returnerer rå PDF-binær.
+ * Bruker /invoice-pdf/sak/:sakId, som returnerer rå PDF-binær.
  * Vi går utenom api()-helperen siden den antar JSON; gjør en vanlig fetch()
  * mot /api/invoice-pdf/... (samme rewrite-prefix), legger på Bearer-token,
  * og trigger nedlasting via blob + anchor.
@@ -68,7 +68,7 @@ export default function InvoicePdfButton({ sakId }: { sakId: string }) {
           const data = (await res.json()) as { error?: string };
           if (data?.error) msg = data.error;
         } catch {
-          // ignore — ikke JSON
+          // ignore, ikke JSON
         }
         throw new Error(msg);
       }

@@ -4,7 +4,7 @@ import prisma from "../lib/prisma";
 const router = Router();
 
 /**
- * GET /health — enkel liveness-sjekk (Railway, UptimeRobot)
+ * GET /health, enkel liveness-sjekk (Railway, UptimeRobot)
  */
 router.get("/", (_req: Request, res: Response) => {
   return res.json({
@@ -15,7 +15,7 @@ router.get("/", (_req: Request, res: Response) => {
 });
 
 /**
- * GET /health/db — sjekker at databasen svarer
+ * GET /health/db, sjekker at databasen svarer
  */
 router.get("/db", async (_req: Request, res: Response) => {
   try {
@@ -32,7 +32,7 @@ router.get("/db", async (_req: Request, res: Response) => {
 });
 
 /**
- * GET /health/email — debug-endpoint som viser hvilken epost-metode
+ * GET /health/email, debug-endpoint som viser hvilken epost-metode
  * API'en bruker, basert på env-vars. Lekker IKKE selve verdiene.
  *
  * Brukes til å diagnostisere "hvorfor sendes ikke epost"-problemer.

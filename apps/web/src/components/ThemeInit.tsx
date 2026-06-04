@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * ThemeInit — anvender brukerens valgte tema + mørk modus på <html> ved app-mount.
+ * ThemeInit, anvender brukerens valgte tema + mørk modus på <html> ved app-mount.
  * Lytter også på 'sakspilot:theme-updated' så ThemePicker/UtseendePage kan
  * trigge re-apply ved bytte.
  */

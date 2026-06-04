@@ -10,7 +10,7 @@
  * branding brukes.
  *
  * Plassering: monteres GLOBALT i index.ts FØR rutene, slik at alle routes har
- * tilgang til req.customDomain. Authmiddleware kjører fortsatt uavhengig —
+ * tilgang til req.customDomain. Authmiddleware kjører fortsatt uavhengig , 
  * customDomain forteller bare "denne requesten kom inn på et whitelabel-
  * domene", IKKE "denne brukeren tilhører denne orgen". Auth-scope baseres
  * fortsatt på JWT.
@@ -60,7 +60,7 @@ export async function customDomainMiddleware(
       req.customDomain = match;
     }
   } catch (err) {
-    // Ikke krasje requesten hvis DB-oppslag feiler — fall tilbake til
+    // Ikke krasje requesten hvis DB-oppslag feiler, fall tilbake til
     // default-branding. Logg for synlighet.
     console.warn(`[customDomain] lookup feilet for ${hostname}:`, err);
   }

@@ -1,14 +1,14 @@
 /**
  * Design-tokens for Sakspilot. Inline-styling mønster.
  *
- * Designspråk: Monday/Basaas-inspirert — vibrante statusfarger, romsligere
+ * Designspråk: Monday/Basaas-inspirert, vibrante statusfarger, romsligere
  * radius, mykere skygger, mer pastell i bakgrunner. Beholder navy + gull
  * som primær-/aksentbrand, men legger til en bredere palett for
  * statusbadges, kategorier og illustrasjoner.
  */
 export const tokens = {
   color: {
-    // Primary — leser fra CSS-variabler så ThemePicker faktisk endrer farger
+    // Primary, leser fra CSS-variabler så ThemePicker faktisk endrer farger
     // i hele UI-et. Fallback til navy hvis ThemeInit ikke har kjørt ennå (SSR).
     navy: 'var(--sp-primary, #1E3A5F)',
     navyDark: 'var(--sp-primary-dark, #152A47)',
@@ -34,7 +34,7 @@ export const tokens = {
     teal: '#00C7BE',          // alternativ aksent
     tealSoft: '#CCF4F2',
 
-    // Nøytral — leser fra CSS-variabler så de flipper i mørk modus
+    // Nøytral, leser fra CSS-variabler så de flipper i mørk modus
     // (se globals.css :root og [data-mode="dark"]). Fallback-verdiene
     // matcher lys modus så SSR/tidlig render ser riktig ut.
     white: '#FFFFFF',                                       // ren hvit - for tekst på mørke flater (header-tekst, badges osv). Endres IKKE av mørk modus.
@@ -78,7 +78,7 @@ export const tokens = {
   spacing: (n: number) => `${n * 4}px`,
 };
 
-// Statusfarge-mapper — brukes på saker, milepæler, agent-status
+// Statusfarge-mapper, brukes på saker, milepæler, agent-status
 export const statusColors: Record<string, { bg: string; fg: string; soft: string }> = {
   ikke_pabegynt: { bg: '#8993A4', fg: '#FFFFFF', soft: '#E6E9EF' },
   pagaaende: { bg: '#00B884', fg: '#FFFFFF', soft: '#D5F5E9' },
@@ -88,7 +88,7 @@ export const statusColors: Record<string, { bg: string; fg: string; soft: string
   arkivert: { bg: '#CBD5E1', fg: '#5E6C84', soft: '#F1F3F7' },
 };
 
-// Klient-farge basert på navn (hash → palett) — for avatar-sirkler
+// Klient-farge basert på navn (hash → palett), for avatar-sirkler
 export function clientColor(name: string): { bg: string; fg: string } {
   const palette = [
     { bg: '#FF5AC4', fg: '#FFFFFF' },

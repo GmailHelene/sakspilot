@@ -1,10 +1,10 @@
 /**
  * Auth-middleware.
  *
- *   authMiddleware  — leser JWT fra cookie eller Authorization-header,
+ *   authMiddleware , leser JWT fra cookie eller Authorization-header,
  *                     setter req.session hvis gyldig
- *   requireAuth     — krev innlogget bruker (returnerer 401 hvis ikke)
- *   requireRole     — krev spesifikk rolle
+ *   requireAuth    , krev innlogget bruker (returnerer 401 hvis ikke)
+ *   requireRole    , krev spesifikk rolle
  */
 import { Request, Response, NextFunction } from "express";
 import {
@@ -27,7 +27,7 @@ declare global {
 
 /**
  * Liten cache for User.tokenVersion. Sparer DB-lookup ved hver request.
- * Invalidating: TTL 30 sek — etter logg-ut tar det opp til 30 sek før
+ * Invalidating: TTL 30 sek, etter logg-ut tar det opp til 30 sek før
  * gamle tokens faktisk avvises. Trade-off mellom DB-belastning og
  * revocation-latency.
  */
@@ -37,7 +37,7 @@ const TV_CACHE_TTL = 30_000;
 async function isTokenStillValid(session: SakspilotSession): Promise<boolean> {
   // FAIL CLOSED ved manglende tokenVersion. Tidligere returnerte vi true for
   // "JWT fra før tv-feltet ble lagt til", men det betydde at gamle pre-tv
-  // tokens kunne leve evig — selv etter passordbytte. Tokens uten tv-claim
+  // tokens kunne leve evig, selv etter passordbytte. Tokens uten tv-claim
   // tvinges nå å re-loginne (8h JWT TTL gjør at det er en engangshendelse).
   if (typeof session.tv !== "number") {
     console.warn(`[auth] Avviser legacy-token uten tv-claim for user=${session.userId} - må re-logge inn`);

@@ -1,5 +1,5 @@
 /**
- * Automation engine — evaluerer triggers + utfører actions.
+ * Automation engine, evaluerer triggers + utfører actions.
  *
  * Hovedfunksjoner:
  *   - runAutomationsForTrigger(): kjøres inline ved hendelser (sak status-bytte osv.)

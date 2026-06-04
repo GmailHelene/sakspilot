@@ -30,7 +30,7 @@ export function trackEvent(
   }
 }
 
-// Predefinerte events — gjør det lettere å spore konsistent
+// Predefinerte events, gjør det lettere å spore konsistent
 export const events = {
   sakCreated: (clientName?: string) =>
     trackEvent('Sak opprettet', clientName ? { client: clientName } : undefined),

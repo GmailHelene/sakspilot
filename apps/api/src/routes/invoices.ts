@@ -1,11 +1,11 @@
 /**
- * Invoices-routes — full CRUD for Invoice-modellen.
+ * Invoices-routes, full CRUD for Invoice-modellen.
  *
- *   GET    /invoices                   — liste (filtrer status / år / klient)
- *   GET    /invoices/:id               — detalj (med koblede timeEntries)
- *   POST   /invoices                   — opprett draft (manuell faktura med linjer)
- *   PATCH  /invoices/:id               — oppdater status/note/paidAt (cancel, marker betalt etc)
- *   DELETE /invoices/:id               — slett (kun draft-status)
+ *   GET    /invoices                  , liste (filtrer status / år / klient)
+ *   GET    /invoices/:id              , detalj (med koblede timeEntries)
+ *   POST   /invoices                  , opprett draft (manuell faktura med linjer)
+ *   PATCH  /invoices/:id              , oppdater status/note/paidAt (cancel, marker betalt etc)
+ *   DELETE /invoices/:id              , slett (kun draft-status)
  *
  * Eksport til Fiken/Tripletex skjer via accounting.ts/tripletex.ts.
  * PDF-generering finnes i invoicePdf.ts (eget endepunkt).
@@ -41,7 +41,7 @@ const CreateInvoiceSchema = z.object({
   customerName: z.string().max(200).optional(),
   customerAddress: z.string().max(500).optional(),
   invoiceNumber: z.string().max(50).optional(),
-  /// Periodestart/-slutt — for timesbaserte fakturaer er dette intervallet
+  /// Periodestart/-slutt, for timesbaserte fakturaer er dette intervallet
   /// timene ble logget. For manuelle fakturaer bruker vi dato på begge.
   periodStart: z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)),
   periodEnd: z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)),
@@ -110,7 +110,7 @@ router.get("/", async (req: Request, res: Response) => {
     orderBy: [{ periodStart: "desc" }, { createdAt: "desc" }],
   });
 
-  // Aggregering for header-KPIer — frontend slipper N+1 round-trips
+  // Aggregering for header-KPIer, frontend slipper N+1 round-trips
   const allOrgInvoices = await prisma.invoice.findMany({
     where: { organizationId, ...(dateRange ? { periodStart: dateRange } : {}) },
     select: { status: true, totalAmount: true },
@@ -167,10 +167,10 @@ router.get("/:id", async (req: Request, res: Response) => {
 /**
  * POST /invoices
  * Opprett en manuell faktura med linjer. Status settes alltid til 'draft'
- * — eksport til Fiken/Tripletex skjer separat via /accounting eller /tripletex.
+ *, eksport til Fiken/Tripletex skjer separat via /accounting eller /tripletex.
  *
  * Validering:
- *   - Linjer kreves (min 1, sum > 0 ikke krevd — kreditnota har negative beløp)
+ *   - Linjer kreves (min 1, sum > 0 ikke krevd, kreditnota har negative beløp)
  *   - Hvis sakId er satt, valideres at saken tilhører organisasjonen
  *   - Hvis sakId IKKE er satt, MÅ customerName settes
  */
@@ -306,7 +306,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
   });
   if (!existing) return res.status(404).json({ error: "Faktura ikke funnet" });
 
-  // Eksportert faktura kan ikke slettes — det ville bryte regnskaps-trail.
+  // Eksportert faktura kan ikke slettes, det ville bryte regnskaps-trail.
   // Cancel istedenfor (kreditnota må gjøres manuelt i Fiken/Tripletex).
   if (existing.status === "exported") {
     return res.status(400).json({
@@ -378,7 +378,7 @@ router.post("/:id/send-email", async (req: Request, res: Response) => {
   });
   if (!invoice) return res.status(404).json({ error: "Faktura ikke funnet" });
 
-  // ── Generer PDF (kopiert fra invoicePdf.ts — refaktor planlagt) ──
+  // ── Generer PDF (kopiert fra invoicePdf.ts, refaktor planlagt) ──
   const org = invoice.organization;
   const client = invoice.sak?.client;
   const customerName = client?.name || invoice.customerName || "(uten kunde)";
@@ -461,7 +461,7 @@ router.post("/:id/send-email", async (req: Request, res: Response) => {
   } else {
     subtotal = Number(invoice.totalAmount);
     doc.fontSize(9).fillColor("#172B4D")
-      .text(`Tjenester ${fmtDate(invoice.periodStart)} – ${fmtDate(invoice.periodEnd)}`, 50, y, { width: 300 })
+      .text(`Tjenester ${fmtDate(invoice.periodStart)}, ${fmtDate(invoice.periodEnd)}`, 50, y, { width: 300 })
       .text(String(invoice.totalHours), 360, y, { width: 50, align: "right" })
       .text("-", 415, y, { width: 60, align: "right" })
       .text(fmtKr(subtotal), 480, y, { width: 65, align: "right" });
@@ -575,7 +575,7 @@ const SendReminderSchema = z.object({
  *   1 → "Andre påminnelse"          (2. gang)
  *   2+ → "Siste purring før inkasso" (3. gang +)
  *
- * Vi sender IKKE faktisk til inkasso — bare språket eskaleres.
+ * Vi sender IKKE faktisk til inkasso, bare språket eskaleres.
  * Faktura-PDF legges ved som vedlegg.
  *
  * Loggfører reminderSentAt + reminderCount + auditLog.
@@ -743,7 +743,7 @@ router.post("/:id/send-reminder", async (req: Request, res: Response) => {
     });
   }
 
-  // Oppdater Invoice — reminderCount + tidspunkt
+  // Oppdater Invoice, reminderCount + tidspunkt
   await prisma.invoice.update({
     where: { id: invoice.id },
     data: {

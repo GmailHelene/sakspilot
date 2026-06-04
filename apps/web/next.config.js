@@ -1,12 +1,12 @@
 /** @type {import('next').NextConfig} */
 
-// Security headers — CSP håndteres her (helmet kjører API-only).
+// Security headers, CSP håndteres her (helmet kjører API-only).
 // Bruker rimelig strenge regler som matcher hva vi faktisk laster:
 //   - Egne JS/CSS chunks (self)
 //   - Google Fonts
 //   - Umami Cloud (analytics)
-//   - Plausible (legacy — kan fjernes når Umami er bekreftet eneste)
-//   - Sakspilot API (rewrites går via /api/, samme origin — OK)
+//   - Plausible (legacy, kan fjernes når Umami er bekreftet eneste)
+//   - Sakspilot API (rewrites går via /api/, samme origin, OK)
 const cspHeader = `
   default-src 'self';
   script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cloud.umami.is https://plausible.io;

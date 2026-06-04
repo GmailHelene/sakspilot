@@ -15,7 +15,7 @@ import { initPreferenceSync } from '@/lib/preferenceSync';
 import { tokens } from '@/lib/tokens';
 
 /**
- * Layout for innloggede sider — header på toppen, sidebar til venstre,
+ * Layout for innloggede sider, header på toppen, sidebar til venstre,
  * innhold til høyre. Redirecter til /login hvis ikke autentisert.
  *
  * Mobil (< 768px): sidebar er skjult bak hamburger-knapp.
@@ -35,7 +35,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
     setAuthed(true);
     // Start cloud-sync av UI-preferanser (snarveier, sites, mapper, tema osv)
-    // — sørger for at data overlever ny .exe-install / browser-bytte.
+    //, sørger for at data overlever ny .exe-install / browser-bytte.
     initPreferenceSync().catch(() => {});
   }, [router]);
 

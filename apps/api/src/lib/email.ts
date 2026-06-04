@@ -4,18 +4,18 @@
  * To metoder støttet, sjekkes i prioritert rekkefølge:
  *
  *   1. Brevo HTTPS API (anbefalt, fungerer på Render Free-tier):
- *        BREVO_API_KEY   — fra Brevo → SMTP & API → API Keys
- *        EMAIL_FROM      — verifisert avsender
+ *        BREVO_API_KEY  , fra Brevo → SMTP & API → API Keys
+ *        EMAIL_FROM     , verifisert avsender
  *
- *   2. SMTP-relay via nodemailer (krever utgående 587 — IKKE på Render Free):
- *        SMTP_HOST       — smtp-relay.brevo.com
- *        SMTP_PORT       — 587
- *        SMTP_USER       — Brevo SMTP-bruker
- *        SMTP_PASS       — Brevo SMTP-key
- *        EMAIL_FROM      — verifisert avsender
+ *   2. SMTP-relay via nodemailer (krever utgående 587, IKKE på Render Free):
+ *        SMTP_HOST      , smtp-relay.brevo.com
+ *        SMTP_PORT      , 587
+ *        SMTP_USER      , Brevo SMTP-bruker
+ *        SMTP_PASS      , Brevo SMTP-key
+ *        EMAIL_FROM     , verifisert avsender
  *
  * Render Free-tier blokkerer utgående SMTP (porter 25/465/587) for å
- * forhindre spam. Bruk Brevo API-metoden — den går over port 443 (HTTPS).
+ * forhindre spam. Bruk Brevo API-metoden, den går over port 443 (HTTPS).
  *
  * Hvis ingen er satt: sendEmail() returnerer { ok: false } men krasjer ikke.
  * Logger STUB-melding for debugging.
@@ -47,7 +47,7 @@ function getTransporter(): Transporter | null {
     port,
     secure: port === 465, // 465 = implicit TLS, 587 = STARTTLS
     auth: { user, pass },
-    // Aggresive timeouts — uten dette kan nodemailer henge i 60+ sekunder
+    // Aggresive timeouts, uten dette kan nodemailer henge i 60+ sekunder
     // hvis SMTP_HOST er feil eller porten er blokkert. Med 15 sek failer
     // vi raskt og kan vise brukbar feilmelding i UI.
     connectionTimeout: 15_000,
@@ -68,7 +68,7 @@ export interface EmailMessage {
   /**
    * Filvedlegg. content kan være Buffer (binær) eller string (tekst).
    * filename vises som vedleggsnavn i mottakers innboks.
-   * contentType er valgfritt — nodemailer gjetter fra filendelse hvis null.
+   * contentType er valgfritt, nodemailer gjetter fra filendelse hvis null.
    */
   attachments?: Array<{
     filename: string;
@@ -84,7 +84,7 @@ export interface EmailResult {
 }
 
 export async function sendEmail(msg: EmailMessage): Promise<EmailResult> {
-  // Foretrekk Brevo HTTPS API hvis nøkkel er satt — fungerer på Render Free
+  // Foretrekk Brevo HTTPS API hvis nøkkel er satt, fungerer på Render Free
   // (port 443 blokkeres ikke). Fallback til SMTP for bakoverkompatibilitet.
   if (process.env.BREVO_API_KEY) {
     return sendViaBrevoApi(msg);
@@ -125,7 +125,7 @@ export async function sendEmail(msg: EmailMessage): Promise<EmailResult> {
 /**
  * Send epost via Brevo Transactional Email API.
  *
- * Bruker fetch direkte mot https://api.brevo.com/v3/smtp/email — ingen
+ * Bruker fetch direkte mot https://api.brevo.com/v3/smtp/email, ingen
  * SDK trengs. Header: `api-key: <BREVO_API_KEY>`.
  *
  * Fordeler over SMTP:
@@ -235,7 +235,7 @@ function stripHtml(html: string): string {
 // Pre-bygde mal-funksjoner (gjenbrukes i auth.ts m.m.)
 // ──────────────────────────────────────────────────────────────
 
-// Felles wrapper for HTML-e-poster — navy/lyse-grå tema som matcher
+// Felles wrapper for HTML-e-poster, navy/lyse-grå tema som matcher
 // passwordResetEmail. Brukes av onboarding-drip-templates nedenfor.
 function baseEmailLayout(innerHtml: string): string {
   return `
@@ -263,7 +263,7 @@ export interface OnboardingUser {
 }
 
 /**
- * Dag 0 — velkomst-e-post, sendes umiddelbart etter vellykket registrering
+ * Dag 0, velkomst-e-post, sendes umiddelbart etter vellykket registrering
  * i POST /auth/register.
  */
 export function welcomeEmail(user: OnboardingUser): EmailMessage {
@@ -300,7 +300,7 @@ export function welcomeEmail(user: OnboardingUser): EmailMessage {
 }
 
 /**
- * Dag 3 — påminner om Windows-appen hvis brukeren ikke har installert
+ * Dag 3, påminner om Windows-appen hvis brukeren ikke har installert
  * (ingen AgentSession ennå).
  */
 export function desktopAppReminderEmail(user: OnboardingUser): EmailMessage {
@@ -338,7 +338,7 @@ export function desktopAppReminderEmail(user: OnboardingUser): EmailMessage {
 }
 
 /**
- * Dag 7 — spør om første inntrykk. Oppfordrer til ett-ords-svar for lav friksjon.
+ * Dag 7, spør om første inntrykk. Oppfordrer til ett-ords-svar for lav friksjon.
  */
 export function feedbackPromptEmail(user: OnboardingUser): EmailMessage {
   const firstName = user.name.split(" ")[0] || user.name;
@@ -377,7 +377,7 @@ export function feedbackPromptEmail(user: OnboardingUser): EmailMessage {
 }
 
 /**
- * Dag 14 — tilbyr 20-min videocall til brukere som ikke har gitt feedback.
+ * Dag 14, tilbyr 20-min videocall til brukere som ikke har gitt feedback.
  */
 export function videocallOfferEmail(user: OnboardingUser): EmailMessage {
   const firstName = user.name.split(" ")[0] || user.name;

@@ -1,7 +1,7 @@
 /**
  * Singleton Prisma-klient.
  *
- * I dev (tsx watch) restartes serveren ofte — uten singleton ville vi
+ * I dev (tsx watch) restartes serveren ofte, uten singleton ville vi
  * lekket connections til Supabase. global-trikset løser det.
  */
 import { PrismaClient } from "@prisma/client";

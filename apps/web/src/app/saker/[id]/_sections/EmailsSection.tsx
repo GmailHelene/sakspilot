@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * E-poster knyttet til en sak — synket fra Outlook via Microsoft Graph.
+ * E-poster knyttet til en sak, synket fra Outlook via Microsoft Graph.
  * Vises kun hvis det finnes e-poster. Bruker har retning-indikator
  * (innkommende ↘ blå / utgående ↗ lilla).
  */

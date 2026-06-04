@@ -6,7 +6,7 @@
  * ekte data. Aldri kjør tester med vanlig brukers e-post.
  *
  * For CI: bruk en dedikert test-DB via DATABASE_URL_TEST. For lokal
- * dev kan du sette samme DATABASE_URL — bare ikke kjør mot prod uten
+ * dev kan du sette samme DATABASE_URL, bare ikke kjør mot prod uten
  * å rydde først.
  */
 import { randomBytes } from 'node:crypto';
@@ -28,7 +28,7 @@ export function testPassword(): string {
 }
 
 /**
- * Rydd opp etter testen — slett alle brukere/orgs med test-prefiks.
+ * Rydd opp etter testen, slett alle brukere/orgs med test-prefiks.
  * Cascade i schema sletter relaterte saker, klienter, etc.
  */
 export async function cleanupTestData(): Promise<void> {

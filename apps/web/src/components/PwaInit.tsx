@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * PWA-init — registrerer service worker + viser "installer som app"-banner
+ * PWA-init, registrerer service worker + viser "installer som app"-banner
  * når nettleseren støtter PWA-installasjon. Vises kun:
  *   - hvis ikke allerede installert som standalone
  *   - hvis brukeren ikke har avvist banneret før (lagres i localStorage)
@@ -23,7 +23,7 @@ export default function PwaInit() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    // Registrer service worker — MEN IKKE i Electron.
+    // Registrer service worker, MEN IKKE i Electron.
     // I .exe-en er SW kun en kilde til chunk-cache-mismatch etter deploy.
     // Brukeren er allerede i en "wrappet app" som ikke trenger PWA-shell.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,7 +34,7 @@ export default function PwaInit() {
       });
     } else if (isDesktop && 'serviceWorker' in navigator) {
       // Hvis brukeren tidligere registrerte SW (i nettleser), unregister
-      // når de nå er i Electron — så vi ikke får chunk-mismatch
+      // når de nå er i Electron, så vi ikke får chunk-mismatch
       navigator.serviceWorker.getRegistrations().then((regs) => {
         regs.forEach((r) => r.unregister().catch(() => {}));
       });

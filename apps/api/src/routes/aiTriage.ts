@@ -1,5 +1,5 @@
 /**
- * AI-triage — Claude foreslår sak for ukategoriserte TimeEntries.
+ * AI-triage, Claude foreslår sak for ukategoriserte TimeEntries.
  *
  * Når desktop-agenten logger en arbeidsøkt uten matching-rule-treff og uten
  * aktiv sak, havner entry-en med sakId=null. Tidligere måtte bruker manuelt
@@ -7,16 +7,16 @@
  * foreslå hvilken av brukerens åpne saker som passer best. Bruker bekrefter
  * eller avslår med ett klikk.
  *
- *   POST /ai-triage/suggest        — bulk: kjør Claude på alle pending entries
- *   POST /ai-triage/accept/:id     — godta forslag → sakId settes
- *   POST /ai-triage/reject/:id     — avslå forslag → ikke spør igjen
- *   GET  /ai-triage/pending        — list TimeEntries med aiSuggestedSakId satt
+ *   POST /ai-triage/suggest       , bulk: kjør Claude på alle pending entries
+ *   POST /ai-triage/accept/:id    , godta forslag → sakId settes
+ *   POST /ai-triage/reject/:id    , avslå forslag → ikke spør igjen
+ *   GET  /ai-triage/pending       , list TimeEntries med aiSuggestedSakId satt
  *
  * Kostnadsvern:
  *   - Bruker eksisterende checkAiQuota / recordAiUsage (apps/api/src/lib/aiQuota.ts)
  *   - Max 50 entries per /suggest-kall (en entry = en Claude-prompt)
- *   - Small max_tokens (20) — vi vil bare ha sak-ID tilbake, ikke prosa
- *   - Manuell trigger (knapp i UI), ikke cron — bruker bestemmer når kostnader påløper
+ *   - Small max_tokens (20), vi vil bare ha sak-ID tilbake, ikke prosa
+ *   - Manuell trigger (knapp i UI), ikke cron, bruker bestemmer når kostnader påløper
  */
 import { Router, Request, Response } from "express";
 import Anthropic from "@anthropic-ai/sdk";
@@ -104,7 +104,7 @@ router.post("/suggest", async (req: Request, res: Response) => {
   }
 
   // Hent kandidat-entries: uavtegnet, ikke allerede forslått, ikke avslått.
-  // Begrenset til brukerens egne entries — andre i samme org har sine egne.
+  // Begrenset til brukerens egne entries, andre i samme org har sine egne.
   const entries = await prisma.timeEntry.findMany({
     where: {
       userId: session.userId,
@@ -197,7 +197,7 @@ Hvilken sak-ID passer best? Svar bare med ID-en eller "none".`;
         });
         suggested++;
       } else {
-        // Claude sa "none" eller hallusinerte ID — marker som rejected
+        // Claude sa "none" eller hallusinerte ID, marker som rejected
         // så vi ikke prøver igjen på denne entry-en uten at noe har endret seg.
         await prisma.timeEntry.update({
           where: { id: entry.id },
@@ -272,7 +272,7 @@ router.post("/accept/:timeEntryId", async (req: Request, res: Response) => {
 });
 
 // ── POST /ai-triage/reject/:timeEntryId ──────────────────────────
-// Bruker avslår — settes aiSuggestionRejected=true, clearer forslaget.
+// Bruker avslår, settes aiSuggestionRejected=true, clearer forslaget.
 
 router.post("/reject/:timeEntryId", async (req: Request, res: Response) => {
   const session = req.session!;

@@ -1,8 +1,8 @@
 /**
- * MVA-beregnings-utils — delt mellom mvaRapport.ts (JSON) og
+ * MVA-beregnings-utils, delt mellom mvaRapport.ts (JSON) og
  * pdfReports.ts (/pdf-reports/mva).
  *
- * Tidligere hadde begge routes egen kopi av samme algoritme — det
+ * Tidligere hadde begge routes egen kopi av samme algoritme, det
  * førte til risiko for at de divergerer hvis bare den ene oppdateres.
  */
 
@@ -70,7 +70,7 @@ export function calcMva(
 }
 
 /**
- * Bucketize sats — 25 / 15 / 12 mappet direkte, alt annet (inkl. null) → "fritak".
+ * Bucketize sats, 25 / 15 / 12 mappet direkte, alt annet (inkl. null) → "fritak".
  */
 export function bucket(sats: number | null | undefined): MvaSatsKey {
   if (sats === 25) return "25";

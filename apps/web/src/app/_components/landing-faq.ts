@@ -1,5 +1,5 @@
 /**
- * FAQ-data for forsiden — brukes både i Vanlige spørsmål-seksjonen
+ * FAQ-data for forsiden, brukes både i Vanlige spørsmål-seksjonen
  * (kuratert subset) og i FAQPage JSON-LD (full liste) for AEO.
  *
  * Når du endrer noe her: husk å sjekke at toppen (FAQ[0..6]) fortsatt

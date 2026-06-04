@@ -5,16 +5,16 @@
  *
  * Snarveier (alle blokkeres når input/textarea er fokusert):
  *
- *   Ctrl+K       — Åpne "Hopp til..."-paletten (navigér mellom sider)
- *   Shift+?      — Vis cheatsheet med alle snarveier
- *   g h          — Hjem
- *   g f          — Forespørsler
- *   g p          — Prosjekter
- *   g k          — Klienter
- *   g i          — Fakturaer (Invoices)
- *   g r          — Regnskap
- *   g s          — Statistikk
- *   g m          — MVA-rapport
+ *   Ctrl+K      , Åpne "Hopp til..."-paletten (navigér mellom sider)
+ *   Shift+?     , Vis cheatsheet med alle snarveier
+ *   g h         , Hjem
+ *   g f         , Forespørsler
+ *   g p         , Prosjekter
+ *   g k         , Klienter
+ *   g i         , Fakturaer (Invoices)
+ *   g r         , Regnskap
+ *   g s         , Statistikk
+ *   g m         , MVA-rapport
  *
  * G-prefiks fungerer som Gmail-stil "go to"-shortcuts: trykk G, deretter
  * destination-bokstav innen 1.5 sek.
@@ -50,7 +50,7 @@ export function KeyboardShortcuts() {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const target = e.target as HTMLElement;
-      // Ikke kapre tastetrykk i input/textarea — la bruker skrive normalt
+      // Ikke kapre tastetrykk i input/textarea, la bruker skrive normalt
       const isTyping = target.matches('input, textarea, [contenteditable="true"]');
       if (isTyping) return;
 
@@ -68,7 +68,7 @@ export function KeyboardShortcuts() {
         return;
       }
 
-      // Ingen modifiers fra her — alle vanlige enkelttaster
+      // Ingen modifiers fra her, alle vanlige enkelttaster
       if (e.ctrlKey || e.metaKey || e.altKey) return;
 
       // G-prefiks: vent på destination-tast
@@ -103,7 +103,7 @@ export function KeyboardShortcuts() {
 }
 
 /**
- * Ctrl+K palette — søke-input som filtrerer destinasjoner.
+ * Ctrl+K palette, søke-input som filtrerer destinasjoner.
  * Enter eller klikk navigerer.
  */
 function PalettePopup({ onClose, onNavigate }: { onClose: () => void; onNavigate: (path: string) => void }) {
@@ -188,7 +188,7 @@ function PalettePopup({ onClose, onNavigate }: { onClose: () => void; onNavigate
 }
 
 /**
- * Cheatsheet — viser alle snarveier i en oversiktlig modal.
+ * Cheatsheet, viser alle snarveier i en oversiktlig modal.
  */
 function Cheatsheet({ onClose }: { onClose: () => void }) {
   useEffect(() => {

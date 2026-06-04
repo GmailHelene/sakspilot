@@ -1,11 +1,11 @@
 /**
- * Utgifter-routes — CRUD for bedriftsutgifter (regnskap).
+ * Utgifter-routes, CRUD for bedriftsutgifter (regnskap).
  *
- *   GET    /utgifter?year=2026&kategori=drift   — liste + KPI-summary
- *   GET    /utgifter/:id                        — detalj
- *   POST   /utgifter                            — opprett
- *   PATCH  /utgifter/:id                        — oppdater
- *   DELETE /utgifter/:id                        — slett
+ *   GET    /utgifter?year=2026&kategori=drift  , liste + KPI-summary
+ *   GET    /utgifter/:id                       , detalj
+ *   POST   /utgifter                           , opprett
+ *   PATCH  /utgifter/:id                       , oppdater
+ *   DELETE /utgifter/:id                       , slett
  *
  * Brukes av /regnskap-siden + statistikk-siden.
  * Multi-tenant: organizationId fra session.
@@ -216,7 +216,7 @@ const BulkUtgiftSchema = z.array(
  * Idempotent via externalId: hvis en rad allerede finnes med samme
  * externalId, hopper vi over (returnerer { skipped: N }).
  *
- * Frontend parser CSV og kaller dette endepunktet — backend er format-
+ * Frontend parser CSV og kaller dette endepunktet, backend er format-
  * agnostic, vi bryr oss ikke om DNB vs Sparebank1.
  *
  * Returner: { created, skipped, errors[] }

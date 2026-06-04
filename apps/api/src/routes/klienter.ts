@@ -1,5 +1,5 @@
 /**
- * Klienter-routes — CRUD for Client.
+ * Klienter-routes, CRUD for Client.
  * Multi-tenant: alle queries filtreres på organizationId.
  */
 import { Router, Request, Response } from "express";
@@ -58,7 +58,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   const { organizationId } = req.session!;
   const client = await prisma.client.findFirst({
     where: { id: req.params.id, organizationId },
-    // Eksplisitt select — IKKE eksponer passwordHash/passwordResetTokenHash
+    // Eksplisitt select, IKKE eksponer passwordHash/passwordResetTokenHash
     // selv om vi bare returnerer dette til frilanseren selv.
     select: {
       id: true,
@@ -189,15 +189,15 @@ router.delete("/:id", async (req: Request, res: Response) => {
 //
 // Frilanseren sender en invitasjon til klienten om å aktivere klient-portalen.
 // Genererer kryptografisk tilfeldig engangstoken (32 bytes hex), bcrypt-hasher
-// hashen i DB (selve tokenet kun i e-posten — DB-lekkasje gir ikke aksept).
+// hashen i DB (selve tokenet kun i e-posten, DB-lekkasje gir ikke aksept).
 // Én aktiv invite per klient (clientId @unique). Ny invitasjon overskriver
-// (upsert) — så frilanseren kan trygt re-sende.
+// (upsert), så frilanseren kan trygt re-sende.
 //
 // Sikkerhet:
 //   - Tilgangskontroll: krever User-auth + at klienten tilhører samme org
 //   - Token-hash i DB (bcrypt 12 rounds), klartekst aldri lagret
 //   - 7 dagers utløp
-//   - Krever contactEmail på klient — eposten må sendes et sted
+//   - Krever contactEmail på klient, eposten må sendes et sted
 router.post("/:id/invite-to-portal", async (req: Request, res: Response) => {
   const session = req.session!;
   const client = await prisma.client.findFirst({
@@ -222,7 +222,7 @@ router.post("/:id/invite-to-portal", async (req: Request, res: Response) => {
   const tokenHash = await hashPassword(rawToken);
   const expiresAt = new Date(Date.now() + 7 * 86400000); // 7 dager
 
-  // Upsert — én aktiv invite per klient. Hvis det finnes en gammel, overskrives.
+  // Upsert, én aktiv invite per klient. Hvis det finnes en gammel, overskrives.
   await prisma.clientPortalInvite.upsert({
     where: { clientId: client.id },
     create: {

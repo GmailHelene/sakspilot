@@ -1,21 +1,21 @@
 /**
- * Faktura-PDF — generer en pent formatert norsk faktura som PDF for en sak.
+ * Faktura-PDF, generer en pent formatert norsk faktura som PDF for en sak.
  *
  *   POST /invoice-pdf/sak/:sakId
  *     Body (alle felter valgfrie):
  *       {
- *         periodFrom?:         ISO-date — start på tidsvindu (default: null = alle)
- *         periodTo?:           ISO-date — slutt på tidsvindu (default: null = alle)
- *         invoiceNumber?:      string   — overstyr auto-generert nummer
- *         includeNonBillable?: boolean  — ta med ikke-fakturerbare timer også (default false)
- *         extraNote?:          string   — fritekst som vises i footer
+ *         periodFrom?:         ISO-date, start på tidsvindu (default: null = alle)
+ *         periodTo?:           ISO-date, slutt på tidsvindu (default: null = alle)
+ *         invoiceNumber?:      string  , overstyr auto-generert nummer
+ *         includeNonBillable?: boolean , ta med ikke-fakturerbare timer også (default false)
+ *         extraNote?:          string  , fritekst som vises i footer
  *       }
  *
  *   Returnerer PDF-binær med Content-Disposition: attachment.
  *
  * Designvalg:
  *   - pdfkit pga ren node-implementasjon, ingen headless-browser
- *   - 25% MVA hardkodet (norsk standardsats — fakturaer for andre satser
+ *   - 25% MVA hardkodet (norsk standardsats, fakturaer for andre satser
  *     må uansett gå via Fiken)
  *   - 14 dagers forfall (norsk de-facto standard)
  *   - Bankkonto/adresse leses fra Organization-modellen; faller tilbake til
@@ -48,7 +48,7 @@ function generateInvoiceNumber(): string {
   const m = String(now.getMonth() + 1).padStart(2, "0");
   const d = String(now.getDate()).padStart(2, "0");
   // Bruker timestamp-suffiks for å unngå kollisjon hvis det lages flere samme dag.
-  // Dette er ikke et "ekte" fortløpende nummer — bruk Fiken hvis du trenger det.
+  // Dette er ikke et "ekte" fortløpende nummer, bruk Fiken hvis du trenger det.
   const suffix = String(now.getHours()).padStart(2, "0") + String(now.getMinutes()).padStart(2, "0");
   return `INV-${y}${m}${d}-${suffix}`;
 }
@@ -148,7 +148,7 @@ router.post("/sak/:sakId", async (req: Request, res: Response) => {
       ? `${org.postalCode ?? ""} ${org.city ?? ""}`.trim()
       : "";
 
-  // Bygg PDF i minnet — sender hele bufferet på slutten (saker er små,
+  // Bygg PDF i minnet, sender hele bufferet på slutten (saker er små,
   // og dette unngår race-conditions med Express' res.end).
   const doc = new PDFDocument({
     size: "A4",
@@ -242,7 +242,7 @@ router.post("/sak/:sakId", async (req: Request, res: Response) => {
   if (fromDate || toDate) {
     cursorY = doc.y + 2;
     doc.text(
-      `Periode: ${fromDate ? fmtDate(fromDate) : "start"} – ${toDate ? fmtDate(toDate) : "i dag"}`,
+      `Periode: ${fromDate ? fmtDate(fromDate) : "start"}, ${toDate ? fmtDate(toDate) : "i dag"}`,
       leftX,
       cursorY
     );
@@ -471,7 +471,7 @@ router.get("/invoice/:invoiceId", async (req: Request, res: Response) => {
   const issuedAt = invoice.periodEnd;
   const dueAt = invoice.dueDate || new Date(issuedAt.getTime() + DUE_DAYS * 86400000);
 
-  // lineItems lagres som Json — trygg parsing med Zod-validering så vi ikke
+  // lineItems lagres som Json, trygg parsing med Zod-validering så vi ikke
   // krasjer hvis form-en er korrupt (gammel data, manuell DB-edit).
   const lineItemsParsed = safeParseLineItems(invoice.lineItems);
   const lineItems = lineItemsParsed.length > 0 ? lineItemsParsed : null;
@@ -534,7 +534,7 @@ router.get("/invoice/:invoiceId", async (req: Request, res: Response) => {
     // Fallback: én linje basert på totaler
     subtotal = Number(invoice.totalAmount);
     doc.fontSize(9).fillColor("#172B4D")
-      .text(`Tjenester ${fmtDate(invoice.periodStart)} – ${fmtDate(invoice.periodEnd)}`, 50, y, { width: 300 })
+      .text(`Tjenester ${fmtDate(invoice.periodStart)}, ${fmtDate(invoice.periodEnd)}`, 50, y, { width: 300 })
       .text(String(invoice.totalHours), 360, y, { width: 50, align: "right" })
       .text("-", 415, y, { width: 60, align: "right" })
       .text(fmtKr(subtotal), 480, y, { width: 65, align: "right" });
@@ -545,7 +545,7 @@ router.get("/invoice/:invoiceId", async (req: Request, res: Response) => {
   doc.moveTo(360, y).lineTo(545, y).strokeColor("#cbd5e1").lineWidth(1.5).stroke();
   y += 8;
 
-  // Totaler (MVA er allerede inkl. i unitPrice for manuelle fakturaer —
+  // Totaler (MVA er allerede inkl. i unitPrice for manuelle fakturaer , 
   // dette er hub-konvensjonen. Hvis vi senere håndterer MVA separat, må
   // CreateInvoiceSchema få et flag for det.)
   doc.fontSize(11).fillColor("#172B4D").font("Helvetica-Bold")

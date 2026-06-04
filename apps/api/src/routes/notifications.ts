@@ -1,5 +1,5 @@
 /**
- * Notifications-counts — ett samlet endpoint for badge-counter i sidebar.
+ * Notifications-counts, ett samlet endpoint for badge-counter i sidebar.
  *
  *   GET /notifications/counts?since[area]=ISO&since[other]=ISO
  *
@@ -57,7 +57,7 @@ router.get("/counts", async (req: Request, res: Response) => {
     select: { email: true },
   });
 
-  // Alle queries parallelliseres — 7 queries, 1 round-trip per Prisma
+  // Alle queries parallelliseres, 7 queries, 1 round-trip per Prisma
   const [
     foresporslerTotal,
     foresporslerUnread,

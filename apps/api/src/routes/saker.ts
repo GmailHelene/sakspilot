@@ -1,5 +1,5 @@
 /**
- * Saker-routes — CRUD for Sak (klientoppdrag).
+ * Saker-routes, CRUD for Sak (klientoppdrag).
  *
  * Multi-tenant: alle queries filtreres på organizationId fra JWT.
  * Brukere ser KUN saker som tilhører deres organisasjon.
@@ -110,7 +110,7 @@ router.post("/", async (req: Request, res: Response) => {
 
   const session = req.session!;
 
-  // Hvis clientId er oppgitt — verifiser at den tilhører samme org
+  // Hvis clientId er oppgitt, verifiser at den tilhører samme org
   if (parsed.data.clientId) {
     const client = await prisma.client.findFirst({
       where: { id: parsed.data.clientId, organizationId: session.organizationId },
@@ -139,7 +139,7 @@ router.post("/", async (req: Request, res: Response) => {
     },
   });
 
-  // Trigger automatiseringer (fire-and-forget — feiler ikke selve opprettelsen)
+  // Trigger automatiseringer (fire-and-forget, feiler ikke selve opprettelsen)
   runAutomationsForTrigger("sak_created", {
     organizationId: session.organizationId,
     userId: session.userId,
@@ -199,7 +199,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
       action: "sak.updated",
       entityType: "sak",
       entityId: sak.id,
-      // Prisma Json-felt — caster via JSON-roundtrip for å sikre serialiserbarhet
+      // Prisma Json-felt, caster via JSON-roundtrip for å sikre serialiserbarhet
       metadata: JSON.parse(JSON.stringify(parsed.data)),
     },
   });
@@ -225,7 +225,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
 /**
  * DELETE /saker/:id
  * Sletter en sak. Time-entries beholdes men frikobles (sakId blir null).
- * Ekte arkivering — bruk PATCH med archived=true istedenfor for å beholde
+ * Ekte arkivering, bruk PATCH med archived=true istedenfor for å beholde
  * historikken i kanban.
  */
 router.delete("/:id", async (req: Request, res: Response) => {
@@ -297,7 +297,7 @@ router.post("/:sakId/matching-rules", async (req: Request, res: Response) => {
   const sakId = await ensureSakOwnership(req, res);
   if (!sakId) return;
 
-  // Valider at regex-mønsteret er gyldig — vi gjør det også i agent,
+  // Valider at regex-mønsteret er gyldig, vi gjør det også i agent,
   // men best å fange feil her så brukeren ikke får knust desktop-agent.
   try {
     // eslint-disable-next-line no-new
@@ -550,7 +550,7 @@ router.get("/:sakId/time-summary", async (req: Request, res: Response) => {
   const sakId = await ensureSakOwnership(req, res);
   if (!sakId) return;
 
-  // Aggregate i Postgres — billig selv ved 100k+ entries
+  // Aggregate i Postgres, billig selv ved 100k+ entries
   const entries = await prisma.timeEntry.findMany({
     where: { sakId },
     select: { durationSec: true, billable: true, hourlyRate: true, startedAt: true },

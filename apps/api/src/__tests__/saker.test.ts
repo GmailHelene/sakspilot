@@ -42,7 +42,7 @@ async function registerUser() {
 }
 
 describe('Saker CRUD + multi-tenant', () => {
-  it('opprett, hent, oppdater, slett — full CRUD-syklus', async () => {
+  it('opprett, hent, oppdater, slett, full CRUD-syklus', async () => {
     const { token } = await registerUser();
 
     // Opprett

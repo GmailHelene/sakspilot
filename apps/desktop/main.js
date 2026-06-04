@@ -1,10 +1,10 @@
 /**
- * Sakspilot Desktop Agent — Electron main-prosess.
+ * Sakspilot Desktop Agent, Electron main-prosess.
  *
  * Kjører i bakgrunnen som tray-app. To moduser:
- *   1. "Arbeidsøkt aktiv"  — du har klikket Start, vi logger aktivt vindu
+ *   1. "Arbeidsøkt aktiv" , du har klikket Start, vi logger aktivt vindu
  *      hvert N. sekund og knytter til sak via matching-regler
- *   2. "Inaktiv"           — vi logger ikke noe. Klikk Start for å begynne.
+ *   2. "Inaktiv"          , vi logger ikke noe. Klikk Start for å begynne.
  *
  * Når du klikker "Stopp + rapport":
  *   - Pågående session avsluttes
@@ -23,7 +23,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
 
-// ── Crash-logger — skriv ALLE krasj til fil + dialog ────────────
+// ── Crash-logger, skriv ALLE krasj til fil + dialog ────────────
 // Uten dette feiler en pakket .exe stille hvis noe går galt ved oppstart.
 // Loggen kan deles for feilsøking.
 const crashLogPath = path.join(os.tmpdir(), 'sakspilot-crash.log');
@@ -53,7 +53,7 @@ let poller = null;
 let syncTimer = null;
 let rulesRefreshTimer = null;
 
-// Arbeidsøkt-state (kun i minnet — ny etter restart)
+// Arbeidsøkt-state (kun i minnet, ny etter restart)
 let workSessionActive = false;
 let workSessionStart = null;
 let workSessionSessions = [];   // sessions samlet i pågående arbeidsøkt
@@ -411,7 +411,7 @@ async function syncSessions() {
     console.log(`[Sync] ${result.created} sessions synket til backend`);
   } catch (err) {
     console.error('[Sync] feilet:', err.message);
-    // Legg dem tilbake — neste sync-tick prøver igjen
+    // Legg dem tilbake, neste sync-tick prøver igjen
     pendingSessions.unshift(...batch);
     // Vis synlig notification (max én per time, så vi ikke spammer)
     const lastNotif = store.get('lastSyncErrorNotif') || 0;
@@ -496,7 +496,7 @@ function openDashboardWindow() {
   // mismatch etter deploy. Vercel ruller ut nye chunks med nye hashes;
   // gammel cachet HTML refererer til chunks som ikke lenger eksisterer →
   // «Cannot read properties of undefined (reading 'call')».
-  // Disse er fire-and-forget — vil ikke blokkere oppstart, men bruker
+  // Disse er fire-and-forget, vil ikke blokkere oppstart, men bruker
   // session.clearStorageData som tar alt for sakspilot.no.
   Promise.all([
     dashboardWindow.webContents.session.clearCache(),

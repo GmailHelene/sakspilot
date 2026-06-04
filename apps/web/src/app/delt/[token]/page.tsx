@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * Offentlig sak-visning — leverer status til klient uten innlogging.
+ * Offentlig sak-visning, leverer status til klient uten innlogging.
  *
  * Token i URL identifiserer en aktiv SharedSakLink. Backend filtrerer
  * bort all sensitiv info (matching-regler, time-entries, audit, sticky)
  * og returnerer kun saks-tittel, status, milepæler og evt. tidssammendrag.
  *
- * Ingen sidebar, ingen header — full-bleed klient-portal med Sakspilot-merke.
+ * Ingen sidebar, ingen header, full-bleed klient-portal med Sakspilot-merke.
  */
 
 import { useEffect, useState } from 'react';

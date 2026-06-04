@@ -1,10 +1,10 @@
 'use client';
 
 /**
- * AiTriageWidget — viser AI-foreslåtte saker for ukategoriserte TimeEntries.
+ * AiTriageWidget, viser AI-foreslåtte saker for ukategoriserte TimeEntries.
  *
  * Når desktop-agenten har logget arbeidsøkter uten matching-rule-treff, kan
- * bruker trykke "Foreslå med AI" — backend (POST /ai-triage/suggest) sender
+ * bruker trykke "Foreslå med AI", backend (POST /ai-triage/suggest) sender
  * window-tittel + app-navn til Claude og foreslår sak fra brukerens egne.
  * Forslagene listes her med "✓ Godta" / "✕ Avslå" per entry.
  *
@@ -56,7 +56,7 @@ export default function AiTriageWidget() {
       const res = await api<{ items: PendingItem[] }>('/ai-triage/pending');
       setItems(res.items);
     } catch (err) {
-      // Stille feil — hvis API er nede skjuler vi widgeten heller enn å spam-e.
+      // Stille feil, hvis API er nede skjuler vi widgeten heller enn å spam-e.
       console.error('[ai-triage] kunne ikke hente pending:', err);
       setItems([]);
     }
@@ -110,7 +110,7 @@ export default function AiTriageWidget() {
   }
 
   if (items === null) {
-    // Initial load — vis ingenting (unngår flicker)
+    // Initial load, vis ingenting (unngår flicker)
     return null;
   }
 

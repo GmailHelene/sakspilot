@@ -1,18 +1,18 @@
 /**
  * Klient-portal-routes.
  *
- * Egen flow for KLIENTER (kjøperne av frilanserens tjenester) — IKKE for
+ * Egen flow for KLIENTER (kjøperne av frilanserens tjenester), IKKE for
  * frilanseren selv. Klienter logger inn med e-post + passord, ser sine egne
  * saker på tvers av alle prosjekter, milepæler og fakturahistorikk. Helt
  * separat scope fra User-auth (se services/auth.ts).
  *
  * Sikkerhetsprinsipper:
- *   - JWT med scope="client" (egen verify/sign — User-token virker ikke her,
+ *   - JWT med scope="client" (egen verify/sign, User-token virker ikke her,
  *     og klient-token virker ikke mot User-routes)
  *   - Cross-client lekkasje umulig: alle queries filtreres på
  *     sak.clientId === req.clientSession.clientId
  *   - Eksponerer KUN trygge felter (title, status, milepæler, fakturasummer)
- *     — IKKE matchingRules, timeEntries-details, audit-logg, interne notater
+ *    , IKKE matchingRules, timeEntries-details, audit-logg, interne notater
  *   - bcrypt 12 rounds, samme som User
  *   - Konstant-tids-respons ved feilet login (mot e-post-enumerasjon)
  *   - Token-versjon i JWT (klient.tokenVersion) → revoke ved passordbytte
@@ -35,11 +35,11 @@ const router = Router();
 
 /**
  * Bygger en branding-blob basert på req.customDomain. Returnerer null hvis
- * requesten kom inn på default sakspilot.no — da skal frontend bruke standard
+ * requesten kom inn på default sakspilot.no, da skal frontend bruke standard
  * Sakspilot-branding.
  *
  * Returnert form gjenspeiler CustomDomainInfo, men begrenset til felter
- * frontend trenger for å whitelabele portal-UI (ikke organizationId — det
+ * frontend trenger for å whitelabele portal-UI (ikke organizationId, det
  * lekker org-id til klienter på andre orgs ved feilkonfig).
  */
 function getBrandingFromRequest(req: Request) {
@@ -161,7 +161,7 @@ router.get("/me", requireClientAuth, async (req: Request, res: Response) => {
 
 // ── POST /client-portal/accept-invite ───────────────────────────
 //
-// Token kommer fra klienten — vi henter ALLE ikke-aksepterte, ikke-utløpte
+// Token kommer fra klienten, vi henter ALLE ikke-aksepterte, ikke-utløpte
 // invites og bcrypt.compare mot tokenHash for hver. Vanligvis er det få;
 // klient-portalen er en liten flate. Hvis det vokser legger vi inn et
 // klart-tekst-hint i tokenet for å indeksere.
@@ -176,7 +176,7 @@ router.post("/accept-invite", async (req: Request, res: Response) => {
 
   const { token, password } = parsed.data;
 
-  // Hent kandidater (alle aktive invites) — vi bcrypt-compare mot hver
+  // Hent kandidater (alle aktive invites), vi bcrypt-compare mot hver
   const candidates = await prisma.clientPortalInvite.findMany({
     where: { acceptedAt: null, expiresAt: { gt: new Date() } },
     include: { client: true },
@@ -206,7 +206,7 @@ router.post("/accept-invite", async (req: Request, res: Response) => {
     });
   }
 
-  // E-posten må være unik på Client.email — frilanseren kan ha brukt
+  // E-posten må være unik på Client.email, frilanseren kan ha brukt
   // contactEmail som ikke kolliderer, men teoretisk kan to klienter ha
   // samme e-post. Failer i så fall med tydelig melding.
   const emailNorm = client.contactEmail.toLowerCase().trim();
@@ -395,7 +395,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
 //
 // Lister ALLE saker der sak.clientId === innlogget klient. Cross-client-
 // lekkasje sikret av WHERE-klausulen + JWT-scope-check i middleware.
-// Eksponerer KUN trygge felter — IKKE matchingRules, interne notater,
+// Eksponerer KUN trygge felter, IKKE matchingRules, interne notater,
 // hourlyRate, folderPath, eller time-entry-detaljer.
 router.get("/saker", requireClientAuth, async (req: Request, res: Response) => {
   const { clientId } = req.clientSession!;
@@ -495,7 +495,7 @@ router.get(
   async (req: Request, res: Response) => {
     const { clientId } = req.clientSession!;
 
-    // Bekreft først at saken tilhører klienten — ellers kan en innlogget
+    // Bekreft først at saken tilhører klienten, ellers kan en innlogget
     // klient prøve å hente fakturaer for fremmed sak ved å gjette UUID.
     const sak = await prisma.sak.findFirst({
       where: { id: req.params.sakId, clientId },
@@ -506,7 +506,7 @@ router.get(
     const invoices = await prisma.invoice.findMany({
       where: {
         sakId: sak.id,
-        // Klienten ser KUN exported-fakturaer — draft er internt utkast.
+        // Klienten ser KUN exported-fakturaer, draft er internt utkast.
         status: "exported",
       },
       select: {

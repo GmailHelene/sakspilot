@@ -14,7 +14,7 @@
  *   - finner org-id via email eller miljøvariabel
  *   - oppretter 4 klienter, 8 saker (på tvers av status), 12 milepæler,
  *     ~40 time-entries, 5 klistrelapper, 2 agenter
- *   - sletter ingenting — kan kjøres flere ganger trygt (idempotent på navn)
+ *   - sletter ingenting, kan kjøres flere ganger trygt (idempotent på navn)
  */
 import { PrismaClient, SakStatus, TimeEntrySource, AutomationTrigger, AutomationAction } from "@prisma/client";
 
