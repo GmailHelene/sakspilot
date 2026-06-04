@@ -6,15 +6,15 @@
  *   macOS:   ~/Library/Application Support/sakspilot/config.json
  *
  * Innhold:
- *   apiUrl           — backend-URL (default: http://localhost:8001)
- *   token            — JWT for innlogget bruker
- *   userName         — vises i tray-menyen
+ *   apiUrl          , backend-URL (default: http://localhost:8001)
+ *   token           , JWT for innlogget bruker
+ *   userName        , vises i tray-menyen
  *   userEmail
  *   organizationId
- *   intervalSec      — poll-frekvens (default 15)
- *   paused           — om logging er midlertidig av
- *   excludedApps     — array av app-navn som aldri logges (privacy)
- *   lastSyncAt       — siste vellykket sync til backend
+ *   intervalSec     , poll-frekvens (default 15)
+ *   paused          , om logging er midlertidig av
+ *   excludedApps    , array av app-navn som aldri logges (privacy)
+ *   lastSyncAt      , siste vellykket sync til backend
  */
 const Store = require('electron-store');
 
@@ -37,7 +37,7 @@ const store = new Store({
     //   3. Sessions attribueres til "aktiv sak" (sist sett /saker/[id])
     //      hvis tilgjengelig, ellers sakId=null (kan tilordnes senere)
     autoTrackOpened: false,
-    // Aktiv sak — settes fra web-appen via IPC når bruker navigerer til
+    // Aktiv sak, settes fra web-appen via IPC når bruker navigerer til
     // /saker/[id]. Brukes som default-attribusjon for auto-tracked sessions.
     activeSakId: null,
     activeSakTitle: null,

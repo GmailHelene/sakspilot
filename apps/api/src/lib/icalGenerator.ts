@@ -1,5 +1,5 @@
 /**
- * iCal-generator — RFC 5545-output for Sakspilot.
+ * iCal-generator, RFC 5545-output for Sakspilot.
  *
  * Genererer et abonnement-egnet kalender-feed med VEVENT-blokker for
  * sak-frister og milepæler. Skrevet for hånd (ingen ekstern ical-lib):
@@ -13,15 +13,15 @@
  *   - Full VTIMEZONE-blokk for Europe/Oslo med DST-overgangs-regler
  *     (RRULE som matcher EU-standard: siste søndag i mars / oktober).
  *     En forenklet variant uten DST-info fungerer i de fleste klienter
- *     men feiler i Outlook ved DST-skiftet — derfor tar vi heller den
+ *     men feiler i Outlook ved DST-skiftet, derfor tar vi heller den
  *     korrekte varianten.
  *   - DTSTAMP er tidspunktet feeden genereres (UTC, format Z), kreves
  *     på alle VEVENT.
  *   - Heldagshendelser bruker VALUE=DATE og YYYYMMDD-format (uten tid)
- *     — det er korrekt for frister som ikke har et spesifikt klokkeslett.
+ *    , det er korrekt for frister som ikke har et spesifikt klokkeslett.
  *
  * Vi inkluderer X-WR-CALNAME (kalender-navn som vises i klient) og
- * X-PUBLISHED-TTL (anbefalt refresh-intervall — 1 time).
+ * X-PUBLISHED-TTL (anbefalt refresh-intervall, 1 time).
  */
 
 export interface ICalEvent {
@@ -38,7 +38,7 @@ export interface ICalEvent {
   start: Date;
   /**
    * Når hendelsen slutter. For heldagshendelser SKAL dette være DAGEN ETTER
-   * (iCal-konvensjon: DTEND er eksklusiv for heldag — DTSTART=2026-06-01,
+   * (iCal-konvensjon: DTEND er eksklusiv for heldag, DTSTART=2026-06-01,
    * DTEND=2026-06-02 = heldag 1. juni). Hvis allDay=true og end ikke er satt,
    * setter generatoren start+1 dag automatisk.
    */
@@ -62,7 +62,7 @@ export interface ICalCalendar {
 }
 
 /**
- * RFC 5545 escape — semikolon, komma, newline, backslash må escapes
+ * RFC 5545 escape, semikolon, komma, newline, backslash må escapes
  * i TEXT-felter (SUMMARY, DESCRIPTION, LOCATION).
  *
  * Rekkefølgen er kritisk: backslash FØRST, ellers dobbel-escapes vi de
@@ -82,7 +82,7 @@ function escapeText(s: string): string {
  * (brukes for DTSTAMP) får Z-suffiks via formatUtc.
  *
  * Tar vare på Europe/Oslo-tid ved å konvertere via Intl. Vi unngår å bake
- * inn DST-logikk her — Intl bruker IANA tz-databasen på serveren.
+ * inn DST-logikk her, Intl bruker IANA tz-databasen på serveren.
  */
 function formatDateLocal(d: Date, allDay: boolean): string {
   if (allDay) {
@@ -115,7 +115,7 @@ function formatDateLocal(d: Date, allDay: boolean): string {
   const y = get("year");
   const m = get("month");
   const day = get("day");
-  // Intl returnerer "24" for midnatt i en-CA — normalisér til "00".
+  // Intl returnerer "24" for midnatt i en-CA, normalisér til "00".
   const hour = get("hour") === "24" ? "00" : get("hour");
   const min = get("minute");
   const sec = get("second");
@@ -135,7 +135,7 @@ function formatUtc(d: Date): string {
 
 /**
  * Line-folding iht RFC 5545 §3.1: ingen linje > 75 oktetter (bytes, ikke
- * tegn). Lange linjer brytes opp ved å sette CRLF + ett mellomrom — neste
+ * tegn). Lange linjer brytes opp ved å sette CRLF + ett mellomrom, neste
  * linje regnes da som fortsettelse av den forrige.
  *
  * Vi måler i UTF-8-bytes (TextEncoder) for å håndtere norske bokstaver
@@ -153,7 +153,7 @@ function foldLine(line: string): string {
   let maxBytes = 75; // første linje får 75; etterfølgende 74 (1 byte til SPACE)
   while (offset < bytes.length) {
     let end = Math.min(offset + maxBytes, bytes.length);
-    // Ikke kutt midt i en UTF-8-sekvens — kontinuasjons-bytes har bit-mønster 10xxxxxx
+    // Ikke kutt midt i en UTF-8-sekvens, kontinuasjons-bytes har bit-mønster 10xxxxxx
     while (end < bytes.length && (bytes[end] & 0xc0) === 0x80) end--;
     chunks.push(decoder.decode(bytes.slice(offset, end)));
     offset = end;
@@ -168,7 +168,7 @@ function foldLine(line: string): string {
  * siste søndag i mars → CEST, siste søndag i oktober → CET.
  *
  * TZOFFSETFROM/TO er i format ±HHMM. DTSTART for hver del er den datoen
- * regelen "starter å gjelde fra" — vi bruker en historisk dato (1970) så
+ * regelen "starter å gjelde fra", vi bruker en historisk dato (1970) så
  * den dekker alle fremtidige hendelser. RRULE genererer alle påfølgende
  * overgangs-datoer automatisk.
  */
@@ -222,7 +222,7 @@ function buildEvent(ev: ICalEvent, dtstamp: string, tzid: string): string[] {
     lines.push(`LOCATION:${escapeText(ev.location)}`);
   }
   if (ev.url) {
-    // URL skal IKKE escapes som TEXT — den er en URI-property. Men vi vil
+    // URL skal IKKE escapes som TEXT, den er en URI-property. Men vi vil
     // fortsatt unngå kontroll-tegn. Validering har skjedd i kalleren.
     lines.push(`URL:${ev.url}`);
   }
@@ -231,7 +231,7 @@ function buildEvent(ev: ICalEvent, dtstamp: string, tzid: string): string[] {
 }
 
 /**
- * Hovedfunksjon — bygg komplett iCal-feed som string.
+ * Hovedfunksjon, bygg komplett iCal-feed som string.
  * Output bruker CRLF som linjeskille (kreves av RFC 5545).
  */
 export function buildIcalFeed(cal: ICalCalendar): string {
@@ -241,7 +241,7 @@ export function buildIcalFeed(cal: ICalCalendar): string {
   const allLines: string[] = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    // PRODID identifiserer programmet som genererte feeden — kreves.
+    // PRODID identifiserer programmet som genererte feeden, kreves.
     "PRODID:-//Sakspilot//iCal Feed//NO",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",

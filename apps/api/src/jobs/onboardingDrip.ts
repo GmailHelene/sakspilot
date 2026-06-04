@@ -1,5 +1,5 @@
 /**
- * Onboarding drip-kampanje — standalone Node-script.
+ * Onboarding drip-kampanje, standalone Node-script.
  *
  * Sender e-poster til nye brukere på dag 3, 7 og 14 etter registrering.
  * Dag 0 (welcomeEmail) sendes direkte fra POST /auth/register, ikke herfra.
@@ -9,16 +9,16 @@
  * for en jobb-e-post, og før de fleste leser e-post på morgenen.
  *
  * Hva sendes:
- *   - dag 3: desktopAppReminderEmail — kun til brukere UTEN AgentSession
+ *   - dag 3: desktopAppReminderEmail, kun til brukere UTEN AgentSession
  *            (de som ikke har installert Windows-appen ennå)
- *   - dag 7: feedbackPromptEmail — til alle 7-dagers brukere
- *   - dag 14: videocallOfferEmail — kun til brukere UTEN Feedback
+ *   - dag 7: feedbackPromptEmail, til alle 7-dagers brukere
+ *   - dag 14: videocallOfferEmail, kun til brukere UTEN Feedback
  *            (de som ikke har sagt fra hvordan det går)
  *
  * Dedupe:
  *   User.lastOnboardingEmail (0/3/7/14) skrives etter vellykket send. Hvis en
  *   bruker allerede har fått dag 3, hopper jobben over selv om de fortsatt
- *   ligger i 3-dagers-vinduet neste kjøring. Vi sender også kun "fremover" —
+ *   ligger i 3-dagers-vinduet neste kjøring. Vi sender også kun "fremover" , 
  *   en bruker med lastOnboardingEmail=7 vil ikke få dag-3-mail (dvs. hvis
  *   jobben en dag glipper dag 3 for en bruker, hopper vi rett til dag 7).
  *
@@ -56,7 +56,7 @@ interface DripCandidate {
 }
 
 /**
- * Returnerer et tidsvindu rundt "N dager før nå" — 12 timer rundt N*24h.
+ * Returnerer et tidsvindu rundt "N dager før nå", 12 timer rundt N*24h.
  * Brukes som createdAt-filter for å fange brukere som passerte N-dagers-merket.
  */
 function windowForDay(daysAgo: number): { gte: Date; lte: Date } {
@@ -93,7 +93,7 @@ async function findCandidatesForDay(day: DripDay): Promise<DripCandidate[]> {
 
 /**
  * Filtrerer bort brukere som ALLEREDE har minst én AgentSession
- * (de har installert Windows-appen — trenger ikke påminnelse).
+ * (de har installert Windows-appen, trenger ikke påminnelse).
  */
 async function filterOutInstalledApp(
   candidates: DripCandidate[]
@@ -232,7 +232,7 @@ main().catch(async (err) => {
   try {
     await prisma.$disconnect();
   } catch {
-    // ignorer — vi er allerede på vei ut
+    // ignorer, vi er allerede på vei ut
   }
   process.exit(1);
 });

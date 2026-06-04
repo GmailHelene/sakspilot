@@ -4,17 +4,17 @@
  * Bruker Next.js sin rewrite (/api/* → http://localhost:8001/*) i dev.
  * I prod settes NEXT_PUBLIC_API_URL til Vercel-Edge-proxy som peker på
  * api.sakspilot.no. Cookie-en (httpOnly, satt av API) deles tilbake til
- * sakspilot.no via proxy — så `credentials: 'include'` er nok for auth.
+ * sakspilot.no via proxy, så `credentials: 'include'` er nok for auth.
  *
- * AUTH-STRATEGI (3. juni 2026 — XSS-fix):
+ * AUTH-STRATEGI (3. juni 2026, XSS-fix):
  *   - JWT lagres KUN i httpOnly-cookie (ikke lesbar fra JavaScript)
  *   - localStorage lagrer en non-sensitive markør `sakspilot_authed: "1"`
  *     som vi sjekker SYNKRONT for å avgjøre om vi skal vise app eller
- *     redirecte til /login. Markøren har null verdi for en angriper —
+ *     redirecte til /login. Markøren har null verdi for en angriper , 
  *     selv om XSS stjeler den, kan den ikke brukes til API-kall.
  *   - Vi sender IKKE lenger Authorization-header. Cookie tar over.
  *   - getToken() er beholdt som no-op for ABI-kompatibilitet (returnerer
- *     null) — gamle direkte-fetch-sites slutter å sende Bearer-header,
+ *     null), gamle direkte-fetch-sites slutter å sende Bearer-header,
  *     men cookie får dem fortsatt gjennom auth-middleware.
  *
  * Migrasjon for eksisterende brukere: de har gammel `sakspilot_token`
@@ -27,7 +27,7 @@ const LEGACY_TOKEN_KEY = 'sakspilot_token'; // ryddes ved første sjekk
 
 /**
  * @deprecated Returnerer alltid null. JWT er ikke lenger tilgjengelig for JS.
- * Beholdt for at gamle direkte-fetch-sites kompilerer — de slutter bare å
+ * Beholdt for at gamle direkte-fetch-sites kompilerer, de slutter bare å
  * sende Authorization-header, og cookie håndterer auth via credentials.
  */
 export function getToken(): string | null {
@@ -50,7 +50,7 @@ export function setToken(token: string | null): void {
 /**
  * Synkron sjekk om brukeren ser ut til å være innlogget. Brukes til å
  * avgjøre redirect til /login eller initial render. Den ekte sannheten
- * ligger i serverside-cookien — første API-kall som returnerer 401 vil
+ * ligger i serverside-cookien, første API-kall som returnerer 401 vil
  * rydde markøren via 401-handleren under.
  */
 export function isTokenValid(): boolean {
@@ -78,7 +78,7 @@ interface ApiOptions {
  * filename: hvis ikke gitt, leses fra Content-Disposition header.
  */
 export async function downloadPdf(path: string, filename?: string): Promise<void> {
-  // Cookie sendes via credentials: 'include' — ingen Bearer-header nødvendig
+  // Cookie sendes via credentials: 'include', ingen Bearer-header nødvendig
   const res = await fetch(`/api${path}`, {
     credentials: 'include',
   });
@@ -103,7 +103,7 @@ export async function downloadPdf(path: string, filename?: string): Promise<void
   document.body.appendChild(a);
   a.click();
   a.remove();
-  // Frigjør blob etter litt — Chrome trenger objectURL aktiv mens download starter
+  // Frigjør blob etter litt, Chrome trenger objectURL aktiv mens download starter
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
@@ -123,7 +123,7 @@ export async function api<T = unknown>(
 ): Promise<T> {
   const { method = 'GET', body, signal } = options;
   // Auth håndteres av httpOnly-cookien via credentials: 'include'.
-  // Ingen Bearer-header — XSS skal ikke kunne tilegne seg auth-token.
+  // Ingen Bearer-header, XSS skal ikke kunne tilegne seg auth-token.
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -148,7 +148,7 @@ export async function api<T = unknown>(
     // 401 = token ugyldig. Tidligere logget vi ut ved enhver 401, men det
     // betydde at én bakgrunns-feil (timeout/proxy/etc) kastet brukeren ut.
     // Nå: bare auto-logout hvis 401 kommer fra /auth/me (den ENESTE pålitelige
-    // session-sjekken). Andre endepunkter får bare throw — kallende side kan
+    // session-sjekken). Andre endepunkter får bare throw, kallende side kan
     // bestemme hva som skal skje.
     //
     // Stale-state-fra-forrige-bruker-bug (årsaken vi opprinnelig la dette til

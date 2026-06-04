@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Integrasjoner — koble til tredjepartstjenester.
+ * Integrasjoner, koble til tredjepartstjenester.
  *
  * Per nå: Outlook/Microsoft Graph.
  * Senere: Google Workspace, Tripletex, Fiken.

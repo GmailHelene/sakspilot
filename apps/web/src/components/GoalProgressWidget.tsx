@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * GoalProgressWidget — viser fremdrift mot uke- og månedsmål på /hjem.
+ * GoalProgressWidget, viser fremdrift mot uke- og månedsmål på /hjem.
  *
  * Henter /me/goals/progress ved mount og hvert 60. sekund. Farger baseres
  * på logged-timer vs pro-rata-mål (lineær progresjon gjennom perioden):
@@ -50,7 +50,7 @@ export default function GoalProgressWidget() {
           setLoaded(true);
         }
       } catch {
-        // Stille feil — widgeten skjuler seg da. Ikke spam dashboard
+        // Stille feil, widgeten skjuler seg da. Ikke spam dashboard
         // med feilmeldinger hvis API midlertidig ute.
         if (!cancelled) setLoaded(true);
       }
@@ -75,7 +75,7 @@ export default function GoalProgressWidget() {
     );
   }
 
-  // Ingen mål satt — vis CTA
+  // Ingen mål satt, vis CTA
   const hasWeekGoal = data?.week.goal != null && data.week.goal > 0;
   const hasMonthGoal = data?.month.goal != null && data.month.goal > 0;
 

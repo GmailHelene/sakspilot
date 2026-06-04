@@ -1,14 +1,14 @@
 /**
- * AI-routes — Claude API-integrasjon for sak-assistent.
+ * AI-routes, Claude API-integrasjon for sak-assistent.
  *
- *   POST /ai/sak/:id/ask          — fri prompt med sak som kontekst
- *   POST /ai/sak/:id/summary      — kort oppsummering av sak
- *   POST /ai/sak/:id/draft-email  — utkast til klient-epost (anbefalt sjanger via type)
+ *   POST /ai/sak/:id/ask         , fri prompt med sak som kontekst
+ *   POST /ai/sak/:id/summary     , kort oppsummering av sak
+ *   POST /ai/sak/:id/draft-email , utkast til klient-epost (anbefalt sjanger via type)
  *
- * Bruker prompt caching for sak-konteksten — sparer tokens når brukeren
+ * Bruker prompt caching for sak-konteksten, sparer tokens når brukeren
  * stiller flere spørsmål om samme sak.
  *
- * Modell: claude-sonnet-4-5 (2025-09-29) som default — god kost/ytelse.
+ * Modell: claude-sonnet-4-5 (2025-09-29) som default, god kost/ytelse.
  */
 import { Router, Request, Response } from "express";
 import { z } from "zod";
@@ -41,7 +41,7 @@ async function loadSakContext(sakId: string, organizationId: string) {
   const sak = await prisma.sak.findFirst({
     where: { id: sakId, organizationId },
     include: {
-      // KUN navn — kontaktinfo skal ikke til Claude (PII-minimisering)
+      // KUN navn, kontaktinfo skal ikke til Claude (PII-minimisering)
       client: { select: { name: true, contactEmail: true } },
       milestones: { orderBy: { dueDate: "asc" } },
       timeEntries: {
@@ -86,7 +86,7 @@ function buildSakContextText(ctx: NonNullable<Awaited<ReturnType<typeof loadSakC
 
   // PII-minimisering: vi sender klient-NAVN (nødvendig kontekst for AI),
   // men IKKE e-post eller telefon. AI-modellen trenger ikke kontaktinfo
-  // for å skrive utkast — bruker fyller inn selv før sending.
+  // for å skrive utkast, bruker fyller inn selv før sending.
   // Dette reduserer risiko ved Anthropics 30-dagers retention betraktelig.
   return `## Prosjektinformasjon
 
@@ -219,7 +219,7 @@ router.post("/sak/:id/ask", async (req: Request, res: Response) => {
       .join("\n");
 
     // Lagre BÅDE bruker-spørsmål og assistant-svar etter at vi har fått svaret.
-    // Hvis lagring feiler vil vi fortsatt returnere svaret til bruker —
+    // Hvis lagring feiler vil vi fortsatt returnere svaret til bruker , 
     // mister bare historikk-konteksten. Bedre enn å feile hele kallet.
     try {
       await prisma.aiChatMessage.createMany({
@@ -269,7 +269,7 @@ router.get("/sak/:id/history", async (req: Request, res: Response) => {
   const session = req.session!;
 
   // Bekreft at saken tilhører innloggers organisasjon (samme tilgangssjekk
-  // som loadSakContext gjør implisitt — uten den kunne hvilken som helst
+  // som loadSakContext gjør implisitt, uten den kunne hvilken som helst
   // sakId returnert historikk).
   const sak = await prisma.sak.findFirst({
     where: { id: req.params.id, organizationId: session.organizationId },

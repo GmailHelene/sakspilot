@@ -1,7 +1,7 @@
 /**
  * API-helper for klient-portalen.
  *
- * Helt separat fra lib/api.ts (frilanserens auth) — bruker egen
+ * Helt separat fra lib/api.ts (frilanserens auth), bruker egen
  * localStorage-nøkkel slik at en frilanser og en klient kan dele
  * nettleser uten å overskrive hverandres token.
  *
@@ -77,7 +77,7 @@ export async function portalApi<T = unknown>(
   const res = await fetch(`/api${path}`, {
     method,
     headers,
-    // Vi sender IKKE credentials her — User-cookien skal ikke krysse over.
+    // Vi sender IKKE credentials her, User-cookien skal ikke krysse over.
     // Klient-portalen identifiseres utelukkende via Bearer-tokenet.
     credentials: 'omit',
     body: body !== undefined ? JSON.stringify(body) : undefined,

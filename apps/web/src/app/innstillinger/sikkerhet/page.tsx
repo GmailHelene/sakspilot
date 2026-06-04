@@ -308,7 +308,7 @@ function GDPRSection() {
   const [error, setError] = useState<string | null>(null);
 
   async function exportData() {
-    // Last ned via direkte navigasjon — backend setter Content-Disposition
+    // Last ned via direkte navigasjon, backend setter Content-Disposition
     const apiUrl = (window as Window & { sakspilot?: { getSettings?: () => Promise<{ apiUrl?: string }> } }).sakspilot?.getSettings
       ? (await (window as Window & { sakspilot?: { getSettings?: () => Promise<{ apiUrl?: string }> } }).sakspilot!.getSettings!())?.apiUrl
       : '';

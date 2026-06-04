@@ -1,8 +1,8 @@
 /**
- * Agent-routes — endepunkter desktop-agenten bruker.
+ * Agent-routes, endepunkter desktop-agenten bruker.
  *
- *   GET  /agent/rules   — hent alle aktive matching-regler for innloggets org
- *   POST /agent/sync    — batch-opplasting av session-poster fra agent → DB
+ *   GET  /agent/rules  , hent alle aktive matching-regler for innloggets org
+ *   POST /agent/sync   , batch-opplasting av session-poster fra agent → DB
  *
  * Begge bruker JWT-auth (samme som web). Multi-tenant filter på
  * organizationId fra session sikrer at agent for én bruker aldri kan
@@ -63,7 +63,7 @@ const AgentSessionSchema = z.object({
   app: z.string().max(255).optional(),
   title: z.string().max(1000).optional(),
   sakId: z.string().uuid().nullable().optional(),
-  // matchedOn — utvidet med "auto-track" + "active-sak" fra auto-spor-flyten
+  // matchedOn, utvidet med "auto-track" + "active-sak" fra auto-spor-flyten
   // (Sakspilot-snarveier som åpnes via Launcher) og fallback-attribusjon når
   // ingen matching-regel matcher men "aktiv sak" er satt.
   matchedOn: z
@@ -86,7 +86,7 @@ const SyncSchema = z.object({
  * Hver session blir til én TimeEntry i DB. Hvis sakId ikke er satt
  * lagres entry'en som "ikke-matchet" (kan kategoriseres manuelt senere).
  *
- * Bekrefter at sakId tilhører innloggets org før vi lagrer — agent
+ * Bekrefter at sakId tilhører innloggets org før vi lagrer, agent
  * kan ikke "smitte" entries inn på andre brukeres saker.
  */
 router.post("/sync", async (req: Request, res: Response) => {

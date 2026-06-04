@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Agenter — Monday/Notion-stil automatiseringer.
+ * Agenter, Monday/Notion-stil automatiseringer.
  *
  * Brukeren kan:
  *  - Bla i ferdige maler og opprette i ett klikk

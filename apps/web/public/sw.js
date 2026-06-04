@@ -1,4 +1,4 @@
-// Sakspilot service worker — minimal "app shell" cache + network-first for API
+// Sakspilot service worker, minimal "app shell" cache + network-first for API
 // Versjons-string: bump for å invalidere cache hos brukere
 const VERSION = 'v1-2026-05-28';
 const CACHE_NAME = `sakspilot-${VERSION}`;
@@ -27,13 +27,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // API-kall: alltid network. Ikke cache — krever fersk JWT-sjekk.
+  // API-kall: alltid network. Ikke cache, krever fersk JWT-sjekk.
   if (url.pathname.startsWith('/api/')) return;
 
   // POST/PATCH/DELETE: aldri cache
   if (event.request.method !== 'GET') return;
 
-  // /delt/[token]: ikke cache offentlige sider — innholdet kan endres
+  // /delt/[token]: ikke cache offentlige sider, innholdet kan endres
   if (url.pathname.startsWith('/delt/')) return;
 
   // Statiske ressurser: cache-first

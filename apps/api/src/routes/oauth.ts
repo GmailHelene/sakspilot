@@ -1,10 +1,10 @@
 /**
  * OAuth-routes for tredjeparts-tilkoblinger.
  *
- *   POST /oauth/microsoft/start    — autentisert, returnerer consent-URL
- *   GET  /oauth/microsoft/callback — Azure sender brukeren hit etter consent
- *   DELETE /oauth/microsoft        — kobler fra (sletter GraphAccount)
- *   GET  /oauth/microsoft/status   — er konto koblet til?
+ *   POST /oauth/microsoft/start   , autentisert, returnerer consent-URL
+ *   GET  /oauth/microsoft/callback, Azure sender brukeren hit etter consent
+ *   DELETE /oauth/microsoft       , kobler fra (sletter GraphAccount)
+ *   GET  /oauth/microsoft/status  , er konto koblet til?
  *
  * State-validering: vi signerer state med JWT_SECRET så vi vet det er vår
  * forespørsel (ikke CSRF). State inneholder userId.
@@ -33,7 +33,7 @@ router.post("/microsoft/start", requireAuth, (req: Request, res: Response) => {
   }
 
   const session = req.session!;
-  // Signert state — kobler tilbake til riktig user ved callback
+  // Signert state, kobler tilbake til riktig user ved callback
   const state = jwt.sign(
     { userId: session.userId, t: Date.now() },
     (process.env.JWT_SECRET || (() => { throw new Error("JWT_SECRET mangler - kan ikke signere OAuth-state"); })()),

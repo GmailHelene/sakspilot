@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Rapport — månedlig faktureringsgrunnlag + periode-oversikt.
+ * Rapport, månedlig faktureringsgrunnlag + periode-oversikt.
  *
  * - Velg periode (uke/måned/kvartal) → se totaler + topp-saker
  * - Last ned CSV for valgt år/måned (alle saker + brukere i org)
@@ -130,7 +130,7 @@ export default function RapportPage() {
           const data = (await res.json()) as { error?: string };
           if (data?.error) msg = data.error;
         } catch {
-          // ignore — ikke JSON
+          // ignore, ikke JSON
         }
         throw new Error(msg);
       }

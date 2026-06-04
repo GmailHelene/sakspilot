@@ -1,5 +1,5 @@
 /**
- * Klistrelapper (sticky notes) — quick post-it-style notater.
+ * Klistrelapper (sticky notes), quick post-it-style notater.
  * Knyttet til organisasjon, valgfritt til sak eller bruker.
  */
 import { Router, Request, Response } from "express";
@@ -61,7 +61,7 @@ const UpdateSchema = z.object({
 });
 
 /**
- * GET /stickies — alle klistrelapper for innloggets org.
+ * GET /stickies, alle klistrelapper for innloggets org.
  * Sortert: pinned først, deretter sist oppdatert.
  * Filter: ?sakId=... for å hente notater knyttet til en sak.
  */
@@ -153,7 +153,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
   // Voice notes: når audioBase64 settes (ikke-null), stempler vi recordedAt
   // til nå. Hvis audioBase64 er null (slett), nullstiller vi alle 4 felter
-  // uavhengig av hva klienten sendte for de andre audio-feltene — beskytter
+  // uavhengig av hva klienten sendte for de andre audio-feltene, beskytter
   // mot uventede halvferdige tilstander.
   if ("audioBase64" in parsed.data) {
     if (parsed.data.audioBase64 === null) {
@@ -175,7 +175,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
 });
 
 /**
- * DELETE /stickies/:id/audio — fjerner stemmenotat fra klistrelappen,
+ * DELETE /stickies/:id/audio, fjerner stemmenotat fra klistrelappen,
  * nullstiller alle 4 audio-felter. Selve notatet beholdes. Idempotent.
  */
 router.delete("/:id/audio", async (req: Request, res: Response) => {
@@ -199,10 +199,10 @@ router.delete("/:id/audio", async (req: Request, res: Response) => {
 });
 
 /**
- * GET /stickies/due-reminders — klistrelapper for innlogget bruker som har
+ * GET /stickies/due-reminders, klistrelapper for innlogget bruker som har
  * en remindAt <= now og enda ikke er varslet (notifiedAt = null).
  *
- * Begrenset til req.session.userId — påminnelser er personlige selv om
+ * Begrenset til req.session.userId, påminnelser er personlige selv om
  * notatet ligger på org-nivå. Filtreres på userId for å hindre at brukere
  * i samme team får hverandres påminnelser.
  */
@@ -222,7 +222,7 @@ router.get("/due-reminders", async (req: Request, res: Response) => {
 });
 
 /**
- * POST /stickies/:id/mark-notified — markerer en klistrelapp som "varslet"
+ * POST /stickies/:id/mark-notified, markerer en klistrelapp som "varslet"
  * så samme påminnelse ikke kommer igjen ved neste poll. Idempotent.
  */
 router.post("/:id/mark-notified", async (req: Request, res: Response) => {

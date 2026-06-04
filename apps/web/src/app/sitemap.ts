@@ -14,14 +14,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
   return [
-    // Hovedside — viktigst, høyest prioritet
+    // Hovedside, viktigst, høyest prioritet
     {
       url: `${base}/`,
       lastModified: now,
       changeFrequency: 'weekly',
       priority: 1.0,
     },
-    // FAQ er en seksjon på hovedsiden — fragment-URL for å hjelpe Google
+    // FAQ er en seksjon på hovedsiden, fragment-URL for å hjelpe Google
     // forstå at innholdet er strukturert (selv om de ikke indekserer fragments)
     {
       url: `${base}/#faq`,
@@ -29,42 +29,42 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.9,
     },
-    // Registreringssiden — viktig konverteringsmål
+    // Registreringssiden, viktig konverteringsmål
     {
       url: `${base}/registrer`,
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.8,
     },
-    // Login-siden — eksisterende brukere
+    // Login-siden, eksisterende brukere
     {
       url: `${base}/login`,
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.5,
     },
-    // Personvernerklæringen — viktig for tillit + GDPR
+    // Personvernerklæringen, viktig for tillit + GDPR
     {
       url: `${base}/personvern`,
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.7,
     },
-    // Prisside — viktig konverteringsmål
+    // Prisside, viktig konverteringsmål
     {
       url: `${base}/priser`,
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.9,
     },
-    // Last ned-side — Windows desktop-app
+    // Last ned-side, Windows desktop-app
     {
       url: `${base}/last-ned`,
       lastModified: now,
       changeFrequency: 'weekly',
       priority: 0.8,
     },
-    // Sammenligning — long-tail SEO ('Sakspilot vs Tripletex' osv)
+    // Sammenligning, long-tail SEO ('Sakspilot vs Tripletex' osv)
     {
       url: `${base}/sammenligning`,
       lastModified: now,

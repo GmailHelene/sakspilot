@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * /foresporsler — Lead/inquiry-pipeline.
+ * /foresporsler, Lead/inquiry-pipeline.
  *
  * Visning: kanban-style med 5 kolonner (ny, i_dialog, vunnet, tapt, arkivert).
  * Hver kolonne har telling i header. Klikk på kort → detalj-modal.
@@ -90,7 +90,7 @@ export default function ForesporslerPage() {
   }
 
   /**
-   * Generisk felt-oppdatering — brukt av inline-edit på kanban-kortene.
+   * Generisk felt-oppdatering, brukt av inline-edit på kanban-kortene.
    * Optimistisk: oppdater UI umiddelbart, rull tilbake hvis API feiler.
    */
   async function updateField<K extends keyof Foresporsel>(

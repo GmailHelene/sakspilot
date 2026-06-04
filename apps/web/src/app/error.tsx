@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { tokens } from '@/lib/tokens';
 
 /**
- * Global error boundary — fanger client-side exceptions slik at brukeren ikke
+ * Global error boundary, fanger client-side exceptions slik at brukeren ikke
  * ser Next.js sin generiske feilside.
  */
 export default function GlobalError({

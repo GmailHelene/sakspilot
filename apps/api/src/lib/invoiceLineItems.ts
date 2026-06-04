@@ -1,6 +1,6 @@
 /**
  * Faktura-linjer (Invoice.lineItems) lagres som Json-felt i Postgres.
- * Det betyr at Prisma IKKE validerer shape ved read — frontend/PDF-kode
+ * Det betyr at Prisma IKKE validerer shape ved read, frontend/PDF-kode
  * forutsetter at hver linje har { description, quantity, unitPrice, sum? }.
  *
  * Hvis vi har skrevet feil shape (gjennom direkte SQL, manuell DB-redigering,
@@ -26,7 +26,7 @@ export type LineItem = z.infer<typeof LineItemSchema>;
 /**
  * Parser raw Json-verdi fra Invoice.lineItems trygt. Hvis form-en er
  * ulovlig (ikke array, eller en linje mangler felter), returnerer vi
- * tom array OG logger advarsel — slik at PDF-en fortsatt rendres
+ * tom array OG logger advarsel, slik at PDF-en fortsatt rendres
  * (med fallback-linje basert på totaler) i stedet for å krasje.
  *
  * Brukes ved READ (PDF-generering, send-email). Ved WRITE (POST /invoices)

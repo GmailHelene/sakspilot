@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * /feedback — pilot-tilbakemelding.
+ * /feedback, pilot-tilbakemelding.
  *
  * Liten intern side hvor piloter kan svare på 4 korte spørsmål.
  * Helene leser via Prisma Studio (eller liten admin-side senere).
@@ -120,7 +120,7 @@ export default function FeedbackPage() {
                   Jeg vil gjerne ha en kort video-samtale med Helene
                 </span>
                 <span style={{ display: 'block', fontSize: 13, color: tokens.color.textMuted, marginTop: 2 }}>
-                  15–20 min - for å gå dypere i hvordan du jobber og hva som kunne hjulpet.
+                  15-20 min - for å gå dypere i hvordan du jobber og hva som kunne hjulpet.
                 </span>
               </span>
             </label>

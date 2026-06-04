@@ -3,7 +3,7 @@
 Slik får du Sakspilot live på `sakspilot.no` så .exe-en kan brukes uten lokal
 server.
 
-**Estimert tid:** 90–120 minutter
+**Estimert tid:** 90-120 minutter
 **Kostnad:** Railway Hobby-plan $5/mnd (~55 kr) + Domeneshop ~99 kr/år
 
 ---
@@ -95,7 +95,7 @@ for hver av disse:
 Lim inn forsiktig - ingen ekstra mellomrom på slutten av verdiene.
 
 Etter siste variabel: klikk **"Deploy"** i topp-baren. Følg loggen - bygget tar
-ca. 3–5 min.
+ca. 3-5 min.
 
 Når den er grønn: under **Settings → Networking → Generate Domain** for å få
 en midlertidig `*.up.railway.app`-URL. Test i nettleser:
@@ -125,7 +125,7 @@ Tilbake i Railway-prosjektet:
    | `PORT` | `3001` |
    | `NEXT_PUBLIC_API_URL` | `https://api.sakspilot.no` |
 
-5. **Deploy**. Tar 5–8 min for Next.js prod-bygg.
+5. **Deploy**. Tar 5-8 min for Next.js prod-bygg.
 
 Når grønn: generer domene + test:
 ```
@@ -163,14 +163,14 @@ Du skal se Sakspilot-landingssiden.
 7. Skriv `api.sakspilot.no` → kopier CNAME-verdien
 8. Lim inn i Domeneshop som verdi for `api`
 
-### Vent på DNS-propagasjon (5–30 min)
+### Vent på DNS-propagasjon (5-30 min)
 Test med:
 ```bash
 nslookup sakspilot.no
 nslookup api.sakspilot.no
 ```
 Når de svarer, åpne https://sakspilot.no i nettleser. Railway gir gratis
-Let's Encrypt SSL automatisk (kan ta 1–2 min etter første treff).
+Let's Encrypt SSL automatisk (kan ta 1-2 min etter første treff).
 
 ---
 

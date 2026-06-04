@@ -4,10 +4,10 @@
  * Tar en arbeidsøkt (samling av sessions mellom Start og Stopp) og
  * lager en .xlsx-fil med fire ark:
  *
- *   1. Sammendrag       — totaltall, dato, varighet
- *   2. Per sak          — fakturerbar tid per sak
- *   3. Per applikasjon  — hvor mye tid brukt i hvert program
- *   4. Detaljer         — hver eneste vindusperiode
+ *   1. Sammendrag      , totaltall, dato, varighet
+ *   2. Per sak         , fakturerbar tid per sak
+ *   3. Per applikasjon , hvor mye tid brukt i hvert program
+ *   4. Detaljer        , hver eneste vindusperiode
  *
  * Filformatet er valgt fordi det er enkelt å:
  *   - Sende til kunde som vedlegg
@@ -34,7 +34,7 @@ function buildWorkSessionReport({ workSessionStart, workSessionEnd, sessions, us
   // Fakturerbart = enten matchet en sak (sakId satt) ELLER ble logget via
   // auto-spor-flyten (matchedOn='auto-track' eller 'active-sak').
   // Grunn: når bruker har "auto-spor PÅ" betyr det at de fakturerer alt
-  // de gjør i Sakspilot — selv om de ikke har attribuert til en spesifikk
+  // de gjør i Sakspilot, selv om de ikke har attribuert til en spesifikk
   // sak ennå. Det kan kategoriseres senere via AI-triage eller manuelt.
   const isBillable = (e) =>
     !!e.sakId ||

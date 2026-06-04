@@ -4,7 +4,7 @@
  *   - hub.invoices → Invoice (med line items i JSON-felt)
  *   - hub.expenses → Utgift
  *
- * KUN for Helene (helene721@gmail.com). hub.projects importeres IKKE her —
+ * KUN for Helene (helene721@gmail.com). hub.projects importeres IKKE her , 
  * de overlapper med seed-personal-projects.ts (prosjekt-oversikt.html).
  *
  * Kjør:
@@ -122,7 +122,7 @@ async function main() {
     // ── Leads → Foresporsel ─────────────────────────────────
     // Idempotent via externalId (lead.id fra hub-backupen).
     // Hvis raden allerede finnes (externalId match), HOPPER VI OVER
-    // — bevarer brukerens manuelle redigeringer i web. Kun nye importeres.
+    //, bevarer brukerens manuelle redigeringer i web. Kun nye importeres.
     let leadsCreated = 0, leadsSkipped = 0;
     for (const lead of backup.leads || []) {
       const name = lead.kunde || lead.tittel || "(uten navn)";
@@ -139,7 +139,7 @@ async function main() {
       }
       const message = messageParts.join("\n");
 
-      // Match på (organizationId, externalId) — Prisma @@unique
+      // Match på (organizationId, externalId), Prisma @@unique
       const existing = await prisma.foresporsel.findUnique({
         where: { organizationId_externalId: { organizationId, externalId: lead.id } },
         select: { id: true },

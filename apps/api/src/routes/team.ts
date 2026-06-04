@@ -1,22 +1,22 @@
 /**
- * Team-routes — listing/invite/management av team-medlemmer i samme org.
+ * Team-routes, listing/invite/management av team-medlemmer i samme org.
  *
  * Roller (eksisterende):
- *   owner  — full tilgang, eneste rolle som kan invitere/fjerne/endre roller
- *   admin  — vanlig medlem med ekstra admin-rettigheter (per definisjon)
- *   member — vanlig medlem
+ *   owner , full tilgang, eneste rolle som kan invitere/fjerne/endre roller
+ *   admin , vanlig medlem med ekstra admin-rettigheter (per definisjon)
+ *   member, vanlig medlem
  *
  * Sikkerhetsprinsipper (samme mønster som klient-portal):
  *   - bcrypt-hash av token i DB (klartekst KUN i e-posten)
  *   - 7 dagers utløp
- *   - Aksept er idempotent — hvis allerede akseptert eller utløpt, feiler
+ *   - Aksept er idempotent, hvis allerede akseptert eller utløpt, feiler
  *   - Konstant-tids-respons mot enumerering
  *   - Audit-log på alle mutasjoner (invited, accepted, removed, role_changed,
  *     invite_revoked)
  *   - Beskytt mot å slette siste owner i org (kan låse org permanent)
  *   - Beskytt mot å endre sin egen rolle (må gå via annen owner)
  *
- * Multi-tenancy: alle queries filtreres på session.organizationId — cross-org
+ * Multi-tenancy: alle queries filtreres på session.organizationId, cross-org
  * tilgang er umulig fordi tokenet i JWT er bundet til org.
  *
  * Plan-gating: Solo-plan får 402 på POST /invites (kun pro/team-plan har team).
@@ -84,7 +84,7 @@ async function canInviteTeam(organizationId: string): Promise<{
 
 // ── GET /team/members ───────────────────────────────────────────
 //
-// Lister alle brukere i samme organisasjon. Returnerer kun trygge felter —
+// Lister alle brukere i samme organisasjon. Returnerer kun trygge felter , 
 // IKKE passwordHash, passwordResetTokenHash, tokenVersion eller andre interne
 // auth-felter. Egen User kan se sin egen rad (markeres ikke spesielt).
 
@@ -107,7 +107,7 @@ router.get("/members", async (req: Request, res: Response) => {
 
 // ── GET /team/invites ───────────────────────────────────────────
 //
-// Pending invites — acceptedAt = null OG expiresAt > now. Utløpte invites
+// Pending invites, acceptedAt = null OG expiresAt > now. Utløpte invites
 // vises ikke i UI (de er døde uansett).
 
 router.get("/invites", async (req: Request, res: Response) => {
@@ -135,7 +135,7 @@ router.get("/invites", async (req: Request, res: Response) => {
 //
 // Krever owner-rolle. Plan-gating først (solo → 402). Sjekker at e-posten
 // ikke allerede er User i samme org (409). Genererer crypto random token,
-// lagrer bcrypt-hash, sender e-post. Upsert på (organizationId, email) —
+// lagrer bcrypt-hash, sender e-post. Upsert på (organizationId, email) , 
 // re-invite overskriver gammel pending.
 
 router.post(
@@ -165,7 +165,7 @@ router.post(
     // Kollisjons-sjekk: e-post må ikke allerede være User et eller annet sted.
     // Vi tillater ikke å invitere noen som allerede er User i SAMME org
     // (tydelig 409). For brukere i andre orgs returnerer vi også 409 fordi
-    // User.email er @unique globalt — vi kan ikke lage en ny rad uansett.
+    // User.email er @unique globalt, vi kan ikke lage en ny rad uansett.
     const existing = await prisma.user.findUnique({
       where: { email: emailNorm },
       select: { id: true, organizationId: true },
@@ -198,7 +198,7 @@ router.post(
     const tokenHash = await hashPassword(rawToken);
     const expiresAt = new Date(Date.now() + 7 * 86400000); // 7 dager
 
-    // Upsert — én aktiv invite per (org, email). Re-invite overskriver gammel,
+    // Upsert, én aktiv invite per (org, email). Re-invite overskriver gammel,
     // resetter acceptedAt så en gammel akseptert invite ikke blokkerer (selv om
     // det i praksis ikke kan skje, fordi aksept skaper User og denne sjekken
     // ovenfor da returnerer 409).
@@ -269,7 +269,7 @@ router.post(
 
 // ── DELETE /team/invites/:inviteId ──────────────────────────────
 //
-// Owner kan slette pending invite. Hvis allerede akseptert — 404 (invite er
+// Owner kan slette pending invite. Hvis allerede akseptert, 404 (invite er
 // "borte"). Aldri-akseptert + utløpt invite kan også slettes (rydding).
 
 router.delete(
@@ -310,12 +310,12 @@ router.delete(
 //
 // Mønster portet fra klient-portal accept-invite:
 //   - Hent ALLE aktive (ikke-aksepterte, ikke-utløpte) invites
-//   - bcrypt.compare token mot hver — i praksis er det få samtidige
+//   - bcrypt.compare token mot hver, i praksis er det få samtidige
 //   - Hvis match: opprett User med samme organizationId + invite.role,
 //     marker invite som acceptedAt + acceptedByUserId
 //   - Konstant-tids-respons (delay før error-response) mot token-enumerering
 //
-// VIKTIG: Plasseres FØR router.use(requireAuth) i index? Nei — vi monter
+// VIKTIG: Plasseres FØR router.use(requireAuth) i index? Nei, vi monter
 // hele teamRouter med requireAuth, men dette endepunktet trenger ingen
 // session. Vi hopper over requireAuth eksplisitt ved å bypasse middleware:
 // vi monter den utenfor via egen path i index.ts.
@@ -436,7 +436,7 @@ router.delete(
     }
 
     // Cascade: timeEntries kobles fra (sakId beholdes hvis vi hadde
-    // SetNull — userId er Cascade i schema, så time-entries SLETTES sammen
+    // SetNull, userId er Cascade i schema, så time-entries SLETTES sammen
     // med brukeren). For å beholde historikk anbefales arkivering på sikt.
     // Inntil videre: cascade-delete (matcher User-modellens onDelete: Cascade
     // i alle relasjoner).
@@ -478,7 +478,7 @@ acceptInviteRouter.post(
     }
     const { token, name, password } = parsed.data;
 
-    // Hent alle aktive invites — bcrypt.compare mot hver. I praksis er antall
+    // Hent alle aktive invites, bcrypt.compare mot hver. I praksis er antall
     // pending invites lavt (vanligvis < 10 per org, total < 200). Hvis dette
     // vokser kraftig: legg inn 8-char-prefix av tokenet som indekserbart hint.
     const candidates = await prisma.teamInvite.findMany({
@@ -529,7 +529,7 @@ acceptInviteRouter.post(
           role: matched!.role,
           organizationId: matched!.organizationId,
           lastLoginAt: new Date(),
-          // Trial-felter brukes IKKE for team-medlemmer — de er på org-eierens
+          // Trial-felter brukes IKKE for team-medlemmer, de er på org-eierens
           // plan. Settes null så det er tydelig at de ikke har egen trial.
           trialEndsAt: null,
         },

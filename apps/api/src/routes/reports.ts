@@ -1,12 +1,12 @@
 /**
- * Reports-routes — aggregerte rapporter på tvers av saker.
+ * Reports-routes, aggregerte rapporter på tvers av saker.
  *
  *   GET /reports/dashboard?period=week|month|quarter
- *       — denne ukens/månedens/kvartalets timer + beløp + topp-saker
+ *      , denne ukens/månedens/kvartalets timer + beløp + topp-saker
  *
  *   GET /reports/month.csv?year=2026&month=5
- *       — eksporter alle fakturerbare timer for én måned (alle saker)
- *         til CSV — ideelt grunnlag for månedlig faktura-batch.
+ *      , eksporter alle fakturerbare timer for én måned (alle saker)
+ *         til CSV, ideelt grunnlag for månedlig faktura-batch.
  */
 import { Router, Request, Response } from "express";
 import { z } from "zod";
@@ -19,7 +19,7 @@ router.use(requireAuth);
 
 /**
  * GET /reports/home
- * Optimalisert for hjem-siden — returnerer ALT i ett kall i stedet for at
+ * Optimalisert for hjem-siden, returnerer ALT i ett kall i stedet for at
  * frontend itererer over saker og kaller time-summary per sak (N+1 problem).
  */
 router.get("/home", async (req: Request, res: Response) => {
@@ -445,7 +445,7 @@ router.post("/pdf", async (req: Request, res: Response) => {
     size: "A4",
     margin: 50,
     info: {
-      Title: `Tidsrapport ${fmtDateNb(fromDate)} – ${fmtDateNb(toDate)}`,
+      Title: `Tidsrapport ${fmtDateNb(fromDate)}: ${fmtDateNb(toDate)}`,
       Author: organization?.name ?? "Sakspilot",
       Creator: "Sakspilot",
     },
@@ -475,7 +475,7 @@ router.post("/pdf", async (req: Request, res: Response) => {
       align: "right",
     });
   doc.text(
-    `Periode: ${fmtDateNb(fromDate)} – ${fmtDateNb(toDate)}`,
+    `Periode: ${fmtDateNb(fromDate)}, ${fmtDateNb(toDate)}`,
     rightX,
     doc.y + 2,
     { width: tableRight - rightX, align: "right" }

@@ -1,11 +1,11 @@
 /**
- * Share-routes — administrer offentlige delte lenker for saker.
+ * Share-routes, administrer offentlige delte lenker for saker.
  *
- *   GET    /saker/:sakId/share        — hent eksisterende aktiv lenke
- *   POST   /saker/:sakId/share        — opprett ny lenke (revokerer gamle)
- *   DELETE /saker/:sakId/share        — revoker aktiv lenke
+ *   GET    /saker/:sakId/share       , hent eksisterende aktiv lenke
+ *   POST   /saker/:sakId/share       , opprett ny lenke (revokerer gamle)
+ *   DELETE /saker/:sakId/share       , revoker aktiv lenke
  *
- *   GET    /public/sak/:token         — offentlig (uten auth!), read-only
+ *   GET    /public/sak/:token        , offentlig (uten auth!), read-only
  *
  * Sikkerhet:
  *   - Token genereres med crypto.randomBytes(24).toString("base64url") = 32 tegn
@@ -62,7 +62,7 @@ authRouter.get("/:sakId/share", async (req: Request, res: Response) => {
 
   if (!link) return res.json({ link: null });
 
-  // Hvis utløpt — marker som revokert
+  // Hvis utløpt, marker som revokert
   if (link.expiresAt && link.expiresAt < new Date()) {
     await prisma.sharedSakLink.update({
       where: { id: link.id },
@@ -158,7 +158,7 @@ const publicRouter = Router();
 publicRouter.get("/sak/:token", async (req: Request, res: Response) => {
   const token = req.params.token;
 
-  // Basic validering — unngå at vi treffer DB med absurde input
+  // Basic validering, unngå at vi treffer DB med absurde input
   if (!token || token.length < 16 || token.length > 64 || !/^[A-Za-z0-9_-]+$/.test(token)) {
     return res.status(404).json({ error: "Lenken er ugyldig" });
   }
@@ -191,7 +191,7 @@ publicRouter.get("/sak/:token", async (req: Request, res: Response) => {
     return res.status(410).json({ error: "Lenken har utløpt" });
   }
 
-  // Inkrementer telleren (fire-and-forget — feiler ikke responsen)
+  // Inkrementer telleren (fire-and-forget, feiler ikke responsen)
   prisma.sharedSakLink
     .update({
       where: { id: link.id },
@@ -199,7 +199,7 @@ publicRouter.get("/sak/:token", async (req: Request, res: Response) => {
     })
     .catch((err) => console.error("[share] viewCount-oppdatering feilet:", err));
 
-  // Bygg minimal payload — eksponerer KUN nødvendig info
+  // Bygg minimal payload, eksponerer KUN nødvendig info
   const milestones = link.sak.milestones.map((m) => ({
     id: m.id,
     title: m.title,

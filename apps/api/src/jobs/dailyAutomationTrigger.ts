@@ -1,5 +1,5 @@
 /**
- * Daglig automasjons-trigger — standalone Node-script.
+ * Daglig automasjons-trigger, standalone Node-script.
  *
  * Skedulert via Render Cron Job, kjøres hver natt kl 02:00 Oslo-tid
  * (= 01:00 UTC sommertid / 00:00 UTC vintertid). Cron-uttrykk i Render:
@@ -12,7 +12,7 @@
  *   gikk varselet tapt. Denne jobben scanner alle organisasjoner uavhengig av
  *   brukeraktivitet.
  *
- * Gjenbruker logikken fra services/automationEngine.ts — vi importerer
+ * Gjenbruker logikken fra services/automationEngine.ts, vi importerer
  * `checkDueSoonAutomations()` istedenfor å duplisere matching/action-koden.
  *
  * Test lokalt:
@@ -64,7 +64,7 @@ async function main(): Promise<void> {
     } catch (err) {
       failCount++;
       console.error(`[daily-automation-trigger] feil for org ${org.id}:`, err);
-      // Fortsett med neste org — én org sin feil skal ikke stoppe hele jobben.
+      // Fortsett med neste org, én org sin feil skal ikke stoppe hele jobben.
     }
   }
 
@@ -77,7 +77,7 @@ async function main(): Promise<void> {
   await prisma.$disconnect();
 
   // failCount > 0 betyr at minst én org feilet, men jobben som helhet
-  // klarte å kjøre — vi exiter 0 så lenge selve loopen kom gjennom.
+  // klarte å kjøre, vi exiter 0 så lenge selve loopen kom gjennom.
   // Render alerter da kun ved harde krasj (uncaught exception).
   process.exit(0);
 }
@@ -87,7 +87,7 @@ main().catch(async (err) => {
   try {
     await prisma.$disconnect();
   } catch {
-    // ignorer — vi er allerede på vei ut
+    // ignorer, vi er allerede på vei ut
   }
   process.exit(1);
 });

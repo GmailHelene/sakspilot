@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Klient-portal — Mine fakturaer.
+ * Klient-portal, Mine fakturaer.
  *
  * Viser alle exported-fakturaer på tvers av klientens prosjekter, med:
  *   - KPI-strip: total / betalt / utestående / forfalt

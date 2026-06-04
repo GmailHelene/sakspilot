@@ -20,7 +20,7 @@ interface LauncherApp {
   color: string;
   emoji: string;
   /// Brand-slug for simple-icons.org. Null for tjenester uten kjent brand-ikon
-  /// (f.eks. norske SaaS) — da brukes emoji som fallback.
+  /// (f.eks. norske SaaS), da brukes emoji som fallback.
   brandSlug?: string | null;
   /// 'web' (default) = åpnes som webside (BrowserView i Electron, ny fane i browser).
   /// 'local' = åpner et lokalt Windows-program via shell.openPath. Kun Electron.
@@ -76,7 +76,7 @@ export default function Launcher() {
   const [mySites, setMySites] = useState<MySite[]>([]);
   // Auto-badges fra Electron-main (parser fanetittel når snarvei er åpen).
   // F.eks. Gmail-fanen viser "Inbox (3) - ..." → vi plukker opp tallet 3.
-  // Tjenester uten count i tittel (ChatGPT/Notion/Vercel) får ingen badge —
+  // Tjenester uten count i tittel (ChatGPT/Notion/Vercel) får ingen badge , 
   // det er bevisst, ikke et problem som trenger en manuell workaround.
   const [autoBadges, setAutoBadges] = useState<Record<string, number>>({});
   const [adding, setAdding] = useState(false);
@@ -119,10 +119,10 @@ export default function Launcher() {
     window.addEventListener('sakspilot:launcher-updated', handler);
     // Lytt også når Mine sites endres (Sidebar disptacher det)
     window.addEventListener('sakspilot:sites-updated', handler);
-    // storage-eventet fyrer på andre tabs/vinduer — fanger samme-vindu via custom event
+    // storage-eventet fyrer på andre tabs/vinduer, fanger samme-vindu via custom event
 
     // Auto-badge fra Electron-main: parser fanetittel på åpne BrowserViews.
-    // Bare i .exe-en — i nettleser er api udefinert.
+    // Bare i .exe-en, i nettleser er api udefinert.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const api = (typeof window !== 'undefined' ? (window as any).sakspilot : null);
     let unsubBadge: (() => void) | null = null;
@@ -280,7 +280,7 @@ export default function Launcher() {
       }
       return;
     }
-    // Web — som før
+    // Web, som før
     if (api?.isDesktop && api.openInWindow) {
       await api.openInWindow(app.url, app.label);
     } else {
@@ -813,9 +813,9 @@ export default function Launcher() {
   );
 }
 
-// (Manuell badge-popover fjernet 2026-06-03 — dårlig UX. Auto-badges fra
+// (Manuell badge-popover fjernet 2026-06-03, dårlig UX. Auto-badges fra
 // Electron-fanetittel-parsing er det vi beholder; tjenester uten count i
-// tittel forblir uten badge — det er bevisst.)
+// tittel forblir uten badge, det er bevisst.)
 
 function LauncherSiteFavicon({ url, label }: { url: string; label: string }) {
   const [tier, setTier] = useState<0 | 1 | 2>(0);
@@ -951,7 +951,7 @@ const resetButtonStyle: React.CSSProperties = {
  * Absolute-positionert; ytterligere wrapper trenger position: relative
  * (vår eksisterende wrapper har det allerede).
  *
- * Format: 9+ for >9, 99+ for >99 — så vi ikke får 3-sifret tall som
+ * Format: 9+ for >9, 99+ for >99, så vi ikke får 3-sifret tall som
  * sprenger ikon-størrelsen.
  */
 function LauncherBadge({ count }: { count: number }) {

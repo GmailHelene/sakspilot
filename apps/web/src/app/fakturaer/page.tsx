@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * /fakturaer — Faktura-oversikt.
+ * /fakturaer, Faktura-oversikt.
  *
  * Visning: tabell med år-filter + status-filter. Header viser KPIer.
  * Klikk på rad → detalj-modal med linjer + PDF-link + handlinger.
@@ -594,7 +594,7 @@ function DetailModal({
               Faktura {inv.invoiceNumber ? `#${inv.invoiceNumber}` : '(intet nummer)'}
             </h2>
             <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>
-              {fmtDate(inv.periodStart)} – {fmtDate(inv.periodEnd)} ·{' '}
+              {fmtDate(inv.periodStart)}, {fmtDate(inv.periodEnd)} ·{' '}
               {inv.sak?.client?.name || inv.customerName || 'Ingen kunde'}
             </div>
           </div>
@@ -773,7 +773,7 @@ Mvh`;
     try {
       // Konverter \n → <br> for HTML-versjonen av epost-body
       // Sanitér epost-body før vi pakker den inn i HTML-tags. Tidligere
-      // dyttet vi user-input direkte inn i en <p> — en kunde med <img onerror>
+      // dyttet vi user-input direkte inn i en <p>, en kunde med <img onerror>
       // i body kunne kjøre script i ANDRE klients innboks (XSS i utgående
       // epost). Vi escaper alle HTML-spesielle tegn før innpakking.
       const escapeHtml = (s: string): string => s

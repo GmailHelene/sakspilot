@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Klient-portal — sak-detalj.
- * Viser milepæler + fakturahistorikk (kun "exported" — draft skjules).
+ * Klient-portal, sak-detalj.
+ * Viser milepæler + fakturahistorikk (kun "exported", draft skjules).
  */
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -225,17 +225,17 @@ export default function PortalSakDetailPage() {
                     {invoices.map((inv) => (
                       <tr key={inv.id} style={{ borderBottom: `1px solid ${tokens.color.border}` }}>
                         <td style={tdStyle}>
-                          {new Date(inv.periodStart).toLocaleDateString('nb-NO')} – {new Date(inv.periodEnd).toLocaleDateString('nb-NO')}
+                          {new Date(inv.periodStart).toLocaleDateString('nb-NO')}, {new Date(inv.periodEnd).toLocaleDateString('nb-NO')}
                         </td>
                         <td style={tdStyle}>{Number(inv.totalHours).toFixed(1)}</td>
                         <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
                           {Number(inv.totalAmount).toLocaleString('nb-NO')} {inv.currency}
                         </td>
                         <td style={tdStyle}>
-                          {inv.exportedAt ? new Date(inv.exportedAt).toLocaleDateString('nb-NO') : '–'}
+                          {inv.exportedAt ? new Date(inv.exportedAt).toLocaleDateString('nb-NO') : ', '}
                         </td>
                         <td style={{ ...tdStyle, color: tokens.color.textMuted, fontFamily: 'monospace', fontSize: 12 }}>
-                          {inv.externalRef || '–'}
+                          {inv.externalRef || ', '}
                         </td>
                       </tr>
                     ))}

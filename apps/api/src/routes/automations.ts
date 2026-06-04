@@ -1,12 +1,12 @@
 /**
- * Automations-routes — CRUD for agenter (Monday/Notion-stil automatiseringer).
+ * Automations-routes, CRUD for agenter (Monday/Notion-stil automatiseringer).
  *
- *   GET    /automations              — liste alle for org
- *   POST   /automations              — opprett ny
- *   PATCH  /automations/:id          — oppdater (også enable/disable)
+ *   GET    /automations             , liste alle for org
+ *   POST   /automations             , opprett ny
+ *   PATCH  /automations/:id         , oppdater (også enable/disable)
  *   DELETE /automations/:id
- *   GET    /automations/templates    — returner ferdige maler
- *   POST   /automations/:id/test     — kjør én gang manuelt for å teste
+ *   GET    /automations/templates   , returner ferdige maler
+ *   POST   /automations/:id/test    , kjør én gang manuelt for å teste
  */
 import { Router, Request, Response } from "express";
 import { z } from "zod";

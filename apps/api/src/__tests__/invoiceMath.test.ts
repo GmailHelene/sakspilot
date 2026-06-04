@@ -7,8 +7,8 @@
 import { describe, it, expect } from 'vitest';
 import { lineSum, totalsFromLines, roundOere } from '../lib/invoiceMath';
 
-describe('roundOere — avrunding til øre', () => {
-  it('runder 1.005 ned til 1 (banker-rounding er IKKE valgt — Math.round half-up)', () => {
+describe('roundOere, avrunding til øre', () => {
+  it('runder 1.005 ned til 1 (banker-rounding er IKKE valgt, Math.round half-up)', () => {
     // Note: 1.005 representeres som 1.00499... i float, så Math.round gir 1.00
     expect(roundOere(1.005)).toBe(1);
   });
@@ -34,7 +34,7 @@ describe('roundOere — avrunding til øre', () => {
   });
 });
 
-describe('lineSum — beløp for én linje', () => {
+describe('lineSum, beløp for én linje', () => {
   it('quantity * unitPrice når ingen pre-beregnet sum', () => {
     expect(lineSum({ quantity: 10, unitPrice: 150 })).toBe(1500);
   });
@@ -53,7 +53,7 @@ describe('lineSum — beløp for én linje', () => {
   });
 
   it('avrunder resultatet til øre', () => {
-    // 3 timer * 333.33 kr/t = 999.99 (eksakt) — sjekker at vi ikke får 999.9899...
+    // 3 timer * 333.33 kr/t = 999.99 (eksakt), sjekker at vi ikke får 999.9899...
     expect(lineSum({ quantity: 3, unitPrice: 333.33 })).toBe(999.99);
   });
 
@@ -70,7 +70,7 @@ describe('lineSum — beløp for én linje', () => {
   });
 });
 
-describe('totalsFromLines — aggregert sum', () => {
+describe('totalsFromLines, aggregert sum', () => {
   it('tom array → { totalAmount: 0, totalHours: 0 }', () => {
     expect(totalsFromLines([])).toEqual({ totalAmount: 0, totalHours: 0 });
   });
@@ -102,7 +102,7 @@ describe('totalsFromLines — aggregert sum', () => {
     expect(totalsFromLines(lines).totalAmount).toBe(1800);
   });
 
-  it('akkumulert avrundings-feil unngås — 10x av 0.1', () => {
+  it('akkumulert avrundings-feil unngås, 10x av 0.1', () => {
     // I JS: 0.1 + 0.1 + ... 10 ganger = 0.9999999999999999 (float-feil)
     // roundOere må håndtere dette per-linje OG på sluttsum
     const lines = Array(10).fill({ quantity: 1, unitPrice: 0.1 });

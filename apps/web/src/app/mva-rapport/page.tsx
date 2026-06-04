@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * /mva-rapport — Norsk MVA-oversikt per periode (Q1-Q4 / H1-H2 / hele året).
+ * /mva-rapport, Norsk MVA-oversikt per periode (Q1-Q4 / H1-H2 / hele året).
  *
  * Henter aggregert data fra /mva-rapport-endpoint. Viser:
  *   - KPI-strip: utgående MVA, inngående MVA, netto
@@ -10,7 +10,7 @@
  *   - Faktura-/utgift-liste
  *   - PDF-eksport
  *
- * NB: dette er ikke en MVA-melding (Altinn RF-0002) — bare en forenklet
+ * NB: dette er ikke en MVA-melding (Altinn RF-0002), bare en forenklet
  * oversikt frilanseren bruker som grunnlag for innlevering.
  */
 import { useEffect, useState } from 'react';
@@ -63,17 +63,17 @@ interface MvaResponse {
 
 const currentYear = new Date().getFullYear();
 const PERIODER: Array<{ value: Periode; label: string }> = [
-  { value: 'Q1', label: 'Q1 (jan–mar)' },
-  { value: 'Q2', label: 'Q2 (apr–jun)' },
-  { value: 'Q3', label: 'Q3 (jul–sep)' },
-  { value: 'Q4', label: 'Q4 (okt–des)' },
+  { value: 'Q1', label: 'Q1 (jan-mar)' },
+  { value: 'Q2', label: 'Q2 (apr-jun)' },
+  { value: 'Q3', label: 'Q3 (jul-sep)' },
+  { value: 'Q4', label: 'Q4 (okt-des)' },
   { value: 'H1', label: 'Halvår 1' },
   { value: 'H2', label: 'Halvår 2' },
   { value: 'year', label: 'Hele året' },
 ];
 
 export default function MvaRapportPage() {
-  // Default: SISTE AVSLUTTEDE kvartal — det er det som er aktuelt for innlevering.
+  // Default: SISTE AVSLUTTEDE kvartal, det er det som er aktuelt for innlevering.
   // Hvis vi er i Q2 2026, har vi nettopp avsluttet Q1 2026, og det er det
   // brukeren typisk skal rapportere på (eller verifisere).
   // Spesialtilfelle: i januar er siste avsluttede Q4 i fjor.
@@ -135,7 +135,7 @@ export default function MvaRapportPage() {
           <>
             {/* Periode-badge */}
             <div style={{ marginBottom: 16, fontSize: 13, color: '#64748b' }}>
-              Periode: <strong>{data.periode}</strong> ({data.periodeStart} – {data.periodeSlutt}) ·{' '}
+              Periode: <strong>{data.periode}</strong> ({data.periodeStart}, {data.periodeSlutt}) ·{' '}
               {data.antallFakturaer} faktura{data.antallFakturaer === 1 ? '' : 'er'} ·{' '}
               {data.antallUtgifter} utgift{data.antallUtgifter === 1 ? '' : 'er'}
             </div>

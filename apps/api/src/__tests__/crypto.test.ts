@@ -25,7 +25,7 @@ afterAll(() => {
   else process.env.NODE_ENV = ORIG_ENV;
 });
 
-describe('encrypt / decrypt — roundtrip', () => {
+describe('encrypt / decrypt, roundtrip', () => {
   it('ASCII roundtrip', async () => {
     const { encrypt, decrypt } = await import('../lib/crypto');
     const plain = 'hemmelig-refresh-token-123';
@@ -35,11 +35,11 @@ describe('encrypt / decrypt — roundtrip', () => {
 
   it('norske tegn (æøå) roundtrip', async () => {
     const { encrypt, decrypt } = await import('../lib/crypto');
-    const plain = 'Helene Åsheim Grønberg — påske-rød';
+    const plain = 'Helene Åsheim Grønberg, påske-rød';
     expect(decrypt(encrypt(plain))).toBe(plain);
   });
 
-  it('tom streng — kjent grense: vi krypterer aldri tom token, så roundtrip er ikke garantert', async () => {
+  it('tom streng, kjent grense: vi krypterer aldri tom token, så roundtrip er ikke garantert', async () => {
     const { encrypt, decrypt } = await import('../lib/crypto');
     const enc = encrypt('');
     // GCM gir tom ciphertext-hex, som vår format-validering avviser ved decrypt.
@@ -55,7 +55,7 @@ describe('encrypt / decrypt — roundtrip', () => {
   });
 });
 
-describe('encrypt — format', () => {
+describe('encrypt, format', () => {
   it('output har 3 deler separert med kolon', async () => {
     const { encrypt } = await import('../lib/crypto');
     const enc = encrypt('test');
@@ -76,7 +76,7 @@ describe('encrypt — format', () => {
   });
 });
 
-describe('encrypt — non-determinism (IV-randomness)', () => {
+describe('encrypt, non-determinism (IV-randomness)', () => {
   it('samme plaintext gir ULIK ciphertext (random IV)', async () => {
     const { encrypt } = await import('../lib/crypto');
     const a = encrypt('samme');
@@ -93,7 +93,7 @@ describe('encrypt — non-determinism (IV-randomness)', () => {
   });
 });
 
-describe('decrypt — feilhåndtering', () => {
+describe('decrypt, feilhåndtering', () => {
   it('ugyldig format (ingen kolon) → throw', async () => {
     const { decrypt } = await import('../lib/crypto');
     expect(() => decrypt('ikke-en-cipher')).toThrow();
@@ -130,7 +130,7 @@ describe('decrypt — feilhåndtering', () => {
   });
 });
 
-describe('getKey — env-håndtering (security fix verifisering)', () => {
+describe('getKey, env-håndtering (security fix verifisering)', () => {
   it('throws hvis ENCRYPTION_KEY mangler OG NODE_ENV !== development', async () => {
     // Test isolert: temporarily slett key og sett prod
     const origKey = process.env.ENCRYPTION_KEY;

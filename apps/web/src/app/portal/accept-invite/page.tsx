@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Klient-portal — godta invitasjon.
+ * Klient-portal, godta invitasjon.
  *
  * Klienten kommer hit fra invite-e-posten med ?token=... i URL.
  * Setter passord (min 12 tegn), backend verifiserer token via bcrypt,

@@ -49,7 +49,7 @@ export default function TimeEntriesSection({
       setEntries(r.entries);
       setTotal(r.total);
     } catch {
-      // ignorer — vises som tom
+      // ignorer, vises som tom
     }
   }
 
@@ -128,7 +128,7 @@ export default function TimeEntriesSection({
                       hour: '2-digit',
                       minute: '2-digit',
                     })}
-                    {' – '}
+                    {', '}
                     {new Date(e.endedAt).toLocaleTimeString('nb-NO', {
                       hour: '2-digit',
                       minute: '2-digit',

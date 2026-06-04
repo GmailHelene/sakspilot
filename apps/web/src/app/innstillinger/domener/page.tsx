@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Egne domener (whitelabel) — owner-only.
+ * Egne domener (whitelabel), owner-only.
  *
  * Lar frilanseren koble sitt eget domene (f.eks. klienter.helenetech.no) til
  * sin klient-portal med egen branding. Flow:
@@ -168,7 +168,7 @@ function DomainsContent() {
       >
         <ol style={{ fontSize: 13, color: tokens.color.text, lineHeight: 1.7, paddingLeft: 20, margin: 0 }}>
           <li>Legg til domenet under. Du får tre DNS-instruksjoner du må sette opp hos din DNS-leverandør (Domeneshop, Cloudflare, GoDaddy etc.).</li>
-          <li>Trykk &quot;Verifiser nå&quot; når DNS er propagert (5–60 min). Vi sjekker at TXT-recorden er satt riktig.</li>
+          <li>Trykk &quot;Verifiser nå&quot; når DNS er propagert (5-60 min). Vi sjekker at TXT-recorden er satt riktig.</li>
           <li>Send en e-post til <a href="mailto:support@sakspilot.no" style={{ color: tokens.color.navy }}>support@sakspilot.no</a> så aktiverer vi domenet på Vercel-serveren (manuell oppskrift inntil videre).</li>
         </ol>
       </Section>

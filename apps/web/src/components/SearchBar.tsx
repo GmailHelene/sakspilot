@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * SearchBar — gjenbrukbar søke-input med debounce.
+ * SearchBar, gjenbrukbar søke-input med debounce.
  * Brukes på /foresporsler, /fakturaer, /regnskap, /klienter, /saker.
  *
  *   <SearchBar value={q} onChange={setQ} placeholder="Søk fakturaer..." />

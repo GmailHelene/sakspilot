@@ -8,7 +8,7 @@ import ThemePicker from '@/components/ThemePicker';
 import { tokens } from '@/lib/tokens';
 import { getDarkMode, setDarkMode } from '@/lib/themes';
 
-// Samme liste som i Sidebar.tsx — hold synkronisert
+// Samme liste som i Sidebar.tsx, hold synkronisert
 const ALL_NAV: { id: string; label: string }[] = [
   { id: 'hjem', label: 'Hjem' },
   { id: 'prosjekter', label: 'Prosjekter' },

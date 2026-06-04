@@ -66,7 +66,7 @@ export default function AiAssistantSection({ sakId }: { sakId: string }) {
         if (!cancelled) setChat(r.messages);
       })
       .catch(() => {
-        // Stille feile — historikk er ikke kritisk for å bruke assistenten.
+        // Stille feile, historikk er ikke kritisk for å bruke assistenten.
         if (!cancelled) setChat([]);
       })
       .finally(() => {

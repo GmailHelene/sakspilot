@@ -149,7 +149,7 @@ export default function TidsmalPage() {
               >
                 <Info size={16} strokeWidth={2} style={{ color: tokens.color.blue, flexShrink: 0, marginTop: 1 }} />
                 <span>
-                  <strong>Tips:</strong> Frilansere ligger typisk på 25–35 fakturerbare timer per uke.
+                  <strong>Tips:</strong> Frilansere ligger typisk på 25-35 fakturerbare timer per uke.
                   Resten av arbeidsdagen går ofte til e-post, oppfølging og admin.
                 </span>
               </div>

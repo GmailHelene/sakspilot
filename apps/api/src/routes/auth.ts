@@ -1,5 +1,5 @@
 /**
- * Auth-routes — register, login, me, logout, change-password.
+ * Auth-routes, register, login, me, logout, change-password.
  *
  * Forskjellig fra ByggPilot:
  *   - Ingen ID-porten (sluttbrukerne er privatpersoner/SMB-eiere, ikke kommune)
@@ -22,7 +22,7 @@ import { sendEmail, passwordResetEmail, welcomeEmail } from "../lib/email";
 
 const router = Router();
 
-// Cookie-innstillinger — SameSite=None+Secure kreves når API og web er
+// Cookie-innstillinger, SameSite=None+Secure kreves når API og web er
 // på ulike Railway-domener (cross-site). Trygt på localhost (browsers
 // regner localhost som "trustworthy origin").
 const COOKIE_OPTIONS = {
@@ -76,9 +76,9 @@ router.post("/register", async (req: Request, res: Response) => {
 
   // Atomisk: opprett org + user samtidig. Hvis user-opprettelsen feiler,
   // rulles org-opprettelsen tilbake.
-  // Pilot-perioden er gratis frem til denne datoen — alle nye orgs gratis.
+  // Pilot-perioden er gratis frem til denne datoen, alle nye orgs gratis.
   const PILOT_UNTIL = new Date("2026-12-31T23:59:59Z");
-  // Trial 14 dager fra registrering — relevant ETTER pilotperioden slutter.
+  // Trial 14 dager fra registrering, relevant ETTER pilotperioden slutter.
   const trialEnd = new Date(Date.now() + 14 * 86400000);
 
   const result = await prisma.$transaction(async (tx) => {
@@ -130,7 +130,7 @@ router.post("/register", async (req: Request, res: Response) => {
   console.log(`[Auth] Registrert: ${result.user.email} (${result.org.name})`);
 
   // Velkomst-e-post (dag 0 i onboarding-drip). Skal IKKE blokkere registrering
-  // hvis SMTP feiler — try/catch + ingen await på respons.
+  // hvis SMTP feiler, try/catch + ingen await på respons.
   // Cron-jobben jobs/onboardingDrip.ts håndterer dag 3/7/14.
   try {
     const emailResult = await sendEmail(
@@ -232,7 +232,7 @@ router.get("/me", requireAuth, async (req: Request, res: Response) => {
   });
 
   if (!user) {
-    // JWT er gyldig, men bruker er slettet — ugyldigjør sesjonen
+    // JWT er gyldig, men bruker er slettet, ugyldigjør sesjonen
     res.clearCookie("sakspilot_session", COOKIE_OPTIONS);
     return res.status(401).json({ error: "Brukeren finnes ikke lenger" });
   }
@@ -250,7 +250,7 @@ router.get("/me", requireAuth, async (req: Request, res: Response) => {
 });
 
 /**
- * POST /auth/logout — logger ut KUN denne enheten (sletter cookie).
+ * POST /auth/logout, logger ut KUN denne enheten (sletter cookie).
  * Andre enheter beholder gyldig token til /auth/logout-all.
  */
 router.post("/logout", (_req: Request, res: Response) => {
@@ -259,7 +259,7 @@ router.post("/logout", (_req: Request, res: Response) => {
 });
 
 /**
- * POST /auth/logout-all — invaliderer ALLE eksisterende tokens for bruker.
+ * POST /auth/logout-all, invaliderer ALLE eksisterende tokens for bruker.
  * Bumper User.tokenVersion → middleware avviser alle gamle JWTer.
  * Krever innlogging (du må ha en gyldig token for å si "logg meg ut alle steder").
  */
@@ -340,14 +340,14 @@ router.post(
  *
  * Genererer et engangstoken, lagrer SHA-256-hashen + utløp på User, og
  * logger reset-lenken til server-logg. I pilotfase sender vi IKKE e-post
- * (krever Postmark/SendGrid/Resend-oppsett) — Helene videresender lenken
+ * (krever Postmark/SendGrid/Resend-oppsett), Helene videresender lenken
  * manuelt eller får brukeren til å sjekke logger.
  *
- * Returnerer alltid 200 ok (selv hvis e-post ikke finnes) — så vi ikke
+ * Returnerer alltid 200 ok (selv hvis e-post ikke finnes), så vi ikke
  * lekker hvilke e-poster som har konto.
  *
  * I dev/pilot: returnerer resetToken og resetUrl i response så Helene kan
- * sende manuelt. Dette skal IKKE skje i prod — fjernes når SMTP er på plass.
+ * sende manuelt. Dette skal IKKE skje i prod, fjernes når SMTP er på plass.
  */
 const ForgotSchema = z.object({
   email: z.string().email().max(200),
@@ -427,7 +427,7 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
 
   // _devResetUrl returneres BARE i lokal dev (NODE_ENV='development').
   // Tidligere falt vi tilbake til å lekke URL-en hvis emailSent=false selv i
-  // prod ("siste utvei for piloter") — det er en bruker-enumerering-vektor og
+  // prod ("siste utvei for piloter"), det er en bruker-enumerering-vektor og
   // potensielt en konto-overtakelsesvektor hvis noen sniffer responser.
   // Logger fortsatt URLen til API-konsollen for prod-fallback (du må logge inn
   // på Render Logs for å hente den), men eksponerer den IKKE i HTTP-respons.

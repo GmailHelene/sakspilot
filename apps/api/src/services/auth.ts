@@ -1,9 +1,9 @@
 /**
- * Auth-tjeneste — JWT + bcrypt.
+ * Auth-tjeneste, JWT + bcrypt.
  *
  * Mønster portet fra ByggPilot:
  *   - bcrypt 12 rounds for passwordHash
- *   - JWT med 30d levetid (justérbar via JWT_EXPIRES_IN) — UX > strenghet
+ *   - JWT med 30d levetid (justérbar via JWT_EXPIRES_IN), UX > strenghet
  *     for et workspace-verktøy. Brukeren skal ikke bli kastet ut etter 8t.
  *     Sett kortere via JWT_EXPIRES_IN på Render hvis ønskelig.
  *   - Konstant tidsbruk ved feilet innlogging (mot timing-angrep)
@@ -36,12 +36,12 @@ export interface SakspilotSession {
   /// at JWT-versjonen er === User.tokenVersion i DB.
   tv: number;
   /// "user" eller udefinert = vanlig User-sesjon. Klient-portal-sesjoner
-  /// bruker SakspilotClientSession med scope: "client" istedenfor — separat
+  /// bruker SakspilotClientSession med scope: "client" istedenfor, separat
   /// type for å unngå at en klient-token noensinne kan brukes mot User-routes.
   scope?: "user";
 }
 
-/// Klient-portal-sesjon. Helt separat scope fra User-sesjonen — en klient
+/// Klient-portal-sesjon. Helt separat scope fra User-sesjonen, en klient
 /// kan IKKE bruke sin token mot vanlige User-routes (requireAuth aksepterer
 /// kun JWTer uten scope eller med scope=user). Tilsvarende avviser
 /// requireClientAuth alt som ikke har scope=client.
@@ -65,7 +65,7 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
 }
 
 export function createSessionToken(session: SakspilotSession): string {
-  // jsonwebtoken@9 + nyere @types krever StringValue/number for expiresIn —
+  // jsonwebtoken@9 + nyere @types krever StringValue/number for expiresIn , 
   // vi caster fordi vi vet JWT_EXPIRES_IN er en gyldig streng som "8h"
   const options: SignOptions = { expiresIn: JWT_EXPIRES_IN as SignOptions["expiresIn"] };
   return jwt.sign(session, EFFECTIVE_SECRET, options);

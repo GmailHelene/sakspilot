@@ -1,10 +1,10 @@
 /**
- * E-post-routes — manuell synk + visning per sak.
+ * E-post-routes, manuell synk + visning per sak.
  *
- *   POST /emails/sync          — trigger manuell synk fra Outlook
- *   GET  /saker/:id/emails     — liste e-poster knyttet til en sak
- *   PATCH /emails/:id/link     — manuelt knytt e-post til en sak
- *   DELETE /emails/:id/link    — fjern kobling (sletter ikke e-posten i Outlook)
+ *   POST /emails/sync         , trigger manuell synk fra Outlook
+ *   GET  /saker/:id/emails    , liste e-poster knyttet til en sak
+ *   PATCH /emails/:id/link    , manuelt knytt e-post til en sak
+ *   DELETE /emails/:id/link   , fjern kobling (sletter ikke e-posten i Outlook)
  */
 import { Router, Request, Response } from "express";
 import { z } from "zod";

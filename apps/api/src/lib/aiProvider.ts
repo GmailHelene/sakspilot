@@ -3,12 +3,12 @@
  *
  * Sakspilot bruker Claude som AI-modell, men kan routes via to provider-paths:
  *
- *   1. ANTHROPIC (default) — direkte mot Anthropic API
+ *   1. ANTHROPIC (default), direkte mot Anthropic API
  *      Krever: ANTHROPIC_API_KEY
  *      Data sendes via Anthropic (USA + EU), 30-dagers retention (ZDR krever
  *      Enterprise-avtale). PII-minimisering i ai.ts kompenserer.
  *
- *   2. BEDROCK (STUB) — via AWS Bedrock i eu-west-1 (Irland) eller eu-central-1
+ *   2. BEDROCK (STUB), via AWS Bedrock i eu-west-1 (Irland) eller eu-central-1
  *      Krever: AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
  *               + @anthropic-ai/bedrock-sdk i package.json
  *      Fordel: Data forblir innenfor EU (AWS DPA), ingen retention hos
@@ -19,7 +19,7 @@
  *   AI_PROVIDER=anthropic (default)
  *   AI_PROVIDER=bedrock
  *
- * Status: ANTHROPIC fungerer. BEDROCK er stub — koden er på plass men
+ * Status: ANTHROPIC fungerer. BEDROCK er stub, koden er på plass men
  * dependency er ikke installert. Aktivering når Helene har behov for
  * EU-residency (f.eks for offentlig sektor / regulert kunde).
  */
@@ -94,7 +94,7 @@ export function getAIClient(): Anthropic | null {
   }
 
   if (id === "bedrock") {
-    // Stub — Bedrock-SDK er ikke aktivert. Tidligere falt vi STILLE tilbake
+    // Stub, Bedrock-SDK er ikke aktivert. Tidligere falt vi STILLE tilbake
     // til Anthropic (USA), som er et brudd på GDPR-databehandler-løftet hvis
     // org-en eksplisitt har valgt Bedrock for å holde data i EU.
     //

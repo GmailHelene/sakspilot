@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * ConfirmDialog — pen erstatter for window.confirm().
+ * ConfirmDialog, pen erstatter for window.confirm().
  *
  * Brukes via useConfirm-hooken:
  *
@@ -38,9 +38,9 @@ type ConfirmFn = (opts: ConfirmOptions) => Promise<boolean>;
 const ConfirmContext = createContext<ConfirmFn | null>(null);
 
 /**
- * useConfirm — returnerer en async-funksjon som viser modal og venter på svar.
+ * useConfirm, returnerer en async-funksjon som viser modal og venter på svar.
  *
- * Returnerer alltid en gyldig funksjon — hvis provider ikke er montert
+ * Returnerer alltid en gyldig funksjon, hvis provider ikke er montert
  * (testing, isolerte komponenter), faller den tilbake til window.confirm.
  */
 export function useConfirm(): ConfirmFn {

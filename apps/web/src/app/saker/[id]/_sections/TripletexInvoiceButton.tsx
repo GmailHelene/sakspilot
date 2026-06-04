@@ -50,7 +50,7 @@ export default function TripletexInvoiceButton({
     };
   }, []);
 
-  // Skjul knappen helt hvis ikke koblet til — brukeren skal ikke se
+  // Skjul knappen helt hvis ikke koblet til, brukeren skal ikke se
   // en knapp som garantert feiler.
   if (!status?.connected) return null;
 

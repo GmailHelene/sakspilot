@@ -1,8 +1,8 @@
 /**
- * Sakspilot — månedlig DB-backup av Neon Postgres.
+ * Sakspilot, månedlig DB-backup av Neon Postgres.
  *
  * Hva den gjør:
- *   1. Kjører pg_dump mot DIRECT_URL (Neon direct, ikke pooler — pooler
+ *   1. Kjører pg_dump mot DIRECT_URL (Neon direct, ikke pooler, pooler
  *      støtter ikke streaming-replication-stil pg_dump bruker)
  *   2. Gzip-er output til ./backups/sakspilot-backup-YYYY-MM-DD.sql.gz
  *   3. Hvis R2-env er satt OG @aws-sdk/client-s3 er installert →
@@ -16,13 +16,13 @@
  *   For å aktivere R2: kjør `npm install @aws-sdk/client-s3` i apps/api.
  *
  * Nødvendige env-vars:
- *   DIRECT_URL              — Neon direct connection (ikke pooler)
+ *   DIRECT_URL             , Neon direct connection (ikke pooler)
  *
  * Valgfrie (alle eller ingen, ellers faller den tilbake til lokal lagring):
- *   R2_ACCOUNT_ID           — Cloudflare account ID
- *   R2_ACCESS_KEY_ID        — R2 API token access key
- *   R2_SECRET_ACCESS_KEY    — R2 API token secret
- *   R2_BUCKET_NAME          — bucket-navn (anbefalt: sakspilot-backups)
+ *   R2_ACCOUNT_ID          , Cloudflare account ID
+ *   R2_ACCESS_KEY_ID       , R2 API token access key
+ *   R2_SECRET_ACCESS_KEY   , R2 API token secret
+ *   R2_BUCKET_NAME         , bucket-navn (anbefalt: sakspilot-backups)
  *
  * Render cron-oppskrift:
  *   Schedule: 0 3 1 * *   (1. i måneden, 03:00 UTC = 04:00/05:00 Oslo)
@@ -73,7 +73,7 @@ async function dumpAndCompress(directUrl: string, outPath: string): Promise<void
   log("dump", "starter pg_dump", { outPath });
 
   // --no-owner / --no-acl: gjør dumpen portabel mellom databaser/roller.
-  // -Fp (plain SQL) er default, eksplisitt her for tydelighet — gir
+  // -Fp (plain SQL) er default, eksplisitt her for tydelighet, gir
   // tekst som lett restoreables med `psql`.
   const args = [
     "--no-owner",
@@ -127,7 +127,7 @@ function readR2Config(): R2Config | null {
   return { accountId, accessKeyId, secretAccessKey, bucket };
 }
 
-// Type-aliaser brukt under — `any` fordi @aws-sdk/client-s3 ikke er i
+// Type-aliaser brukt under, `any` fordi @aws-sdk/client-s3 ikke er i
 // dependencies (lastes dynamisk). Når du har kjørt
 // `npm install @aws-sdk/client-s3`, kan du valgfritt bytte til
 // `typeof import("@aws-sdk/client-s3")` for å få fulle typer her.
@@ -135,7 +135,7 @@ function readR2Config(): R2Config | null {
 type R2Object = { Key?: string; [k: string]: any };
 
 async function uploadToR2(cfg: R2Config, localPath: string, key: string): Promise<void> {
-  // Dynamisk import — så modulen ikke krasjer på require-tid hvis SDK
+  // Dynamisk import, så modulen ikke krasjer på require-tid hvis SDK
   // ikke er installert. Bruker bare R2-pathen hvis env-vars er satt.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let S3Mod: any;
@@ -174,7 +174,7 @@ async function uploadToR2(cfg: R2Config, localPath: string, key: string): Promis
   );
   log("upload", "ferdig", { key });
 
-  // Rotasjon: behold siste 12 — slett resten
+  // Rotasjon: behold siste 12, slett resten
   log("rotate", "lister eksisterende backups");
   const list = await client.send(
     new ListObjectsV2Command({

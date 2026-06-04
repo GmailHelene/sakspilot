@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Klient-detalj — vis + rediger + slett klient.
+ * Klient-detalj, vis + rediger + slett klient.
  *
  * Editering inline: alle felter blir input-felter. Endringer
  * lagres på blur. Sletting krever bekreftelse via modal.

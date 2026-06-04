@@ -114,7 +114,7 @@ Sakspilot skal:
 1. **Kun behandle** personopplysninger på Kundens dokumenterte instruks, herunder ved overføring til tredjeland (denne avtalen utgjør slik instruks).
 2. **Sikre konfidensialitet** for de som behandler dataene (kun Helene Åsheim Grønberg har tilgang i dag; ev. fremtidige ansatte signerer NDA før tilgang).
 3. **Implementere passende tekniske og organisatoriske tiltak** for å sikre et passende sikkerhetsnivå (se Vedlegg A).
-4. **Bistå Kunden** med å oppfylle plikter etter GDPR art. 32–36, herunder:
+4. **Bistå Kunden** med å oppfylle plikter etter GDPR art. 32-36, herunder:
    - Innsynsforespørsler fra registrerte (`/innstillinger/sikkerhet → Last ned data`)
    - Retting/sletting av data
    - Dataportabilitet (JSON-eksport)

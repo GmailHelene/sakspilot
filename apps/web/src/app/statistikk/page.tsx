@@ -1,10 +1,10 @@
 'use client';
 
 /**
- * /statistikk — Tverrgående KPIer for hele virksomheten.
+ * /statistikk, Tverrgående KPIer for hele virksomheten.
  *
  * Henter data fra flere endepunkter og aggregerer i frontend (ingen
- * server-side join — backend-routene er allerede tunede for hver av sine
+ * server-side join, backend-routene er allerede tunede for hver av sine
  * tabeller). Hvis dette blir tregt med mye data, erstattes med ett samlet
  * /reports/business-kpis endpoint.
  *

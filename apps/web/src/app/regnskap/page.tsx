@@ -1,15 +1,15 @@
 'use client';
 
 /**
- * /regnskap — Regnskaps-oversikt for året.
+ * /regnskap, Regnskaps-oversikt for året.
  *
  * Tre seksjoner:
  *   1. Inntekter (sum eksporterte fakturaer per måned)
- *   2. Utgifter (Utgift-tabellen) — opprett, kategoriser, slett
+ *   2. Utgifter (Utgift-tabellen), opprett, kategoriser, slett
  *   3. Resultat (inntekter − utgifter, samt MVA-status)
  *
  * Skattetabell-skisse: 35% avsetning (matcher hub-default).
- * Forenklet — ikke et fullt regnskapsverktøy, men gir frilanseren
+ * Forenklet, ikke et fullt regnskapsverktøy, men gir frilanseren
  * et raskt bilde av cash flow.
  */
 import React, { useEffect, useState } from 'react';
@@ -33,7 +33,7 @@ interface Utgift {
   notes: string | null;
 }
 
-// Max 5 MB for kvittering — base64-encoded blir det ~6.7 MB string,
+// Max 5 MB for kvittering, base64-encoded blir det ~6.7 MB string,
 // godt under Postgres TEXT-grensen og Zod-grensen vi satte (8 MB).
 const MAX_KVITTERING_BYTES = 5 * 1024 * 1024;
 const ALLOWED_KVITTERING_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
@@ -154,7 +154,7 @@ export default function RegnskapPage() {
   function openKvitteringPreview(dataUrl: string) {
     const isPdf = dataUrl.startsWith('data:application/pdf');
     if (isPdf) {
-      // Browser åpner PDF native — bare ny tab
+      // Browser åpner PDF native, bare ny tab
       const w = window.open();
       if (w) {
         w.document.write(`<iframe src="${dataUrl}" style="width:100vw;height:100vh;border:none"></iframe>`);
@@ -518,11 +518,11 @@ const btnStyle: React.CSSProperties = {
 const errBox: React.CSSProperties = { background: '#fee2e2', color: '#991b1b', padding: 12, borderRadius: 8, marginBottom: 16 };
 
 /**
- * KvitteringCell — viser thumbnail hvis kvittering finnes, ellers
+ * KvitteringCell, viser thumbnail hvis kvittering finnes, ellers
  * en liten upload-knapp. Klikk thumbnail = preview i nytt vindu.
  *
  * For PDF-er viser vi bare ikon (umulig å lage thumbnail uten ekstra dep).
- * For bilder bruker vi data-URL direkte som img src — fungerer pga data:
+ * For bilder bruker vi data-URL direkte som img src, fungerer pga data:
  * URL ikke krever ekstra request.
  */
 function KvitteringCell({

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * InlineEdit — klikk-for-å-redigere komponent.
+ * InlineEdit, klikk-for-å-redigere komponent.
  *
  *   <InlineEdit value={name} onSave={(v) => api.patch(...)} />
  *
@@ -11,7 +11,7 @@
  *   - Klikk visning → blir til input med fokus + selektert tekst
  *   - Enter eller blur lagrer (kaller onSave)
  *   - Esc avbryter (gjenoppretter original verdi)
- *   - onSave kan være async — UI viser små "lagrer..." mens den kjører
+ *   - onSave kan være async, UI viser små "lagrer..." mens den kjører
  *   - Hvis onSave throws, ruller vi tilbake til original verdi og viser
  *     en kort rød feilmelding
  *
@@ -67,12 +67,12 @@ export function InlineEdit({
   async function commit() {
     const trimmed = local.trim();
     if (trimmed === value.trim()) {
-      // Ingen endring — bare avslutt
+      // Ingen endring, bare avslutt
       setEditing(false);
       return;
     }
     if (trimmed.length < minLength) {
-      // Avvis tom/for kort — rull tilbake
+      // Avvis tom/for kort, rull tilbake
       setLocal(value);
       setEditing(false);
       return;

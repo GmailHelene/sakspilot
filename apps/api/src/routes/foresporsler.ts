@@ -1,12 +1,12 @@
 /**
- * Forespørsler-routes — CRUD for Foresporsel (lead/inquiry).
+ * Forespørsler-routes, CRUD for Foresporsel (lead/inquiry).
  *
- *   GET    /foresporsler                — liste (filtrer på status / archived)
- *   GET    /foresporsler/:id            — detalj
- *   POST   /foresporsler                — opprett (status default = ny)
- *   PATCH  /foresporsler/:id            — oppdater felter / status
- *   DELETE /foresporsler/:id            — slett (myk = sett arkivert isf delete)
- *   POST   /foresporsler/:id/convert    — konverter til Client + Sak (status → vunnet)
+ *   GET    /foresporsler               , liste (filtrer på status / archived)
+ *   GET    /foresporsler/:id           , detalj
+ *   POST   /foresporsler               , opprett (status default = ny)
+ *   PATCH  /foresporsler/:id           , oppdater felter / status
+ *   DELETE /foresporsler/:id           , slett (myk = sett arkivert isf delete)
+ *   POST   /foresporsler/:id/convert   , konverter til Client + Sak (status → vunnet)
  *
  * Multi-tenant: alle queries filtreres på organizationId fra session.
  *
@@ -40,14 +40,14 @@ const CreateForesporselSchema = z.object({
 const UpdateForesporselSchema = CreateForesporselSchema.partial();
 
 const ConvertSchema = z.object({
-  /// Klient-navn — default: foresporsel.name. Kan overstyres hvis du
+  /// Klient-navn, default: foresporsel.name. Kan overstyres hvis du
   /// vil at det skal hete noe annet i Klienter-listen.
   clientName: z.string().min(1).max(160).optional(),
   /// Org-nummer hvis det er et firma
   orgNumber: z.string().max(20).optional(),
   /// Skal vi automatisk opprette en startsak også?
   createSak: z.boolean().default(true),
-  /// Tittel for startsaken — default: "Oppdrag fra ${name}"
+  /// Tittel for startsaken, default: "Oppdrag fra ${name}"
   sakTitle: z.string().min(1).max(200).optional(),
 });
 
@@ -63,7 +63,7 @@ router.get("/", async (req: Request, res: Response) => {
   const includeArchived = req.query.includeArchived === "true";
   // Søk: case-insensitiv "contains" på name + message + source + notes.
   // Tomt q → ingen filter. Vi bruker Postgres mode: 'insensitive' så ILIKE
-  // brukes under panseret — ingen ekstra index trengs for små datasett.
+  // brukes under panseret, ingen ekstra index trengs for små datasett.
   const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
 
   const foresporsler = await prisma.foresporsel.findMany({
@@ -203,7 +203,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
   });
   if (!existing) return res.status(404).json({ error: "Forespørsel ikke funnet" });
 
-  // Hvis konvertert til klient, ikke slett — bare arkiver (vi vil ikke
+  // Hvis konvertert til klient, ikke slett, bare arkiver (vi vil ikke
   // miste sporet av hvor klienten kom fra). Brukeren får tilbakemelding.
   if (existing.convertedToClientId) {
     await prisma.foresporsel.update({
@@ -258,7 +258,7 @@ router.post("/:id/convert", async (req: Request, res: Response) => {
     });
   }
 
-  // Opprett klient + (valgfritt) første sak i én transaksjon — alt-eller-ingenting,
+  // Opprett klient + (valgfritt) første sak i én transaksjon, alt-eller-ingenting,
   // så vi aldri ender opp med klient uten lead-link.
   const result = await prisma.$transaction(async (tx) => {
     const client = await tx.client.create({

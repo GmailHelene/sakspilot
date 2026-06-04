@@ -5,13 +5,13 @@
  * matcher et verifisert CustomDomain, og returnerer org-id + branding-overrides.
  *
  * Cache:
- *   - TTL 5 min — custom-domener endrer seg sjelden (kun ved add/verify/branding-
+ *   - TTL 5 min, custom-domener endrer seg sjelden (kun ved add/verify/branding-
  *     edit). Vi inverterer cachen ved mutasjon via invalidateHostname() så
  *     branding-endringer slår gjennom umiddelbart, men feilet/utløpt opplaste
  *     domener gir maks 5 min stale-window.
- *   - Negative cache (null-resultat) lagres også — uten dette vil hver request
+ *   - Negative cache (null-resultat) lagres også, uten dette vil hver request
  *     mot Host: sakspilot.no (vanligste case!) gå mot DB.
- *   - Map<string, { value, expires }>. Bevisst ingen LRU — antall unike
+ *   - Map<string, { value, expires }>. Bevisst ingen LRU, antall unike
  *     custom-domener forventet < 100 i pilot, ikke verdt kompleksiteten.
  */
 import prisma from "./prisma";

@@ -1,10 +1,10 @@
 /**
- * Sakspilot Desktop Agent — Electron main-prosess.
+ * Sakspilot Desktop Agent, Electron main-prosess.
  *
  * Kjører i bakgrunnen som tray-app. To moduser:
- *   1. "Arbeidsøkt aktiv"  — du har klikket Start, vi logger aktivt vindu
+ *   1. "Arbeidsøkt aktiv" , du har klikket Start, vi logger aktivt vindu
  *      hvert N. sekund og knytter til sak via matching-regler
- *   2. "Inaktiv"           — vi logger ikke noe. Klikk Start for å begynne.
+ *   2. "Inaktiv"          , vi logger ikke noe. Klikk Start for å begynne.
  *
  * Når du klikker "Stopp + rapport":
  *   - Pågående session avsluttes
@@ -23,7 +23,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
 
-// ── GPU + smooth scrolling — må settes FØR app.whenReady ─────────
+// ── GPU + smooth scrolling, må settes FØR app.whenReady ─────────
 // Disse switchene aktiverer hardware-akselerasjon og zero-copy buffer-
 // transfer, som gir merkbart smoothere scrolling i tunge sider (WP-admin,
 // Gmail). Sjelden målbar load-tid-gevinst, men UX-en føles raskere.
@@ -35,7 +35,7 @@ try {
   app.commandLine.appendSwitch('enable-smooth-scrolling');
 } catch {}
 
-// ── Crash-logger — skriv ALLE krasj til fil + dialog ────────────
+// ── Crash-logger, skriv ALLE krasj til fil + dialog ────────────
 // Uten dette feiler en pakket .exe stille hvis noe går galt ved oppstart.
 // Loggen kan deles for feilsøking.
 const crashLogPath = path.join(os.tmpdir(), 'sakspilot-crash.log');
@@ -70,26 +70,26 @@ let notifPoller = null;  // System-toast for nye forespørsler/fakturaer/etc
 
 // ── Personlig hub (kun for Helene) ──────────────────────────────
 // Tray-menyitems som peker på Helenes private dashboard-filer/URLer.
-// Gated på e-post — usynlig for alle andre brukere.
+// Gated på e-post, usynlig for alle andre brukere.
 const PERSONAL_USER_EMAIL = 'helene721@gmail.com';
 const PERSONAL_HUB_FILE = 'C:\\Users\\helen\\Desktop\\prosjekt-oversikt.html';
 const PERSONAL_HUB_URL = 'https://helene.cloud/hub/hjem-aB3xK9p2qZ.html';
 let personalHubWindow = null;
 let personalCloudHubWindow = null;
 
-// Arbeidsøkt-state (kun i minnet — ny etter restart)
+// Arbeidsøkt-state (kun i minnet, ny etter restart)
 let workSessionActive = false;
 let workSessionStart = null;
 let workSessionSessions = [];   // sessions samlet i pågående arbeidsøkt
 // Pause-tracking: total tid (ms) i pause i denne arbeidsøkten, og
 // timestamp for når nåværende pause startet (null hvis ikke i pause).
-// Brukes for å vise REELL arbeidstid i widget — ekskl. pauser.
+// Brukes for å vise REELL arbeidstid i widget, ekskl. pauser.
 let workSessionPausedTotalMs = 0;
 let workSessionPausedAt = null;
 const pendingSessions = [];     // sessions klare for sync til backend
 let deviceId = null;            // stabil per installasjon
 
-// Pomodoro-state (kun i minnet — nullstilles ved restart)
+// Pomodoro-state (kun i minnet, nullstilles ved restart)
 // null | { phase: 'work'|'break', startedAt: number, sessionNumber: number, timer: NodeJS.Timeout }
 let pomodoroState = null;
 let pomodoroCompletedCount = 0; // antall fullførte work-faser i denne sesjonen
@@ -120,7 +120,7 @@ app.whenReady().then(async () => {
     store.set('deviceId', deviceId);
   }
 
-  // Preconnect/DNS-prefetch til kjente snarvei-domener — bygger TCP +
+  // Preconnect/DNS-prefetch til kjente snarvei-domener, bygger TCP +
   // TLS-håndtrykk på forhånd så første klikk på en snarvei sparer 200-400 ms.
   // Vi preconnecter til snarvei-partition (samme som faktiske snarveier bruker)
   // så connection-pool faktisk gjenbrukes når brukeren klikker.
@@ -190,7 +190,7 @@ function initializeAgent() {
         workSessionSessions.push(sess);
       }
       pendingSessions.push(sess);
-      // Trigg sync umiddelbart (ikke vent på timer-intervall) — gjør at
+      // Trigg sync umiddelbart (ikke vent på timer-intervall), gjør at
       // rapport-siden alltid har ferskeste data. Hvis sync feiler legges
       // sessions tilbake og prøves igjen ved neste tick.
       syncSessions();
@@ -223,10 +223,10 @@ function initializeAgent() {
 }
 
 /**
- * Start NotifPoller — system-toast for nye forespørsler/fakturaer/etc.
+ * Start NotifPoller, system-toast for nye forespørsler/fakturaer/etc.
  * Idempotent: starter ikke ny hvis det allerede kjører en.
  *
- * Kjører helt uavhengig av Poller (arbeidsøkt) — varsler kommer også når
+ * Kjører helt uavhengig av Poller (arbeidsøkt), varsler kommer også når
  * brukeren IKKE har startet arbeidsøkt, så lenge appen er åpen og innlogget.
  */
 function startNotifPoller() {
@@ -241,7 +241,7 @@ function startNotifPoller() {
   notifPoller.start();
 }
 
-// ── Personlig hub (kun Helene) — hjelpefunksjoner ───────────────
+// ── Personlig hub (kun Helene), hjelpefunksjoner ───────────────
 
 /**
  * Åpne lokal prosjekt-oversikt.html i eget BrowserWindow.
@@ -333,7 +333,7 @@ function updateTrayMenu() {
   if (loggedIn) {
     items.push({ label: `📍 ${userName}`, enabled: false });
 
-    // Auto-track toggle — synlig øverst slik at status er åpenbar
+    // Auto-track toggle, synlig øverst slik at status er åpenbar
     const autoOn = !!store.get('autoTrackOpened');
     items.push({
       label: autoOn
@@ -351,7 +351,7 @@ function updateTrayMenu() {
     }
     items.push({ type: 'separator' });
 
-    // Pomodoro-timer — egen seksjon mellom auto-spor og arbeidsøkt
+    // Pomodoro-timer, egen seksjon mellom auto-spor og arbeidsøkt
     if (pomodoroState) {
       const remaining = pomodoroRemainingSec();
       const phaseLabel = pomodoroState.phase === 'work'
@@ -394,7 +394,7 @@ function updateTrayMenu() {
       items.push({ label: '▶  Start arbeidsøkt', click: () => startWorkSession() });
     }
 
-    // Personlig hub — kun synlig for Helene (gated på e-post)
+    // Personlig hub, kun synlig for Helene (gated på e-post)
     if (store.get('userEmail') === PERSONAL_USER_EMAIL) {
       items.push({ type: 'separator' });
       items.push({ label: '🔒 Personlig', enabled: false });
@@ -497,7 +497,7 @@ function pomodoroNotify(title, body) {
 }
 
 function startPomodoro() {
-  // Hvis en pomodoro allerede kjører, ikke start på nytt — bare rapporter.
+  // Hvis en pomodoro allerede kjører, ikke start på nytt, bare rapporter.
   if (pomodoroState) return false;
   const sessionNumber = pomodoroCompletedCount + 1;
   pomodoroState = {
@@ -699,7 +699,7 @@ async function stopWorkSession() {
 function togglePause() {
   if (!poller) return;
   if (poller.paused) {
-    // Fortsetter — legg til varigheten av forrige pause til totalen
+    // Fortsetter, legg til varigheten av forrige pause til totalen
     if (workSessionPausedAt) {
       workSessionPausedTotalMs += Date.now() - workSessionPausedAt;
       workSessionPausedAt = null;
@@ -707,7 +707,7 @@ function togglePause() {
     poller.resume();
     notify('Sakspilot', 'Logging er på igjen');
   } else {
-    // Pauser — registrer når pausen startet
+    // Pauser, registrer når pausen startet
     workSessionPausedAt = Date.now();
     poller.pause();
     notify('Sakspilot', 'Logging pauset (arbeidsøkt fortsetter)');
@@ -776,10 +776,10 @@ async function syncSessions() {
     console.log(`[Sync] ${result.created} sessions synket til backend`);
   } catch (err) {
     console.error('[Sync] feilet:', err.message);
-    // Legg dem tilbake — neste sync-tick prøver igjen
+    // Legg dem tilbake, neste sync-tick prøver igjen
     pendingSessions.unshift(...batch);
 
-    // 401 = utløpt JWT — bruker må logge inn på nytt. Åpne dashbordet
+    // 401 = utløpt JWT, bruker må logge inn på nytt. Åpne dashbordet
     // ÉN gang og vis tydelig notification. authExpiredHandled-flagget
     // resettes ved neste vellykkede login (i auth:login-IPC under).
     const is401 = /\b401\b/.test(err.message) || /Ikke innlogget/i.test(err.message);
@@ -796,14 +796,14 @@ async function syncSessions() {
         // Åpne dashboard så bruker kan logge inn igjen
         try { openDashboardWindow(); } catch {}
       }
-      // Stopper sync-loopen midlertidig — vi prøver ikke igjen før bruker
+      // Stopper sync-loopen midlertidig, vi prøver ikke igjen før bruker
       // har re-logget. Dette unngår at agenten kontinuerlig fyrer 401
       // i bakgrunnen og holder dashboard på topp.
       updateTrayMenu();
       return;
     }
 
-    // Andre feil (nettverk osv) — vis advarsel max én per time
+    // Andre feil (nettverk osv), vis advarsel max én per time
     const lastNotif = store.get('lastSyncErrorNotif') || 0;
     if (Notification.isSupported() && Date.now() - lastNotif > 3600_000) {
       const apiUrl = store.get('apiUrl') || 'https://api.sakspilot.no';
@@ -823,7 +823,7 @@ async function syncSessions() {
 
 function scheduleSync() {
   if (syncTimer) clearInterval(syncTimer);
-  // Sync hvert 30. sek — alle endringer trender naturlig mot å være synket
+  // Sync hvert 30. sek, alle endringer trender naturlig mot å være synket
   // innen et halvt minutt. Lavere tall ville hamre på API-en når ingenting
   // er nytt; sync-funksjonen er allerede no-op ved tom kø.
   syncTimer = setInterval(syncSessions, 30 * 1000);
@@ -839,10 +839,10 @@ function scheduleRulesRefresh() {
 // ennå ikke er varslet (notifiedAt = null). For hver: vis native
 // OS-notification og POST mark-notified så samme varsel ikke kommer igjen.
 //
-// Web-appen poller samme endpoint parallelt — backend er kilden til sannhet
+// Web-appen poller samme endpoint parallelt, backend er kilden til sannhet
 // (notifiedAt settes atomisk via mark-notified), så worst case er at samme
 // påminnelse vises BÅDE som OS-notif OG in-app toast hvis bruker har begge
-// åpne samtidig. Det er greit — bedre å varsle dobbelt enn å glemme.
+// åpne samtidig. Det er greit, bedre å varsle dobbelt enn å glemme.
 function scheduleReminderCheck() {
   if (reminderTimer) clearInterval(reminderTimer);
   reminderTimer = setInterval(checkStickyReminders, 60 * 1000);
@@ -855,7 +855,7 @@ async function checkStickyReminders() {
     const res = await apiCall('/stickies/due-reminders');
     due = res.notes || [];
   } catch (err) {
-    // Stille feil — prøver igjen om 60 sek
+    // Stille feil, prøver igjen om 60 sek
     console.warn('[Reminders] kunne ikke hente:', err.message);
     return;
   }
@@ -863,7 +863,7 @@ async function checkStickyReminders() {
 
   for (const note of due) {
     showReminderNotification(note);
-    // Marker som varslet — uavhengig av om native-notif faktisk vises (kan
+    // Marker som varslet, uavhengig av om native-notif faktisk vises (kan
     // feile på Linux uten libnotify, men da har dashbordet-toast tatt over)
     try {
       await apiCall(`/stickies/${note.id}/mark-notified`, { method: 'POST' });
@@ -923,12 +923,12 @@ let dashboardWindow = null;
 let dashboardLoadTimer = null;
 
 /**
- * Daily auto-reload — sikrer at brukeren får siste web-build uten å måtte
+ * Daily auto-reload, sikrer at brukeren får siste web-build uten å måtte
  * trykke Ctrl+R selv. Triggrer reload + cache-clear ved første åpning av
  * dashbordet hver kalenderdag (lokal tid).
  *
  * Logikk: lagre siste reload-dato i electron-store. Ved openDashboardWindow()
- * sammenlign med dagens dato — hvis forskjellig, reload etter at vinduet er
+ * sammenlign med dagens dato, hvis forskjellig, reload etter at vinduet er
  * vist. Mid-day work avbrytes ikke (samme dato = ingen reload).
  */
 function maybeDailyReload() {
@@ -984,7 +984,7 @@ function openDashboardWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       // Preload eksponerer window.sakspilot.isDesktop, openInWindow, openFolder,
-      // getStatus osv. — uten dette tror dashboardet det er i nettleser, og
+      // getStatus osv., uten dette tror dashboardet det er i nettleser, og
       // mappe-snarveier + tidsregistrerings-widget + Launcher-shortcuts feiler.
       preload: path.join(__dirname, 'preload.js'),
     },
@@ -1043,7 +1043,7 @@ function openDashboardWindow() {
   // Forsøk å laste web-appen etter 500ms
   setTimeout(() => attemptLoad(), 500);
 
-  // Floating widget — opprett etter at vinduet finnes så bounds er klare
+  // Floating widget, opprett etter at vinduet finnes så bounds er klare
   setTimeout(() => ensureWidgetView(), 800);
 
   // Hold widget riktig posisjonert + på topp når dashbordet endrer størrelse.
@@ -1180,7 +1180,7 @@ function openDashboardWindow() {
 
 // ── Auth ────────────────────────────────────────────────────────
 async function login(apiUrl, email, password) {
-  // Timeout etter 15 sek — så vi ikke henger evig hvis API er nede
+  // Timeout etter 15 sek, så vi ikke henger evig hvis API er nede
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
@@ -1218,7 +1218,7 @@ async function login(apiUrl, email, password) {
     organizationId: data.user.organizationId,
     organizationName: data.user.organizationName || '',
   });
-  // Nullstill 401-debounce — ny token er gyldig, sync skal prøve igjen
+  // Nullstill 401-debounce, ny token er gyldig, sync skal prøve igjen
   authExpiredHandled = false;
   initializeAgent();
   updateTrayMenu();
@@ -1259,13 +1259,13 @@ function logout() {
  * Center / Linux libnotify).
  *
  * Signatur er bakoverkompatibel:
- *   notify('Tittel', 'Body')                  — gammel callsite, ingen klikk-action
- *   notify({ title, body })                   — objekt-form
+ *   notify('Tittel', 'Body')                 , gammel callsite, ingen klikk-action
+ *   notify({ title, body })                  , objekt-form
  *   notify({ title, body, areaPath: '/foresporsler' })
- *                                             — klikk åpner dashbordet + navigerer
+ *                                            , klikk åpner dashbordet + navigerer
  *                                               til /foresporsler
  *
- * silent: true unngår "ding" på Windows for de fleste varsler — vi bruker
+ * silent: true unngår "ding" på Windows for de fleste varsler, vi bruker
  * lyd kun ved nye leads (forespørsler).
  */
 function notify(arg1, arg2) {
@@ -1316,7 +1316,7 @@ function navigateDashboardTo(targetPath) {
     return;
   }
 
-  // Vindu finnes — vis det, fokuser, naviger
+  // Vindu finnes, vis det, fokuser, naviger
   dashboardWindow.show();
   dashboardWindow.focus();
   try { dashboardWindow.loadURL(fullUrl); } catch {}
@@ -1348,7 +1348,7 @@ ipcMain.handle('agent:status', () => {
     active: workSessionActive,
     paused: !!pollerStatus.paused,
     startedAt: workSessionStart ? new Date(workSessionStart).getTime() : null,
-    // Pause-tracking — widget bruker disse til å beregne REELL arbeidstid
+    // Pause-tracking, widget bruker disse til å beregne REELL arbeidstid
     // (ekskl. pauser). pausedTotalMs = sum av tidligere fullførte pauser.
     // pausedAt = timestamp for nåværende pause hvis paused, ellers null.
     pausedTotalMs: workSessionPausedTotalMs,
@@ -1390,7 +1390,7 @@ ipcMain.handle('agent:set-auto-track', (_e, enabled) => {
   return { ok: true, enabled: !!enabled };
 });
 
-// Aktiv sak — kalles fra web når bruker navigerer til /saker/[id]
+// Aktiv sak, kalles fra web når bruker navigerer til /saker/[id]
 // så auto-track vet hvilken sak å attribuere til.
 ipcMain.handle('agent:set-active-sak', (_e, sakId, sakTitle) => {
   setActiveSak(sakId, sakTitle);
@@ -1508,7 +1508,7 @@ ipcMain.handle('shell:open-folder', async (_e, folderPath) => {
 // React får komplett liste via 'shortcut:state'-events.
 //
 // Offsetter må matche sakspilot.no sin layout (DesktopShortcutOverlay.tsx
-// har samme konstanter — hold synkronisert!)
+// har samme konstanter, hold synkronisert!)
 const SAKSPILOT_HEADER_HEIGHT = 72;
 const SIDEBAR_WIDTH = 220;
 const LAUNCHER_WIDTH = 60;
@@ -1547,7 +1547,7 @@ function setActiveShortcut(url) {
   const entry = openShortcuts.get(url);
   if (!entry) return;
 
-  // Fjern alle andre views fra topplaget — bare den aktive vises
+  // Fjern alle andre views fra topplaget, bare den aktive vises
   for (const [u, m] of openShortcuts.entries()) {
     if (u !== url) {
       try { dashboardWindow.removeBrowserView(m.view); } catch {}
@@ -1595,7 +1595,7 @@ function closeAllShortcuts() {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Floating widget — alltid-på-topp tidsregistrerings-kontroller
+// Floating widget, alltid-på-topp tidsregistrerings-kontroller
 // ─────────────────────────────────────────────────────────────────
 // React-widgeten i sakspilot.no lever i hoved-DOM-en og dekkes av
 // snarvei-BrowserViews. Dette er en EGEN BrowserView som vi alltid
@@ -1621,7 +1621,7 @@ function ensureWidgetView() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      // transparent: vi tegner kun knappen/panelet — resten skal være see-through
+      // transparent: vi tegner kun knappen/panelet, resten skal være see-through
       backgroundThrottling: false,
     },
   });
@@ -1638,7 +1638,7 @@ function positionWidgetView() {
   // Bruk getBounds (klient-koordinater w/h er stabile selv under minimize)
   const b = dashboardWindow.getContentBounds();
   // Hvis vinduet er minimisert eller har null/ulovlig størrelse, IKKE flytt
-  // widgeten — la den ligge der den var. Tidligere fikk vi x=0, y=0 →
+  // widgeten, la den ligge der den var. Tidligere fikk vi x=0, y=0 →
   // klokken hoppet til oppe-til-venstre når dashboard ble minimisert.
   if (!b || b.width < 200 || b.height < 200) return;
   const w = widgetIsExpanded ? WIDGET_PANEL_W : WIDGET_ICON_SIZE;
@@ -1700,7 +1700,7 @@ ipcMain.handle('shell:open-in-window', async (_e, url, label) => {
     return { ok: true, alreadyOpen: true };
   }
 
-  // Ny snarvei åpnes — auto-track logger den
+  // Ny snarvei åpnes, auto-track logger den
   ensureWorkSessionForOpen();
   if (poller && store.get('autoTrackOpened')) {
     poller.logOpenedExternal({
@@ -1741,7 +1741,7 @@ ipcMain.handle('shell:open-in-window', async (_e, url, label) => {
 
   openShortcuts.set(url, { view, label, resizeHandler, loading: true });
 
-  // Loading-state — tab-pillen får spinner mens siden laster
+  // Loading-state, tab-pillen får spinner mens siden laster
   view.webContents.on('did-start-loading', () => {
     const m = openShortcuts.get(url);
     if (m) { m.loading = true; broadcastShortcutState(); }
@@ -1752,12 +1752,12 @@ ipcMain.handle('shell:open-in-window', async (_e, url, label) => {
   });
 
   // ── Auto-badge fra fanetittel ─────────────────────────────────
-  // Mange tjenester legger antall uleste i tittelen — vi plukker det
+  // Mange tjenester legger antall uleste i tittelen, vi plukker det
   // ut og sender til renderer. Vi godtar BARE to mønstre for å unngå
   // falsk-positive (som "GitHub (3 stars) - Repo"):
   //
-  //   A. Tittel starter med "(N) ..." — Slack, Discord, Outlook, FB
-  //   B. "Inbox (N) - ..." eller "Mail (N) | ..." — Gmail, Outlook web
+  //   A. Tittel starter med "(N) ...", Slack, Discord, Outlook, FB
+  //   B. "Inbox (N) - ..." eller "Mail (N) | ...", Gmail, Outlook web
   //      (tall i parentes etterfulgt av separator: " -", " |", "·")
   //
   // GitHub Notifications bruker mønster A: "(3) Notifications", så det

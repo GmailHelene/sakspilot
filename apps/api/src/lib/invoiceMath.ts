@@ -1,5 +1,5 @@
 /**
- * Faktura-summering — én sannhetskilde.
+ * Faktura-summering, én sannhetskilde.
  *
  * Tidligere ble `quantity * unitPrice`-formelen inlined på fire steder i
  * invoices.ts (linje 204, 227, 452, 679). Funket, men hver kopi er en
@@ -7,9 +7,9 @@
  * eller rabattlinjer.
  *
  * Denne lib-en sentraliserer:
- *   - lineSum(li)           — beløp for én linje (foretrekker pre-beregnet `sum`)
- *   - totalsFromLines(lis)  — { totalAmount, totalHours } for hele fakturaen
- *   - roundOere(n)          — avrunding til nærmeste øre (2 desimaler)
+ *   - lineSum(li)          , beløp for én linje (foretrekker pre-beregnet `sum`)
+ *   - totalsFromLines(lis) , { totalAmount, totalHours } for hele fakturaen
+ *   - roundOere(n)         , avrunding til nærmeste øre (2 desimaler)
  *
  * IKKE inkludert: MVA-beregning. Den ligger i mva.ts (egen domene-lib for
  * regnskaps-pliktig MVA-rapportering, krever egne tester per sats).
@@ -36,7 +36,7 @@ export function roundOere(n: number): number {
  * Konvensjon: hvis linja har en eksplisitt `sum` brukes den (kreditnota med
  * manuell justering, rabattlinjer, etc). Ellers beregnes quantity * unitPrice.
  *
- * Returnerer alltid avrundet til øre — ingen float-drift i sluttsummer.
+ * Returnerer alltid avrundet til øre, ingen float-drift i sluttsummer.
  */
 export function lineSum(li: InvoiceLineLike): number {
   if (typeof li.sum === "number" && Number.isFinite(li.sum)) {

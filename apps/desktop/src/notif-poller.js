@@ -1,5 +1,5 @@
 /**
- * Notification-poller — henter /notifications/counts hvert 60 sek,
+ * Notification-poller, henter /notifications/counts hvert 60 sek,
  * sammenligner med forrige snapshot og fyrer Windows/macOS-toast
  * når en kategori har FÅTT flere uleste.
  *
@@ -12,7 +12,7 @@
  * count går ned, sier vi ingenting. Hvis count forblir likt heller ikke.
  *
  * Tap av økning: vi sammenligner mot SISTE snapshot, ikke mot "siste sett
- * av bruker". Bevisst valg — så hvis du har 1 ulest og du IKKE har
+ * av bruker". Bevisst valg, så hvis du har 1 ulest og du IKKE har
  * lest den, sier vi ikke fra på nytt. Vi sier bare fra om nye siden
  * forrige polling-tick. Dette unngår spam.
  *
@@ -75,11 +75,11 @@ const AREA_CONFIG = {
 class NotifPoller {
   /**
    * @param {Object} opts
-   * @param {Function} opts.apiCall — async (path) => json (samme som main.js)
-   * @param {Object}   opts.store   — electron-store-instans
-   * @param {Function} opts.notify  — ({ title, body, areaPath }) => void
+   * @param {Function} opts.apiCall, async (path) => json (samme som main.js)
+   * @param {Object}   opts.store  , electron-store-instans
+   * @param {Function} opts.notify , ({ title, body, areaPath }) => void
    *                                  Skal fyre Notification + sette up click-handler
-   * @param {Function} opts.isLoggedIn — () => boolean, så vi ikke poller når utlogget
+   * @param {Function} opts.isLoggedIn, () => boolean, så vi ikke poller når utlogget
    */
   constructor({ apiCall, store, notify, isLoggedIn }) {
     this.apiCall = apiCall;
@@ -88,7 +88,7 @@ class NotifPoller {
     this.isLoggedIn = isLoggedIn;
     this.timer = null;
     this.inFlight = false;
-    // True når neste tick IKKE skal varsle — bare "kalibrere" snapshot.
+    // True når neste tick IKKE skal varsle, bare "kalibrere" snapshot.
     this.skipNextNotify = false;
     // Eksponentiell backoff ved API-feil: dobles for hver påfølgende feil
     // (60s → 120s → 240s → 300s capped). Resettes til base ved første
@@ -139,20 +139,20 @@ class NotifPoller {
         this.compareAndNotify(counts);
       }
       // Lagre fersk snapshot for neste tick. Vi lagrer BARE unread-tallene
-      // — total er ikke relevant for delta-sammenligning.
+      //, total er ikke relevant for delta-sammenligning.
       const snapshot = {};
       for (const [area, c] of Object.entries(counts)) {
         snapshot[area] = c.unread || 0;
       }
       this.store.set(STORE_KEY, snapshot);
-      // Vellykket tick — nullstill backoff
+      // Vellykket tick, nullstill backoff
       if (this.consecutiveErrors > 0) {
         console.log(`[NotifPoller] kontakt gjenopprettet etter ${this.consecutiveErrors} feil - backoff reset`);
         this.consecutiveErrors = 0;
         this.currentIntervalMs = BASE_POLL_INTERVAL_MS;
       }
     } catch (err) {
-      // 401 = utløpt token. Stille feil — main.js sin sync-poller håndterer
+      // 401 = utløpt token. Stille feil, main.js sin sync-poller håndterer
       // re-login-flyt allerede; vi vil ikke duplisere toast-spam for det.
       const msg = String(err.message || err);
       if (!msg.includes('401')) {
@@ -166,7 +166,7 @@ class NotifPoller {
       }
     } finally {
       this.inFlight = false;
-      // Schedulér neste tick — bruker oppdatert currentIntervalMs
+      // Schedulér neste tick, bruker oppdatert currentIntervalMs
       this.scheduleNext();
     }
   }
@@ -197,7 +197,7 @@ class NotifPoller {
   }
 
   /**
-   * Reset snapshot — kalles ved logout. Setter også skipNextNotify så neste
+   * Reset snapshot, kalles ved logout. Setter også skipNextNotify så neste
    * tick (etter neste login) bare kalibrerer baseline uten å spam-varsle om
    * alt som har samlet seg opp i mellomtiden.
    */

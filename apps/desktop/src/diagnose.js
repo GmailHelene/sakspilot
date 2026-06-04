@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Sakspilot Desktop Agent — diagnose-verktøy
+ * Sakspilot Desktop Agent, diagnose-verktøy
  *
  * Tar et "snapshot" av aktivt vindu hver gang du trykker Enter.
  * Bruk dette til å teste hva get-windows returnerer for spesifikke apper

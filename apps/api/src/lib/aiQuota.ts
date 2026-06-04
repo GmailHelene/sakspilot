@@ -1,5 +1,5 @@
 /**
- * AI-kvote per organisasjon — vern mot kostnadssprekk.
+ * AI-kvote per organisasjon, vern mot kostnadssprekk.
  *
  * Strategi:
  *   - Hver org får 500 Claude-kall per måned (hard cap → 429)
@@ -7,7 +7,7 @@
  *   - Vi sporer både kall-antall OG token-bruk (input+output). Token-tellingen
  *     er for fremtidig kost-basert prising, men håndhever ikke ennå.
  *   - Måneden resettes når aiMonthStartedAt er > 30 dager gammel. Enkel
- *     rullende tilbakestilling — ikke "kalendermåned". Holder gjennomsnittlig
+ *     rullende tilbakestilling, ikke "kalendermåned". Holder gjennomsnittlig
  *     bruk under taket selv ved tett bruk i en uke.
  *
  * Bruk:
@@ -29,8 +29,8 @@ export interface QuotaStatus {
   limit: number;
   remaining: number;
   isPilot: boolean;
-  /** "soft" når >80% brukt — frontend bør vise advarsel.
-   *  "hard" når kvoten er brukt opp — request avvises. */
+  /** "soft" når >80% brukt, frontend bør vise advarsel.
+   *  "hard" når kvoten er brukt opp, request avvises. */
   warningLevel: "ok" | "soft" | "hard";
   /** Dager til neste reset (omtrent) */
   resetsInDays: number;

@@ -58,7 +58,7 @@ describe('Share-link flow', () => {
 
     const shareToken = share.body.link.token;
 
-    // Public access — uten auth
+    // Public access, uten auth
     const publicRes = await request(app).get(`/public/sak/${shareToken}`);
     expect(publicRes.status).toBe(200);
     expect(publicRes.body.sak.title).toBe('Delt sak');

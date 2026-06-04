@@ -1,19 +1,19 @@
 /**
  * Generer tray-ikon for Sakspilot.
  *
- * Bruker bare Node sin innebygde zlib for å lage en gyldig PNG —
+ * Bruker bare Node sin innebygde zlib for å lage en gyldig PNG , 
  * ingen eksterne avhengigheter. Lager både 16x16 og 32x32 versjon.
  *
  * Kjøres automatisk av "npm install" via postinstall-skriptet.
  *
  * ── macOS-tray-ikoner (TODO) ──────────────────────────────────
- * macOS forventer "template images" for menubar — svart silhuett på
+ * macOS forventer "template images" for menubar, svart silhuett på
  * transparent bakgrunn, navngitt med suffix "Template" så macOS
  * auto-tinter dem for lys/mørk meny-bar:
  *   - tray-iconTemplate.png       (16x16, svart på transparent)
  *   - tray-iconTemplate@2x.png    (32x32, retina)
  *
- * I main.js (Tray-konstruktøren): tray.setImage(icon) — Electron
+ * I main.js (Tray-konstruktøren): tray.setImage(icon), Electron
  * detekterer Template-suffix automatisk. Vårt nåværende charcoal-bg-ikon
  * fungerer, men ser "fast" ut på mac. Lag template-versjon før mac-release.
  *
@@ -58,7 +58,7 @@ function createSakspilotIconPNG(size) {
 
 function pickColor(x, y, size) {
   // Sakspilot-ikon: bold hvit "S" på charcoal bakgrunn.
-  // S-formen tegnes som to halvsirkler stablet — øverste vendt høyre,
+  // S-formen tegnes som to halvsirkler stablet, øverste vendt høyre,
   // nederste vendt venstre. Sammen gir det en geometrisk S.
   const cx = size / 2;
 
@@ -168,7 +168,7 @@ console.log('✓ icon.png (256x256 hovedikon)');
     // png-to-ico bruker ESM-style default-export
     const pngToIcoMod = require('png-to-ico');
     const pngToIco = pngToIcoMod.default || pngToIcoMod;
-    // Multi-res ico: 16, 32, 48, 64, 128, 256 — dekker alle Windows-bruksområder
+    // Multi-res ico: 16, 32, 48, 64, 128, 256, dekker alle Windows-bruksområder
     const icoSizes = [16, 32, 48, 64, 128, 256];
     const pngBuffers = icoSizes.map((s) => createSakspilotIconPNG(s));
     const icoBuffer = await pngToIco(pngBuffers);
@@ -182,7 +182,7 @@ console.log('✓ icon.png (256x256 hovedikon)');
 
 // ── macOS .icns + template tray-ikon ──────────────────────────
 // .icns er Apples ikon-format for app-bundles (.app/Contents/Resources/).
-// Bruker png2icons (zero-deps, fungerer cross-platform — vi trenger
+// Bruker png2icons (zero-deps, fungerer cross-platform, vi trenger
 // IKKE å bygge på Mac for å generere .icns).
 (async () => {
   try {
@@ -234,7 +234,7 @@ function createTemplateIconPNG(size) {
   return buildPNG(size, size, filtered);
 }
 
-// Skriv template-ikoner — main.js skal bruke disse på darwin (se TODO der).
+// Skriv template-ikoner, main.js skal bruke disse på darwin (se TODO der).
 // Vanlig 16x16 + retina 32x32 (@2x suffix er Apples konvensjon).
 fs.writeFileSync(
   path.join(outDir, 'tray-iconTemplate.png'),

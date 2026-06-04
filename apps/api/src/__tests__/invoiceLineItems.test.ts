@@ -2,14 +2,14 @@
  * Line-item safe-parser unit-tester.
  *
  * Når lineItems leses ut av DB (Postgres Json) er ikke shape garantert
- * — feil her får PDF-generering eller email-bygging til å krasje med
+ *, feil her får PDF-generering eller email-bygging til å krasje med
  * "Cannot read property of undefined". Safe-parseren skal alltid returnere
  * en gyldig array (evt. tom) og ALDRI kaste.
  */
 import { describe, it, expect, vi } from 'vitest';
 import { safeParseLineItems, LineItemSchema, LineItemsArraySchema } from '../lib/invoiceLineItems';
 
-describe('safeParseLineItems — happy path', () => {
+describe('safeParseLineItems, happy path', () => {
   it('aksepterer gyldig array med fulle felter', () => {
     const raw = [
       { description: '10t', quantity: 10, unitPrice: 1500, sum: 15000 },
@@ -32,7 +32,7 @@ describe('safeParseLineItems — happy path', () => {
   });
 });
 
-describe('safeParseLineItems — defensive fallback', () => {
+describe('safeParseLineItems, defensive fallback', () => {
   it('null → tom array (ikke throw)', () => {
     expect(safeParseLineItems(null)).toEqual([]);
   });
@@ -72,7 +72,7 @@ describe('safeParseLineItems — defensive fallback', () => {
     warn.mockRestore();
   });
 
-  it('throw ALDRI — selv på dypt absurd input', () => {
+  it('throw ALDRI, selv på dypt absurd input', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     expect(() => safeParseLineItems(42)).not.toThrow();
     expect(() => safeParseLineItems(true)).not.toThrow();
@@ -82,7 +82,7 @@ describe('safeParseLineItems — defensive fallback', () => {
   });
 });
 
-describe('LineItemSchema — direkte Zod-bruk (POST /invoices write-path)', () => {
+describe('LineItemSchema, direkte Zod-bruk (POST /invoices write-path)', () => {
   it('aksepterer gyldig linje', () => {
     const r = LineItemSchema.safeParse({ description: 'x', quantity: 1, unitPrice: 100 });
     expect(r.success).toBe(true);

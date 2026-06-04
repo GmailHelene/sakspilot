@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Matching-regler for desktop-agent — knytter automatisk vinduer/filer/e-poster
+ * Matching-regler for desktop-agent, knytter automatisk vinduer/filer/e-poster
  * til denne saken. Inkluderer en stor liste med maler (templates) som
  * pre-utfyller skjemaet med fornuftige regex-mønstre.
  */
@@ -24,7 +24,7 @@ const RULE_TYPE_LABELS: Record<MatchingRuleType, string> = {
   email: 'E-postavsender',
 };
 
-// Maler for matching-regler — klikk for å pre-utfylle skjemaet.
+// Maler for matching-regler, klikk for å pre-utfylle skjemaet.
 // Noen er sak-spesifikke (genereres dynamisk fra sak.title / folderPath),
 // andre er generelle (matcher alle dokumenter av en gitt type).
 function buildRuleTemplates(sak: Sak) {
@@ -47,7 +47,7 @@ function buildRuleTemplates(sak: Sak) {
 
   // Plukk meningsfulle ord fra tittel (før bindestrek), filtrer stopp-ord
   const significantWords = sak.title
-    .replace(/[-–-].+$/, '')
+    .replace(/[-, -].+$/, '')
     .trim()
     .split(/\s+/)
     .map((w) => w.toLowerCase())
@@ -55,9 +55,9 @@ function buildRuleTemplates(sak: Sak) {
     .slice(0, 4)
     .map(prepareWord);
 
-  // FLEKSIBEL pattern (anbefalt): bruker lookahead — alle ord må finnes,
+  // FLEKSIBEL pattern (anbefalt): bruker lookahead, alle ord må finnes,
   // i HVILKEN SOM HELST rekkefølge, med hva som helst mellom.
-  //   "Bygdøy 12 — rammetillatelse" → "(?=.*bygd[øo]y)(?=.*12).*"
+  //   "Bygdøy 12, rammetillatelse" → "(?=.*bygd[øo]y)(?=.*12).*"
   //   matcher: "Bygdoy-12.docx", "12 Bygdoy.docx", "Tegning Bygdoy nr 12.dwg"
   // Faller tilbake til substring hvis kun ett meningsfullt ord.
   let autoFlexPattern: string;

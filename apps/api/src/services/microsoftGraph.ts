@@ -1,10 +1,10 @@
 /**
- * Microsoft Graph-integrasjon — OAuth + e-postsynk.
+ * Microsoft Graph-integrasjon, OAuth + e-postsynk.
  *
  * Konfigurasjon (Render env-vars):
- *   AZURE_CLIENT_ID       — Application (client) ID fra Azure AD
- *   AZURE_CLIENT_SECRET   — Client secret (verdien, ikke ID-en)
- *   AZURE_REDIRECT_URI    — https://api.sakspilot.no/oauth/microsoft/callback
+ *   AZURE_CLIENT_ID      , Application (client) ID fra Azure AD
+ *   AZURE_CLIENT_SECRET  , Client secret (verdien, ikke ID-en)
+ *   AZURE_REDIRECT_URI   , https://api.sakspilot.no/oauth/microsoft/callback
  *
  * Scopes: offline_access (refresh token) + Mail.Read + User.Read
  *
@@ -190,7 +190,7 @@ async function fetchMessages(
 }
 
 /**
- * Synk e-poster for én bruker — kobler dem til saker via:
+ * Synk e-poster for én bruker, kobler dem til saker via:
  *   1. Klient-epost-match: hvis e-postavsender matcher en klient.contactEmail,
  *      knytt e-posten til klientens nyeste aktive sak
  *   2. Subject-match: hvis emnet inneholder en saks-tittel
@@ -208,7 +208,7 @@ export async function syncMessagesForAccount(graphAccountId: string): Promise<{
   const since = account.lastSyncAt || new Date(Date.now() - 30 * 86400000);
   const messages = await fetchMessages(graphAccountId, since);
 
-  // Hent klienter med email + aktive saker — for matching
+  // Hent klienter med email + aktive saker, for matching
   const clients = await prisma.client.findMany({
     where: { organizationId: account.user.organizationId, contactEmail: { not: null } },
     select: {

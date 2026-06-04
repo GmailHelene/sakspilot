@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Hovedheader-kortet på sak-detalj-siden — viser tittel, klient, frist, hourly
+ * Hovedheader-kortet på sak-detalj-siden, viser tittel, klient, frist, hourly
  * rate, mappe-sti, statusdropdown, ShareButton og slett-knapp.
  */
 

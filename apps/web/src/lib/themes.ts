@@ -3,7 +3,7 @@
  * Lagres i localStorage; default = 'navy'.
  *
  * For å bytte tema: setTheme('rose') → ny palette anvendes via CSS variabler
- * (kommer i en senere iterasjon — per nå er bytting "kun" gjennom localStorage
+ * (kommer i en senere iterasjon, per nå er bytting "kun" gjennom localStorage
  * og krever reload av sidan).
  */
 
@@ -39,7 +39,7 @@ export const THEMES: Record<ThemeId, Theme> = {
     primary: '#C2185B',
     primaryDark: '#880E4F',
     primaryLight: '#E91E63',
-    // Hvit aksent gir hvite knapper på rosa header — bedre kontrast enn
+    // Hvit aksent gir hvite knapper på rosa header, bedre kontrast enn
     // lilla-på-rosa (som ble vasket ut). accentLight er soft kremrosa for
     // pastell-bakgrunner og hover-states.
     accent: '#FFFFFF',
@@ -90,9 +90,9 @@ export function applyTheme(id: ThemeId): void {
 }
 
 /* ────────────────────────────────────────────────────────────────
- * Mørk modus — separat akse fra palette.
+ * Mørk modus, separat akse fra palette.
  * Lagres som sakspilot_dark_mode='1' (på) / '0' eller fraværende (av).
- * Default = lys modus (vi auto-detect ikke prefers-color-scheme — bruker
+ * Default = lys modus (vi auto-detect ikke prefers-color-scheme, bruker
  * må aktivt velge mørk for å unngå overraskelser ved første besøk).
  * ──────────────────────────────────────────────────────────────── */
 

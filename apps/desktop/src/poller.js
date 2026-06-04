@@ -1,5 +1,5 @@
 /**
- * Poller — kjernen i Sakspilot desktop-agent.
+ * Poller, kjernen i Sakspilot desktop-agent.
  *
  * Henter aktivt vindu fra active-win hvert N. sekund og
  * fyrer av events når:
@@ -7,10 +7,10 @@
  *   - en session (kontinuerlig opphold i samme vindu) avsluttes
  *
  * Sak-matching gjøres via regler hentet fra backend (cached i Store).
- * I POC-versjonen er reglene tomme — full versjon henter via /agent/rules.
+ * I POC-versjonen er reglene tomme, full versjon henter via /agent/rules.
  *
  * Cross-platform via `active-win` (Windows + macOS + Linux). Returnerer
- * { title, owner: { name, path, processId }, ... } — samme form som
+ * { title, owner: { name, path, processId }, ... }, samme form som
  * tidligere get-windows, så ingen call-sites trenger endring.
  *
  * Plattform-caveats:
@@ -83,11 +83,11 @@ class Poller extends EventEmitter {
   }
 
   /**
-   * Manuelt logg en ekstern session — brukes når Sakspilot åpner noe
+   * Manuelt logg en ekstern session, brukes når Sakspilot åpner noe
    * (snarvei/.exe/mappe/URL) og auto-track er på.
    *
    * Vi vet ikke når brukeren slutter å bruke det åpnede, så vi logger
-   * det som en "startet"-event nå — varigheten kommer fra poller-cyklusen
+   * det som en "startet"-event nå, varigheten kommer fra poller-cyklusen
    * som plukker opp vinduet uansett. Hovedpoenget her er at vi attribuerer
    * det til riktig sak selv om matching-regler mangler.
    */
@@ -109,7 +109,7 @@ class Poller extends EventEmitter {
   }
 
   /**
-   * Override-attribusjon — kalles av main.js for å si "alle nye sessions
+   * Override-attribusjon, kalles av main.js for å si "alle nye sessions
    * uten match skal heretter attribueres til denne saken". Returneres til
    * matching-pipelinen som fallback når reglene ikke matcher.
    */
@@ -148,7 +148,7 @@ class Poller extends EventEmitter {
 
     const appName = snap.owner?.name?.toLowerCase() || '';
     if (this.excludedApps.has(appName)) {
-      // Ekskludert app (f.eks. nettbank) — ikke logg
+      // Ekskludert app (f.eks. nettbank), ikke logg
       this._closeCurrentSession(new Date());
       this.lastSnapshot = snap;
       return;
@@ -170,7 +170,7 @@ class Poller extends EventEmitter {
       app: snap.owner?.name || '',
       path: snap.owner?.path || '',
     };
-    // Reglene er sortert etter priority desc — første treff vinner
+    // Reglene er sortert etter priority desc, første treff vinner
     for (const rule of this.rules) {
       const target = haystacks[rule.type];
       if (target && rule.regex.test(target)) {

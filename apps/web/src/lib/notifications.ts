@@ -5,13 +5,13 @@
  *   - lastVisited[area] lagres i localStorage som ISO-timestamps
  *   - hook poller /notifications/counts hvert 30s og når brukeren manuelt
  *     trigger refresh (f.eks. etter en POST/PATCH)
- *   - Når brukeren besøker en side, kall markVisited(area) — det nullstiller
+ *   - Når brukeren besøker en side, kall markVisited(area), det nullstiller
  *     badge for den fanen
  *
  * NB: dette synker IKKE på tvers av enheter. Hvis brukeren har sakspilot
  * åpent både i desktop-appen og i nettleseren, vil "ulest" telle separat.
  * For tverr-enhet-synk må vi flytte lastVisited til DB (NotificationView-
- * tabell) — kan gjøres senere uten å endre denne API-en.
+ * tabell), kan gjøres senere uten å endre denne API-en.
  */
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { api } from './api';
@@ -97,7 +97,7 @@ export function useNotifications(): {
       const res = await api<CountsResponse>(`/notifications/counts?${qs}`, { signal: ctrl.signal });
       setCounts(res.counts);
     } catch (err) {
-      // AbortError er forventet — ignorer
+      // AbortError er forventet, ignorer
       if (err instanceof Error && err.name !== 'AbortError') {
         // Logg, men ikke krasj sidebar
         console.warn('[notifications] poll feilet:', err.message);

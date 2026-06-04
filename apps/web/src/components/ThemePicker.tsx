@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * ThemePicker — liten 3-swatch-velger som lar brukeren bytte fargedesign.
+ * ThemePicker, liten 3-swatch-velger som lar brukeren bytte fargedesign.
  * Lagrer i localStorage via setTheme() og dispatcher 'sakspilot:theme-updated'
  * så ThemeInit re-applier umiddelbart.
  *

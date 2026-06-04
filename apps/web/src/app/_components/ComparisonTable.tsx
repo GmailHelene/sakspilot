@@ -3,8 +3,8 @@ import { tokens } from '@/lib/tokens';
 import { Check, X } from 'lucide-react';
 
 /**
- * Kort sammenligningstabell på forsiden — full sammenligning ligger på /sammenligning.
- * Server Component — ingen state.
+ * Kort sammenligningstabell på forsiden, full sammenligning ligger på /sammenligning.
+ * Server Component, ingen state.
  */
 
 const COMPETITORS = ['Sakspilot', 'Tripletex', 'Toggl', 'Notion'] as const;

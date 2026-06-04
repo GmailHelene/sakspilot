@@ -1,7 +1,7 @@
 /**
- * /feedback — pilot-feedback fra brukere som tester Sakspilot.
+ * /feedback, pilot-feedback fra brukere som tester Sakspilot.
  *
- *   POST /feedback  — opprett feedback knyttet til innlogget bruker + org
+ *   POST /feedback , opprett feedback knyttet til innlogget bruker + org
  *
  * Helene leser via Prisma Studio (eller liten admin-side senere).
  * Rate-limit: maks 5 innsendinger per døgn per bruker.

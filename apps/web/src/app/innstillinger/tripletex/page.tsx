@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Tripletex — direkte API-integrasjon via Sakspilot's Partner Consumer Token.
+ * Tripletex, direkte API-integrasjon via Sakspilot's Partner Consumer Token.
  *
  * Brukeren genererer en EmployeeToken i Tripletex og limer inn her. Sakspilot
  * lagrer den kryptert (AES-256-GCM) og bygger SessionTokens på serveren ved

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Klient-portal — login.
+ * Klient-portal, login.
  *
  * Helt separat fra /login (frilanser). Bruker portalApi + portal-token-nøkkel
  * slik at frilanseren og klienten kan dele nettleser uten å skvise hverandres

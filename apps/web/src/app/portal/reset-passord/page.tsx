@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Klient-portal — reset passord (lenke fra glemt-passord-e-post).
+ * Klient-portal, reset passord (lenke fra glemt-passord-e-post).
  */
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';

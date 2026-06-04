@@ -1,5 +1,5 @@
 /**
- * @sakspilot/shared — typer + zod-schemas brukt av BÅDE API og web.
+ * @sakspilot/shared, typer + zod-schemas brukt av BÅDE API og web.
  *
  * Hvis du endrer et schema her, må du:
  *  1. Verifisere at API-routen som bruker det fortsatt validerer riktig
