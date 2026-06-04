@@ -23,6 +23,13 @@ import { z } from "zod";
 import prisma from "../lib/prisma";
 import { sendEmail, downloadLeadFollowupEmail } from "../lib/email";
 
+// Maskerer e-post for logging (GDPR/PII): "kari.normann@example.com" -> "kar***@example.com".
+function maskEmail(e: string): string {
+  if (!e || typeof e !== "string") return "***@unknown";
+  const [l, d] = e.split("@");
+  return (l.slice(0, 3) + "***@" + (d || "unknown"));
+}
+
 const router = Router();
 
 const PLATFORMS = ["win", "mac-arm", "mac-intel", "linux"] as const;
@@ -81,9 +88,9 @@ router.post("/lead", async (req: Request, res: Response) => {
     sendEmail(downloadLeadFollowupEmail({ email: emailNorm, name: name ?? null, platform }))
       .catch((err) => console.warn("[downloads/lead] Email send feilet:", err));
 
-    console.log(`[downloads/lead] Ny download-lead: ${emailNorm} (${platform})`);
+    console.log(`[downloads/lead] Ny download-lead: ${maskEmail(emailNorm)} (${platform})`);
   } else {
-    console.log(`[downloads/lead] Eksisterende bruker laster ned: ${emailNorm} (${platform}) - hopper over lead-logging`);
+    console.log(`[downloads/lead] Eksisterende bruker laster ned: ${maskEmail(emailNorm)} (${platform}) - hopper over lead-logging`);
   }
 
   return res.json({ ok: true });

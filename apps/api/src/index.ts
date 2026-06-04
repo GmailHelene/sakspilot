@@ -295,7 +295,7 @@ app.get("/", (_req: Request, res: Response) => {
   return res.json({
     service: "Sakspilot API",
     version: "0.1.0",
-    docs: "https://github.com/[brukernavn]/sakspilot",
+    docs: "https://github.com/GmailHelene/sakspilot",
   });
 });
 
@@ -312,11 +312,24 @@ app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
     });
   }
 
-  // Logg alltid full feil til konsoll (med rute + body for kontekst)
+  // Logg alltid full feil til konsoll (med rute + body for kontekst).
+  // Redacter folsomme felter (passord/tokens) for GDPR/PII for vi serialiserer
+  // body, slik at Render-logger ikke far klartekst-credentials hvis en request
+  // feiler midt i en login/passordbytte.
+  const SENSITIVE_KEYS = new Set(["password", "token", "currentPassword", "newPassword"]);
+  let safeBody: unknown = req.body;
+  if (req.body && typeof req.body === "object") {
+    safeBody = Object.fromEntries(
+      Object.entries(req.body as Record<string, unknown>).map(([k, v]) => [
+        k,
+        SENSITIVE_KEYS.has(k) ? "[REDACTED]" : v,
+      ])
+    );
+  }
   console.error(
     `\n[API-feil] ${req.method} ${req.path}\n`,
     `  message: ${err.message}\n`,
-    `  body:    ${JSON.stringify(req.body)?.slice(0, 200)}\n`,
+    `  body:    ${JSON.stringify(safeBody)?.slice(0, 200)}\n`,
     err.stack
   );
 

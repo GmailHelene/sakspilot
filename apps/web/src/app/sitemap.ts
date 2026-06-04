@@ -21,14 +21,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 1.0,
     },
-    // FAQ er en seksjon på hovedsiden, fragment-URL for å hjelpe Google
-    // forstå at innholdet er strukturert (selv om de ikke indekserer fragments)
-    {
-      url: `${base}/#faq`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
     // Registreringssiden, viktig konverteringsmål
     {
       url: `${base}/registrer`,

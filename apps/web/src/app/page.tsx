@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import { tokens } from '@/lib/tokens';
@@ -120,10 +119,9 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Hero-skjermbilde (placeholder).
-              TODO (Helene): Bytt ut /icon-512.svg med ekte demo-skjermbilde
-              fra app-en - gjerne saker-kanban med 3-4 ekte-aktige saker. */}
           <div
+            role="img"
+            aria-label="Sakspilot logo paa navy gradient"
             style={{
               position: 'relative',
               width: '100%',
@@ -149,14 +147,22 @@ export default function LandingPage() {
                   'radial-gradient(circle at 80% 20%, rgba(212,160,23,0.25) 0%, transparent 55%)',
               }}
             />
-            <Image
-              src="/icon-512.svg"
-              alt="Sakspilot dashbord - TODO: bytt med ekte skjermbilde"
-              width={220}
-              height={220}
-              style={{ position: 'relative', filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.3))' }}
-              priority
-            />
+            <span
+              aria-hidden="true"
+              style={{
+                position: 'relative',
+                color: tokens.color.gold,
+                fontWeight: 900,
+                fontSize: 'clamp(80px, 12vw, 160px)',
+                lineHeight: 1,
+                letterSpacing: '-0.04em',
+                fontFamily:
+                  'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+                textShadow: '0 8px 24px rgba(0,0,0,0.3)',
+              }}
+            >
+              S
+            </span>
           </div>
         </section>
 

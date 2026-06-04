@@ -5,15 +5,14 @@
 //   - Egne JS/CSS chunks (self)
 //   - Google Fonts
 //   - Umami Cloud (analytics)
-//   - Plausible (legacy, kan fjernes når Umami er bekreftet eneste)
 //   - Sakspilot API (rewrites går via /api/, samme origin, OK)
 const cspHeader = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cloud.umami.is https://plausible.io;
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cloud.umami.is;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data: https://www.google.com https://*.googleusercontent.com https://cdn.simpleicons.org blob:;
-  connect-src 'self' https://api.sakspilot.no https://cloud.umami.is https://plausible.io https://api.anthropic.com;
+  connect-src 'self' https://api.sakspilot.no https://cloud.umami.is https://api.anthropic.com;
   frame-ancestors 'none';
   base-uri 'self';
   form-action 'self';

@@ -25,7 +25,7 @@ export default function NotFound() {
           URL-en du prøvde å åpne er ikke gyldig eller har blitt flyttet.
         </p>
         <Link
-          href="/hjem"
+          href="/"
           style={{
             display: 'inline-block',
             padding: '10px 20px',
@@ -36,7 +36,7 @@ export default function NotFound() {
             textDecoration: 'none',
           }}
         >
-          ← Tilbake til Hjem
+          ← Tilbake til forsiden
         </Link>
       </div>
     </main>

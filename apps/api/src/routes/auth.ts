@@ -22,6 +22,15 @@ import { sendEmail, passwordResetEmail, welcomeEmail } from "../lib/email";
 
 const router = Router();
 
+// Maskerer e-post for logging (GDPR/PII): "kari.normann@example.com" -> "kar***@example.com".
+// Beholder nok info til debugging (tre forste tegn + domene) uten a lekke
+// hele identifikatoren i Render-logger.
+function maskEmail(e: string): string {
+  if (!e || typeof e !== "string") return "***@unknown";
+  const [l, d] = e.split("@");
+  return (l.slice(0, 3) + "***@" + (d || "unknown"));
+}
+
 // Cookie-innstillinger, SameSite=None+Secure kreves når API og web er
 // på ulike Railway-domener (cross-site). Trygt på localhost (browsers
 // regner localhost som "trustworthy origin").
@@ -127,7 +136,7 @@ router.post("/register", async (req: Request, res: Response) => {
   const token = createSessionToken(session);
   res.cookie("sakspilot_session", token, COOKIE_OPTIONS);
 
-  console.log(`[Auth] Registrert: ${result.user.email} (${result.org.name})`);
+  console.log(`[Auth] Registrert: ${maskEmail(result.user.email)} (${result.org.name})`);
 
   // Velkomst-e-post (dag 0 i onboarding-drip). Skal IKKE blokkere registrering
   // hvis SMTP feiler, try/catch + ingen await på respons.
@@ -204,7 +213,7 @@ router.post("/login", async (req: Request, res: Response) => {
   const token = createSessionToken(session);
   res.cookie("sakspilot_session", token, COOKIE_OPTIONS);
 
-  console.log(`[Auth] Innlogget: ${user.email}`);
+  console.log(`[Auth] Innlogget: ${maskEmail(user.email)}`);
 
   return res.json({
     ok: true,
@@ -411,18 +420,18 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
     emailSent = result.ok;
     if (!result.ok) {
       console.log(
-        `[forgot-password] SMTP fallback - reset-lenke for ${email}: ${resetUrl}` +
+        `[forgot-password] SMTP fallback - reset-lenke for ${maskEmail(email)}: ${resetUrl}` +
           (result.error ? ` (årsak: ${result.error})` : "")
       );
     } else {
-      console.log(`[forgot-password] Reset-lenke sendt til ${email} (msg: ${result.messageId})`);
+      console.log(`[forgot-password] Reset-lenke sendt til ${maskEmail(email)} (msg: ${result.messageId})`);
     }
   } else {
     // CPU-arbeid for konstant timing: ekvivalent med verifyPassword i login-flyten.
     // Uten dette returnerer "user finnes ikke"-grenen i 5ms vs ~500ms for "finnes",
     // som angriper kan bruke til bruker-enumerering via repeated POSTs.
     await verifyPassword("dummy-passord-for-timing-pad", TIMING_PAD_HASH);
-    console.log(`[forgot-password] Ingen bruker med e-post ${email} (ignorert)`);
+    console.log(`[forgot-password] Ingen bruker med e-post ${maskEmail(email)} (ignorert)`);
   }
 
   // _devResetUrl returneres BARE i lokal dev (NODE_ENV='development').
@@ -433,7 +442,7 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
   // på Render Logs for å hente den), men eksponerer den IKKE i HTTP-respons.
   const showDevUrl = user && process.env.NODE_ENV === "development";
   if (user && !emailSent && process.env.NODE_ENV !== "development") {
-    console.warn(`[forgot-password] SMTP feilet for ${email}. Reset-URL: ${resetUrl}`);
+    console.warn(`[forgot-password] SMTP feilet for user=${user.id} - reset-URL ikke vist i logg av sikkerhetsgrunner. Sjekk Render audit for token.`);
   }
 
   // Tidskonstant respons: padd opp til FORGOT_MIN_MS slik at både
