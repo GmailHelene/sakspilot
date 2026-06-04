@@ -157,6 +157,16 @@ a, button, [role="button"] {
   }
 }
 
+/* Sidebar: vis edit/slett-knapper på hover av snarvei-rad og Mine sites-tile */
+.shortcut-row:hover button[title^="Slett"],
+.shortcut-row:hover button[title^="Rediger"] {
+  opacity: 1 !important;
+}
+.my-site-tile:hover .site-delete-btn,
+.my-site-tile:hover .site-edit-btn {
+  opacity: 1 !important;
+}
+
 /* Sak-kort i kanban og listen - løft og skygge på hover */
 a[href^="/saker/"]:not([href="/saker"]):not([href="/saker/ny"]):hover,
 a[href^="/klienter/"]:not([href="/klienter"]):not([href="/klienter/ny"]):hover {

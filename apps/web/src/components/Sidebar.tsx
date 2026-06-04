@@ -7,7 +7,7 @@ import {
   Home, LayoutGrid, Users, Calendar, CalendarClock, GanttChartSquare, Plus, X,
   ExternalLink, Trash2, StickyNote, FolderOpen, Folder, Shield, Zap, BarChart3, Plug, Palette,
   MessageSquare, UserCog, Globe, Inbox, FileText, Wallet, PieChart, Receipt,
-  ChevronDown, ChevronRight,
+  ChevronDown, ChevronRight, Pencil, Check,
   type LucideIcon,
 } from 'lucide-react';
 import { tokens } from '@/lib/tokens';
@@ -61,6 +61,46 @@ function getDesktopAPI(): {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const api = (window as any).sakspilot;
   return api && api.isDesktop ? api : { isDesktop: false };
+}
+
+/**
+ * Normaliser bruker-input til en URL som <a href> forstår.
+ * Aksepterer:
+ *   - https?://, ftp://, mailto: osv (allerede gyldig)
+ *   - file:///C:/... (eksplisitt file)
+ *   - Windows-sti: C:\Users\... eller D:\... (kovenertes til file:///)
+ *   - Unix-sti: /home/... eller /Users/... (file://)
+ *   - Domener uten protokoll: luxushair.com (kvinner https://)
+ *
+ * Returnerer { url, kind } slik at kallsiden kan vise advarsel ved
+ * file:// i nettleser (kun Electron kan åpne lokale filer).
+ */
+function normalizeUrl(raw: string): { url: string; kind: 'web' | 'file' } {
+  const trimmed = raw.trim();
+  if (!trimmed) return { url: '', kind: 'web' };
+
+  // Allerede gyldig URL med protokoll
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) {
+    return {
+      url: trimmed,
+      kind: trimmed.startsWith('file:') ? 'file' : 'web',
+    };
+  }
+
+  // Windows-sti: "C:\..." eller "C:/..."
+  if (/^[a-zA-Z]:[\\/]/.test(trimmed)) {
+    // Konverter backslash til forward, prefix file:///
+    const slashed = trimmed.replace(/\\/g, '/');
+    return { url: `file:///${slashed}`, kind: 'file' };
+  }
+
+  // Unix-sti: "/home/...", "/Users/...", "/var/..."
+  if (trimmed.startsWith('/')) {
+    return { url: `file://${trimmed}`, kind: 'file' };
+  }
+
+  // Domene uten protokoll
+  return { url: `https://${trimmed}`, kind: 'web' };
 }
 
 // Tomme defaults, brukeren legger til sine egne via + knappen.
@@ -157,15 +197,25 @@ export default function Sidebar() {
       window.dispatchEvent(new Event('sakspilot:sites-updated'));
     } catch {}
   }
+  // Edit-state for Mine sites (id => label/url under redigering)
+  const [editSiteId, setEditSiteId] = useState<string | null>(null);
+  const [editSiteLabel, setEditSiteLabel] = useState('');
+  const [editSiteUrl, setEditSiteUrl] = useState('');
+
   function addSite() {
     if (!newSiteUrl.trim()) return;
-    const url = /^https?:\/\//.test(newSiteUrl) ? newSiteUrl : `https://${newSiteUrl}`;
+    const { url, kind } = normalizeUrl(newSiteUrl);
     let label = newSiteLabel.trim();
     if (!label) {
-      try {
-        label = new URL(url).hostname.replace(/^www\./, '');
-      } catch {
-        label = url;
+      if (kind === 'file') {
+        // Vise filnavn som default-label for lokale filer
+        label = url.split(/[\\/]/).pop() || 'Lokal fil';
+      } else {
+        try {
+          label = new URL(url).hostname.replace(/^www\./, '');
+        } catch {
+          label = url;
+        }
       }
     }
     persistSites([...mySites, { id: 's-' + Date.now(), label, url }]);
@@ -176,7 +226,35 @@ export default function Sidebar() {
   function removeSite(id: string) {
     persistSites(mySites.filter((s) => s.id !== id));
   }
+  function startEditSite(s: MySite) {
+    setEditSiteId(s.id);
+    setEditSiteLabel(s.label);
+    setEditSiteUrl(s.url);
+  }
+  function saveEditSite() {
+    if (!editSiteId) return;
+    const { url } = normalizeUrl(editSiteUrl);
+    if (!url || !editSiteLabel.trim()) return;
+    persistSites(mySites.map((s) => s.id === editSiteId ? { ...s, label: editSiteLabel.trim(), url } : s));
+    setEditSiteId(null);
+  }
+  function cancelEditSite() {
+    setEditSiteId(null);
+  }
   async function openSite(e: React.MouseEvent, s: MySite) {
+    // file:// URL er lokal fil, kan kun åpnes via Electron-bro (shell.openPath)
+    if (s.url.startsWith('file:')) {
+      if (desktop.isDesktop && desktop.openFolder) {
+        e.preventDefault();
+        // openFolder håndterer både mapper og enkelt-filer via shell.openPath
+        const path = s.url.replace(/^file:\/{2,3}/, '').replace(/\//g, '\\');
+        await desktop.openFolder(path);
+      } else {
+        e.preventDefault();
+        alert('Lokale filer kan kun åpnes via Sakspilot Desktop (.exe-versjonen). I nettleseren blokkerer browser sikkerhets-policy at vi åpner C:\\... eller /Users/... direkte.');
+      }
+      return;
+    }
     if (desktop.isDesktop && desktop.openInWindow) {
       e.preventDefault();
       await desktop.openInWindow(s.url, s.label);
@@ -197,6 +275,11 @@ export default function Sidebar() {
     } catch {}
   }
 
+  // Edit-state for mapper
+  const [editFolderId, setEditFolderId] = useState<string | null>(null);
+  const [editFolderLabel, setEditFolderLabel] = useState('');
+  const [editFolderPath, setEditFolderPath] = useState('');
+
   function addFolder() {
     if (!newFolderPath.trim()) return;
     persistFolders([
@@ -216,6 +299,22 @@ export default function Sidebar() {
     persistFolders(folders.filter((f) => f.id !== id));
   }
 
+  function startEditFolder(f: FolderShortcut) {
+    setEditFolderId(f.id);
+    setEditFolderLabel(f.label);
+    setEditFolderPath(f.path);
+  }
+  function saveEditFolder() {
+    if (!editFolderId || !editFolderPath.trim()) return;
+    persistFolders(folders.map((f) => f.id === editFolderId ? {
+      ...f,
+      label: editFolderLabel.trim() || editFolderPath.split(/[\\/]/).pop() || 'Mappe',
+      path: editFolderPath.trim(),
+    } : f));
+    setEditFolderId(null);
+  }
+  function cancelEditFolder() { setEditFolderId(null); }
+
   async function openFolder(folderPath: string) {
     if (desktop.isDesktop && desktop.openFolder) {
       const res = await desktop.openFolder(folderPath);
@@ -227,7 +326,23 @@ export default function Sidebar() {
     }
   }
 
+  // Edit-state for snarveier
+  const [editShortcutId, setEditShortcutId] = useState<string | null>(null);
+  const [editShortcutLabel, setEditShortcutLabel] = useState('');
+  const [editShortcutUrl, setEditShortcutUrl] = useState('');
+
   async function openShortcut(e: React.MouseEvent, s: Shortcut) {
+    // Lokal fil: bare Electron kan åpne
+    if (s.url.startsWith('file:')) {
+      e.preventDefault();
+      if (desktop.isDesktop && desktop.openFolder) {
+        const path = s.url.replace(/^file:\/{2,3}/, '').replace(/\//g, '\\');
+        await desktop.openFolder(path);
+      } else {
+        alert('Lokale filer kan kun åpnes via Sakspilot Desktop (.exe-versjonen).');
+      }
+      return;
+    }
     if (desktop.isDesktop && desktop.openInWindow) {
       e.preventDefault();
       await desktop.openInWindow(s.url, s.label);
@@ -237,7 +352,7 @@ export default function Sidebar() {
 
   function addShortcut() {
     if (!newLabel.trim() || !newUrl.trim()) return;
-    const url = /^https?:\/\//.test(newUrl) ? newUrl : `https://${newUrl}`;
+    const { url } = normalizeUrl(newUrl);
     persist([
       ...shortcuts,
       { id: 'u-' + Date.now(), label: newLabel.trim(), url, icon: newIcon || '🔗' },
@@ -251,6 +366,19 @@ export default function Sidebar() {
   function deleteShortcut(id: string) {
     persist(shortcuts.filter((s) => s.id !== id));
   }
+
+  function startEditShortcut(s: Shortcut) {
+    setEditShortcutId(s.id);
+    setEditShortcutLabel(s.label);
+    setEditShortcutUrl(s.url);
+  }
+  function saveEditShortcut() {
+    if (!editShortcutId || !editShortcutLabel.trim() || !editShortcutUrl.trim()) return;
+    const { url } = normalizeUrl(editShortcutUrl);
+    persist(shortcuts.map((s) => s.id === editShortcutId ? { ...s, label: editShortcutLabel.trim(), url } : s));
+    setEditShortcutId(null);
+  }
+  function cancelEditShortcut() { setEditShortcutId(null); }
 
   // Nav-elementer kan skjules per bruker via localStorage.
   // Default: alle synlige. Hver bruker kan toggle via Sidebar-settings (kommer).
@@ -412,6 +540,32 @@ export default function Sidebar() {
         {mounted &&
           shortcuts.map((s) => {
             const badge = autoBadges[s.url] || 0;
+            if (editShortcutId === s.id) {
+              return (
+                <div key={s.id} style={addFormStyle}>
+                  <input
+                    type="text"
+                    value={editShortcutLabel}
+                    onChange={(e) => setEditShortcutLabel(e.target.value)}
+                    placeholder="Navn"
+                    style={inputStyle}
+                    autoFocus
+                  />
+                  <input
+                    type="text"
+                    value={editShortcutUrl}
+                    onChange={(e) => setEditShortcutUrl(e.target.value)}
+                    placeholder="URL eller C:\\Users\\..."
+                    style={{ ...inputStyle, marginTop: 6 }}
+                    onKeyDown={(e) => e.key === 'Enter' && saveEditShortcut()}
+                  />
+                  <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                    <button onClick={saveEditShortcut} style={{ ...saveButtonStyle, flex: 1 }}>Lagre</button>
+                    <button onClick={cancelEditShortcut} style={{ ...saveButtonStyle, flex: 1, background: 'transparent', color: tokens.color.textMuted, border: `1px solid ${tokens.color.border}` }}>Avbryt</button>
+                  </div>
+                </div>
+              );
+            }
             return (
               <div key={s.id} style={{ position: 'relative' }} className="shortcut-row">
                 <a
@@ -429,15 +583,24 @@ export default function Sidebar() {
                       });
                     }
                   }}
-                  title={s.label}
-                  style={{ ...itemStyle, paddingRight: badge > 0 ? 56 : 30 }}
+                  title={s.url.startsWith('file:') ? `Lokal fil: ${s.url}` : s.label}
+                  style={{ ...itemStyle, paddingRight: badge > 0 ? 80 : 54 }}
                 >
-                  <ExternalLink size={14} strokeWidth={2} style={{ color: tokens.color.textMuted, flexShrink: 0 }} />
+                  {s.url.startsWith('file:')
+                    ? <FileText size={14} strokeWidth={2} style={{ color: '#D4A017', flexShrink: 0 }} />
+                    : <ExternalLink size={14} strokeWidth={2} style={{ color: tokens.color.textMuted, flexShrink: 0 }} />}
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {s.label}
                   </span>
                   {badge > 0 && <NavBadge count={badge} />}
                 </a>
+                <button
+                  onClick={() => startEditShortcut(s)}
+                  style={{ ...deleteButtonStyle, right: 28 }}
+                  title="Rediger snarvei"
+                >
+                  <Pencil size={11} strokeWidth={2} />
+                </button>
                 <button
                   onClick={() => deleteShortcut(s.id)}
                   style={deleteButtonStyle}
@@ -497,27 +660,62 @@ export default function Sidebar() {
           </div>
         )}
 
-        {mounted && folders.map((f) => (
-          <div key={f.id} style={{ position: 'relative' }}>
-            <button
-              onClick={() => openFolder(f.path)}
-              style={{ ...itemStyle, paddingRight: 30, width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}
-              title={f.path}
-            >
-              <FolderOpen size={14} strokeWidth={2} style={{ color: '#D4A017', flexShrink: 0 }} />
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: tokens.color.text }}>
-                {f.label}
-              </span>
-            </button>
-            <button
-              onClick={() => deleteFolder(f.id)}
-              style={deleteButtonStyle}
-              title="Slett mappe-snarvei"
-            >
-              <Trash2 size={12} strokeWidth={2} />
-            </button>
-          </div>
-        ))}
+        {mounted && folders.map((f) => {
+          if (editFolderId === f.id) {
+            return (
+              <div key={f.id} style={addFormStyle}>
+                <input
+                  type="text"
+                  value={editFolderLabel}
+                  onChange={(e) => setEditFolderLabel(e.target.value)}
+                  placeholder="Navn"
+                  style={inputStyle}
+                  autoFocus
+                />
+                <input
+                  type="text"
+                  value={editFolderPath}
+                  onChange={(e) => setEditFolderPath(e.target.value)}
+                  placeholder={'C:\\Jobb\\Sakspilot'}
+                  style={{ ...inputStyle, marginTop: 6, fontFamily: tokens.font.mono, fontSize: 11 }}
+                  onKeyDown={(e) => e.key === 'Enter' && saveEditFolder()}
+                />
+                <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                  <button onClick={saveEditFolder} style={{ ...saveButtonStyle, flex: 1 }}>Lagre</button>
+                  <button onClick={cancelEditFolder} style={{ ...saveButtonStyle, flex: 1, background: 'transparent', color: tokens.color.textMuted, border: `1px solid ${tokens.color.border}` }}>Avbryt</button>
+                </div>
+              </div>
+            );
+          }
+          return (
+            <div key={f.id} style={{ position: 'relative' }}>
+              <button
+                onClick={() => openFolder(f.path)}
+                style={{ ...itemStyle, paddingRight: 54, width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}
+                title={f.path}
+              >
+                <FolderOpen size={14} strokeWidth={2} style={{ color: '#D4A017', flexShrink: 0 }} />
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: tokens.color.text }}>
+                  {f.label}
+                </span>
+              </button>
+              <button
+                onClick={() => startEditFolder(f)}
+                style={{ ...deleteButtonStyle, right: 28 }}
+                title="Rediger mappe-snarvei"
+              >
+                <Pencil size={11} strokeWidth={2} />
+              </button>
+              <button
+                onClick={() => deleteFolder(f.id)}
+                style={deleteButtonStyle}
+                title="Slett mappe-snarvei"
+              >
+                <Trash2 size={12} strokeWidth={2} />
+              </button>
+            </div>
+          );
+        })}
       </SidebarSection>
 
       {/* My Sites - egne live-prosjekter/nettsider som PWA-ikoner-grid */}
@@ -617,7 +815,32 @@ export default function Sidebar() {
                   )}
                 </a>
                 <button
-                  onClick={() => removeSite(s.id)}
+                  onClick={(e) => { e.preventDefault(); startEditSite(s); }}
+                  style={{
+                    position: 'absolute',
+                    top: -4,
+                    left: -4,
+                    width: 16,
+                    height: 16,
+                    borderRadius: 8,
+                    background: tokens.color.navy,
+                    color: 'white',
+                    border: 'none',
+                    fontSize: 9,
+                    cursor: 'pointer',
+                    opacity: 0,
+                    transition: 'opacity 0.1s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  className="site-edit-btn"
+                  title="Rediger"
+                >
+                  ✎
+                </button>
+                <button
+                  onClick={(e) => { e.preventDefault(); removeSite(s.id); }}
                   style={{
                     position: 'absolute',
                     top: -4,
@@ -644,6 +867,34 @@ export default function Sidebar() {
               </div>
               );
             })}
+          </div>
+        )}
+        {/* Inline edit-form for Mine sites */}
+        {mounted && editSiteId && (
+          <div style={addFormStyle}>
+            <div style={{ fontSize: 10, color: tokens.color.textMuted, marginBottom: 6, fontWeight: 600, textTransform: 'uppercase' }}>
+              Rediger site
+            </div>
+            <input
+              type="text"
+              value={editSiteUrl}
+              onChange={(e) => setEditSiteUrl(e.target.value)}
+              placeholder="luxushair.com eller C:\\..."
+              style={inputStyle}
+              autoFocus
+            />
+            <input
+              type="text"
+              value={editSiteLabel}
+              onChange={(e) => setEditSiteLabel(e.target.value)}
+              placeholder="Navn"
+              style={{ ...inputStyle, marginTop: 6 }}
+              onKeyDown={(e) => e.key === 'Enter' && saveEditSite()}
+            />
+            <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+              <button onClick={saveEditSite} style={{ ...saveButtonStyle, flex: 1 }}>Lagre</button>
+              <button onClick={cancelEditSite} style={{ ...saveButtonStyle, flex: 1, background: 'transparent', color: tokens.color.textMuted, border: `1px solid ${tokens.color.border}` }}>Avbryt</button>
+            </div>
           </div>
         )}
       </SidebarSection>
