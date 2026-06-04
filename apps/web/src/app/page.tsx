@@ -14,7 +14,7 @@ export default function LandingPage() {
       <Header />
       <main style={{ minHeight: 'calc(100vh - 60px)', background: tokens.color.bg }}>
         {/* ============================================================ */}
-        {/* HERO — to-kolonne på desktop, stablet på mobil                */}
+        {/* HERO - to-kolonne på desktop, stablet på mobil                */}
         {/* ============================================================ */}
         <section
           style={{
@@ -50,7 +50,7 @@ export default function LandingPage() {
               }}
             >
               Workspace for selvstendig næringsdrivende. Prosjekt-CRM, passiv tidsregistrering,
-              Outlook-integrasjon, AI-utkast og faktura — i ett verktøy.
+              Outlook-integrasjon, AI-utkast og faktura - i ett verktøy.
             </p>
 
             {/* Trust-bullets */}
@@ -121,7 +121,7 @@ export default function LandingPage() {
 
           {/* Hero-skjermbilde (placeholder).
               TODO (Helene): Bytt ut /icon-512.svg med ekte demo-skjermbilde
-              fra app-en — gjerne saker-kanban med 3-4 ekte-aktige saker. */}
+              fra app-en - gjerne saker-kanban med 3-4 ekte-aktige saker. */}
           <div
             style={{
               position: 'relative',
@@ -150,7 +150,7 @@ export default function LandingPage() {
             />
             <Image
               src="/icon-512.svg"
-              alt="Sakspilot dashbord — TODO: bytt med ekte skjermbilde"
+              alt="Sakspilot dashbord - TODO: bytt med ekte skjermbilde"
               width={220}
               height={220}
               style={{ position: 'relative', filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.3))' }}
@@ -160,7 +160,7 @@ export default function LandingPage() {
         </section>
 
         {/* ============================================================ */}
-        {/* DEMO-VIDEO — klikkbar thumbnail med modal                     */}
+        {/* DEMO-VIDEO - klikkbar thumbnail med modal                     */}
         {/* ============================================================ */}
         <section
           style={{
@@ -174,13 +174,13 @@ export default function LandingPage() {
             Se Sakspilot på 90 sekunder
           </h2>
           <p style={{ color: tokens.color.textMuted, marginBottom: 28, fontSize: 15 }}>
-            Fra første prosjekt til ferdig faktura — uten å bytte verktøy.
+            Fra første prosjekt til ferdig faktura - uten å bytte verktøy.
           </p>
           <DemoVideoModal />
         </section>
 
         {/* ============================================================ */}
-        {/* HVORFOR SAKSPILOT — 4 verdikort                               */}
+        {/* HVORFOR SAKSPILOT - 4 verdikort                               */}
         {/* ============================================================ */}
         <section
           style={{
@@ -212,28 +212,28 @@ export default function LandingPage() {
                 tint: tokens.color.blueSoft,
                 fg: tokens.color.blue,
                 title: 'Auto-spor',
-                desc: 'Én bryter — alt du åpner via Sakspilot telles automatisk på riktig prosjekt. Du slipper start/stopp-timer.',
+                desc: 'Én bryter - alt du åpner via Sakspilot telles automatisk på riktig prosjekt. Du slipper start/stopp-timer.',
               },
               {
                 Icon: Bot,
                 tint: tokens.color.purpleSoft,
                 fg: tokens.color.purple,
                 title: 'AI-utkast til klient-eposter',
-                desc: 'Claude under panseret. Oppsummer prosjekt, foreslå svar, formuler tilbud — alltid på norsk.',
+                desc: 'Claude under panseret. Oppsummer prosjekt, foreslå svar, formuler tilbud - alltid på norsk.',
               },
               {
                 Icon: Wallet,
                 tint: tokens.color.greenSoft,
                 fg: tokens.color.green,
                 title: 'Faktura rett til Fiken',
-                desc: 'Månedlig fakturagrunnlag pushes direkte til Fiken — eller eksporteres som PDF/CSV hvis du ikke har Fiken.',
+                desc: 'Månedlig fakturagrunnlag pushes direkte til Fiken - eller eksporteres som PDF/CSV hvis du ikke har Fiken.',
               },
               {
                 Icon: HardHat,
                 tint: tokens.color.orangeSoft,
                 fg: tokens.color.orange,
                 title: 'Bransje-snarveier',
-                desc: 'Ferdig oppsett for advokat, ansvarlig søker, IT-konsulent, designer m.fl. — du slipper å bygge fra bunnen.',
+                desc: 'Ferdig oppsett for advokat, ansvarlig søker, IT-konsulent, designer m.fl. - du slipper å bygge fra bunnen.',
               },
             ].map((item) => (
               <div
@@ -282,7 +282,7 @@ export default function LandingPage() {
         <ComparisonTable />
 
         {/* ============================================================ */}
-        {/* FEATURES — kompakt grid                                       */}
+        {/* FEATURES - kompakt grid                                       */}
         {/* ============================================================ */}
         <section
           style={{
@@ -313,7 +313,7 @@ export default function LandingPage() {
               { Icon: FileText, title: 'CSV / Fiken-eksport', desc: 'Månedsrapport én klikk unna' },
               { Icon: Mail, title: 'Outlook-integrasjon', desc: 'E-poster kobles automatisk til riktig prosjekt' },
               { Icon: Zap, title: 'Agenter / automatiseringer', desc: 'Monday-stil: når X, gjør Y' },
-              { Icon: Share2, title: 'Delt visning til klient', desc: 'Generer offentlig lenke per prosjekt — uten innlogging' },
+              { Icon: Share2, title: 'Delt visning til klient', desc: 'Generer offentlig lenke per prosjekt - uten innlogging' },
               { Icon: Lock, title: 'GDPR-klar', desc: 'Innsynsrett + sletteplikt innebygget' },
               { Icon: Smartphone, title: 'Mobil + desktop', desc: 'PWA på telefon, desktop-app på Windows' },
               { Icon: Check, title: 'AI-assistent', desc: 'Oppsummer prosjekter og skriv klient-eposter' },
@@ -374,7 +374,7 @@ export default function LandingPage() {
               marginRight: 'auto',
             }}
           >
-            Vi bygger Sakspilot sammen med de første brukerne. Full tilgang — i bytte mot
+            Vi bygger Sakspilot sammen med de første brukerne. Full tilgang - i bytte mot
             tilbakemeldinger. Senere kommer 199 kr/mnd (eller 1990 kr/år).
           </p>
           <div
@@ -404,7 +404,7 @@ export default function LandingPage() {
         </section>
 
         {/* ============================================================ */}
-        {/* FAQ — kuratert subset (full liste går til JSON-LD)            */}
+        {/* FAQ - kuratert subset (full liste går til JSON-LD)            */}
         {/* ============================================================ */}
         <section
           id="faq"
@@ -484,7 +484,7 @@ export default function LandingPage() {
               marginRight: 'auto',
             }}
           >
-            ~10 minutter fra registrering til alt er på plass — inkludert desktop-agent
+            ~10 minutter fra registrering til alt er på plass - inkludert desktop-agent
             og Outlook-kobling.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>

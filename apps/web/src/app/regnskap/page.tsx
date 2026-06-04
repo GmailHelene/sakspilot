@@ -306,12 +306,12 @@ export default function RegnskapPage() {
                   <tr key={u.id} style={{ borderTop: '1px solid #f1f5f9' }}>
                     <td style={td}>{new Date(u.dato).toLocaleDateString('nb-NO')}</td>
                     <td style={td}>{u.beskrivelse}</td>
-                    <td style={td}>{u.kategori || '—'}</td>
-                    <td style={td}>{u.leverandor || '—'}</td>
+                    <td style={td}>{u.kategori || '-'}</td>
+                    <td style={td}>{u.leverandor || '-'}</td>
                     <td style={{ ...td, textAlign: 'right', fontWeight: 600 }}>
                       {parseFloat(u.belopInkMva).toLocaleString('nb-NO')} kr
                     </td>
-                    <td style={{ ...td, textAlign: 'right' }}>{u.mvaSats != null ? `${u.mvaSats} %` : '—'}</td>
+                    <td style={{ ...td, textAlign: 'right' }}>{u.mvaSats != null ? `${u.mvaSats} %` : '-'}</td>
                     <td style={{ ...td, textAlign: 'center' }}>
                       <KvitteringCell
                         utgift={u}
@@ -373,7 +373,7 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
     const file = e.target.files?.[0];
     if (!file) { setKvitteringFile(null); return; }
     if (file.size > MAX_KVITTERING_BYTES) {
-      setKvitteringError('For stor — max 5 MB');
+      setKvitteringError('For stor - max 5 MB');
       e.target.value = '';
       return;
     }
@@ -447,7 +447,7 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
             <option value="Drift" /><option value="Kontor" /><option value="Programvare" />
             <option value="Reise" /><option value="Abonnement" /><option value="Annet" />
           </datalist>
-          {/* Kvittering — opplastbar JPG/PNG/WebP/PDF, max 5 MB. Norske
+          {/* Kvittering - opplastbar JPG/PNG/WebP/PDF, max 5 MB. Norske
               regnskaps-krav 5 år oppbevaring, så lagring i DB er OK for
               de fleste små frilansere. */}
           <div>

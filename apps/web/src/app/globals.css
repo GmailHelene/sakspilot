@@ -2,14 +2,14 @@
    --sp-accent*) på <html data-theme>. Mørk modus styres separat via
    <html data-mode="dark"> så bruker kan kombinere palette + lys/mørk fritt. */
 :root {
-  /* Palette (settes per tema av ThemeInit) — default Navy & Gull */
+  /* Palette (settes per tema av ThemeInit) - default Navy & Gull */
   --sp-primary: #1E3A5F;
   --sp-primary-dark: #152A47;
   --sp-primary-light: #2D5183;
   --sp-accent: #D4A017;
   --sp-accent-light: #E9C46A;
 
-  /* Nøytrale flater — lys modus (default) */
+  /* Nøytrale flater - lys modus (default) */
   --sp-bg: #F8F9FB;
   --sp-bg-alt: #F1F3F7;
   --sp-bg-surface: #FFFFFF;
@@ -22,7 +22,7 @@
   --sp-scrollbar-thumb-hover: #b0b0b0;
 }
 
-/* Mørk modus — overstyrer kun nøytrale flater, palette-fargene beholdes
+/* Mørk modus - overstyrer kun nøytrale flater, palette-fargene beholdes
    så Navy/Rose/Forest fortsatt fungerer som aksent på mørk bakgrunn. */
 [data-mode="dark"] {
   --sp-bg: #0F1419;
@@ -102,14 +102,14 @@ a, button, [role="button"] {
   }
 }
 
-/* Sak-kort i kanban og listen — løft og skygge på hover */
+/* Sak-kort i kanban og listen - løft og skygge på hover */
 a[href^="/saker/"]:not([href="/saker"]):not([href="/saker/ny"]):hover,
 a[href^="/klienter/"]:not([href="/klienter"]):not([href="/klienter/ny"]):hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(30, 58, 95, 0.08);
 }
 
-/* Knapper — generell hover-løft */
+/* Knapper - generell hover-løft */
 button[type="submit"]:not(:disabled):hover,
 a[style*="background"]:hover {
   filter: brightness(1.05);

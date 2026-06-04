@@ -33,13 +33,13 @@ Cron-jobben trenger nøyaktig samme env-vars som hovedtjenesten `api`.
 Enkleste måte: bruk **Environment Group** i Render.
 
 Påkrevd:
-- `DATABASE_URL` — Neon/Supabase Postgres connection string
-- `DIRECT_URL` — direkte (non-pooler) connection for Prisma migrations
+- `DATABASE_URL` - Neon/Supabase Postgres connection string
+- `DIRECT_URL` - direkte (non-pooler) connection for Prisma migrations
 - `NODE_ENV=production`
 
-Optional (kun hvis actions trenger det senere — i dag bruker engine kun DB):
-- `SENTRY_DSN` — feilrapportering
-- `SMTP_*` / `RESEND_API_KEY` — hvis vi legger til e-post-action i fremtiden
+Optional (kun hvis actions trenger det senere - i dag bruker engine kun DB):
+- `SENTRY_DSN` - feilrapportering
+- `SMTP_*` / `RESEND_API_KEY` - hvis vi legger til e-post-action i fremtiden
 
 ### Logger
 
@@ -72,7 +72,7 @@ Forventet output:
 [daily-automation-trigger] starter 2026-05-31T...
 [daily-automation-trigger] fant N organisasjon(er) med aktive due_soon-agenter
 [daily-automation-trigger] -> sjekker org "Demo AS" (uuid)
-[daily-automation-trigger] ferdig på XXms — ok: N, feilet: 0
+[daily-automation-trigger] ferdig på XXms - ok: N, feilet: 0
 ```
 
 For å teste med ekte data: opprett en agent med trigger `milestone_due_soon`
@@ -83,7 +83,7 @@ at klistrelappen dukker opp.
 
 Legg dem under `src/jobs/` og dokumenter dem her. Forslag som har dukket opp:
 
-- `subscriptionRenewalReminder.ts` — varsle 7 dager før Subscription utløper
-- `trialExpiryWarning.ts` — varsle bruker når trial nærmer seg slutt
-- `staleSakArchive.ts` — auto-arkivere saker uten aktivitet på 6 mnd
-- `weeklyDigest.ts` — ukentlig e-post-oppsummering til hver bruker
+- `subscriptionRenewalReminder.ts` - varsle 7 dager før Subscription utløper
+- `trialExpiryWarning.ts` - varsle bruker når trial nærmer seg slutt
+- `staleSakArchive.ts` - auto-arkivere saker uten aktivitet på 6 mnd
+- `weeklyDigest.ts` - ukentlig e-post-oppsummering til hver bruker

@@ -2,7 +2,7 @@
 <html lang="nb">
 <head>
   <meta charset="UTF-8" />
-  <title>Sakspilot — Innstillinger</title>
+  <title>Sakspilot - Innstillinger</title>
   <style>
     :root {
       --navy: #1E3A5F;
@@ -206,22 +206,22 @@
   <!-- Status / pålogget -->
   <section id="statusSection" style="display:none;">
     <h2>Status</h2>
-    <div class="status-row"><span class="label">Bruker</span><span class="value" id="userName">—</span></div>
-    <div class="status-row"><span class="label">E-post</span><span class="value" id="userEmail">—</span></div>
-    <div class="status-row"><span class="label">API</span><span class="value" id="currentApi">—</span></div>
-    <div class="status-row" id="rowAgent"><span class="label">Agent</span><span class="value" id="agentStatus">—</span></div>
-    <div class="status-row" id="rowWorkSession"><span class="label">Arbeidsøkt</span><span class="value" id="workSessionInfo">—</span></div>
+    <div class="status-row"><span class="label">Bruker</span><span class="value" id="userName">-</span></div>
+    <div class="status-row"><span class="label">E-post</span><span class="value" id="userEmail">-</span></div>
+    <div class="status-row"><span class="label">API</span><span class="value" id="currentApi">-</span></div>
+    <div class="status-row" id="rowAgent"><span class="label">Agent</span><span class="value" id="agentStatus">-</span></div>
+    <div class="status-row" id="rowWorkSession"><span class="label">Arbeidsøkt</span><span class="value" id="workSessionInfo">-</span></div>
     <div class="status-row"><span class="label">Polls totalt</span><span class="value" id="pollCount">0</span></div>
     <div class="status-row"><span class="label">Sessions logget</span><span class="value" id="sessionCount">0</span></div>
     <div class="status-row" id="rowPending"><span class="label">Ikke synket</span><span class="value" id="pendingCount">0</span></div>
     <div class="status-row"><span class="label">Aktive matching-regler</span><span class="value" id="ruleCount">0</span></div>
 
-    <!-- Kontrollknapper — endres basert på status -->
+    <!-- Kontrollknapper - endres basert på status -->
     <div id="controls" style="margin-top:18px; display:grid; gap:8px;">
-      <!-- Når INGEN arbeidsøkt — vis kun Start -->
+      <!-- Når INGEN arbeidsøkt - vis kun Start -->
       <button class="btn-primary" id="btnStart" style="display:none;">▶ Start arbeidsøkt</button>
 
-      <!-- Når arbeidsøkt AKTIV — vis Pause + Stopp -->
+      <!-- Når arbeidsøkt AKTIV - vis Pause + Stopp -->
       <div id="activeControls" style="display:none; gap:8px; display:none;">
         <button class="btn-warn" id="btnTogglePause" style="flex:1;">⏸ Pause</button>
         <button class="btn-danger" id="btnStop" style="flex:1;">■ Stopp + rapport</button>
@@ -251,7 +251,7 @@
   </section>
 
   <div class="footer-note">
-    Sakspilot Desktop v0.0.1 — privacy first: vi logger kun vindustittel + app-navn, ingen skjermbilder, ingen tastetrykk.
+    Sakspilot Desktop v0.0.1 - privacy first: vi logger kun vindustittel + app-navn, ingen skjermbilder, ingen tastetrykk.
   </div>
 
   <script>
@@ -274,7 +274,7 @@
         show('statusSection');
         show('prefsSection');
         $('userName').textContent = settings.userName;
-        $('userEmail').textContent = settings.userEmail || '—';
+        $('userEmail').textContent = settings.userEmail || '-';
         $('currentApi').textContent = settings.apiUrl;
         await refreshStatus();
         if (!statusTimer) statusTimer = setInterval(refreshStatus, 5000);
@@ -295,7 +295,7 @@
           : status.currentSession
             ? `▶ ${status.currentSession.sakTitle || status.currentSession.app}`
             : status.workSessionActive
-              ? '⏱ Aktiv — venter på vinduskifte'
+              ? '⏱ Aktiv - venter på vinduskifte'
               : '⏹ Ingen arbeidsøkt';
         $('agentStatus').textContent = text;
         $('rowAgent').className = 'status-row ' + (status.paused ? 'warn' : status.workSessionActive ? 'ok' : '');
@@ -307,7 +307,7 @@
         if (status.workSessionActive && status.workSessionStartedAt) {
           const elapsedSec = Math.round((Date.now() - new Date(status.workSessionStartedAt)) / 1000);
           $('workSessionInfo').textContent =
-            `Aktiv — ${formatDur(elapsedSec)} · ${status.workSessionSessionCount || 0} sessions`;
+            `Aktiv - ${formatDur(elapsedSec)} · ${status.workSessionSessionCount || 0} sessions`;
           $('rowWorkSession').className = 'status-row ok';
         } else {
           $('workSessionInfo').textContent = 'Ikke startet';
@@ -376,7 +376,7 @@
       const a = (apiUrl || '').replace(/\/$/, '');
       if (a.includes('sakspilot.no')) return 'https://sakspilot.no';
       if (a.includes('onrender.com')) return 'https://sakspilot-web.vercel.app';
-      // localhost / IP — bytt port og fjern eventuelt /api-suffiks
+      // localhost / IP - bytt port og fjern eventuelt /api-suffiks
       return a.replace(/:\d+$/, ':3001').replace(/\/api$/, '');
     }
     $('openWebSignup').addEventListener('click', async (e) => {

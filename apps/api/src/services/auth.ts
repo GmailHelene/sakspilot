@@ -17,7 +17,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "30d";
 if (!JWT_SECRET || JWT_SECRET.length < 32) {
   console.warn(
     "[Auth] ADVARSEL: JWT_SECRET er ikke satt eller for kort (< 32 tegn). " +
-    "Sett en sterk hemmelig fra crypto.randomBytes(64). Bruker default — IKKE BRUK I PROD."
+    "Sett en sterk hemmelig fra crypto.randomBytes(64). Bruker default - IKKE BRUK I PROD."
   );
 }
 

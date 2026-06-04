@@ -9,9 +9,9 @@ Status pr nå:
 Consumer (test): eyJ0b2tlbklkIjoyNTM1... (UNIK for test-miljø)
 Employee (test): eyJ0b2tlbklkIjo0MTQ3...
 ✅ Sakspilot-koden støtter test-miljø-toggle (checkbox i UI)
-⚠️ Sakspilot bruker fortsatt PROD consumer token for test-kall — dette må fikses
+⚠️ Sakspilot bruker fortsatt PROD consumer token for test-kall - dette må fikses
 ⚠️ KJENT BUG: Consumer token er feil for test
-Test-Tripletex har sin EGEN consumer token (eyJ0b2tlbklkIjoyNTM1...), forskjellig fra prod (eyJ0b2tlbklkIjo2NDI0...). Sakspilot bruker samme token uansett — det vil sannsynligvis feile mot test-miljø.
+Test-Tripletex har sin EGEN consumer token (eyJ0b2tlbklkIjoyNTM1...), forskjellig fra prod (eyJ0b2tlbklkIjo2NDI0...). Sakspilot bruker samme token uansett - det vil sannsynligvis feile mot test-miljø.
 
 ⏭️ NESTE (i rekkefølge)
 1. Aktiver test-konto (5 min)
@@ -23,7 +23,7 @@ not done
 Logg inn på api-test.tripletex.tech med:
 Brukernavn: helene721@gmail.com
 Passord: (det du satte)
-2. Sett opp Sakspilot mot test (10 min — etter jeg fikser bug-en over)
+2. Sett opp Sakspilot mot test (10 min - etter jeg fikser bug-en over)
 not done
 Gå til sakspilot.no/innstillinger/tripletex
 not done
@@ -43,7 +43,7 @@ not done
 Verifiser at fakturadraft dukker opp i test-Tripletex-grensesnittet
 4. Når du er klar for PROD-bruk (egen brukers Tripletex eller ekte kunde)
 not done
-HUK AV "Bruk test-miljø" — bytt til PROD
+HUK AV "Bruk test-miljø" - bytt til PROD
 not done
 Lim inn EmployeeToken fra ekte Tripletex (du eller en kunde)
 not done

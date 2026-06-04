@@ -43,7 +43,7 @@ export default function GlobalError({
       >
         <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
         <h1 style={{ fontSize: 22, color: tokens.color.navy, marginBottom: 8 }}>
-          Oops — noe gikk galt
+          Oops - noe gikk galt
         </h1>
         <p style={{ color: tokens.color.textMuted, fontSize: 14, lineHeight: 1.5, marginBottom: 20 }}>
           En feil oppstod. Prøv å laste siden på nytt eller gå tilbake.

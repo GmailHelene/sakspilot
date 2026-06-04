@@ -33,7 +33,7 @@ function logCrash(label, err) {
     fs.appendFileSync(crashLogPath, msg);
     try {
       dialog.showErrorBox(
-        'Sakspilot — feil ved oppstart',
+        'Sakspilot - feil ved oppstart',
         `${label}\n\n${err && err.message ? err.message : String(err)}\n\nFull logg: ${crashLogPath}`
       );
     } catch {}
@@ -123,7 +123,7 @@ function initializeAgent() {
     poller.on('error', (err) => console.error('[Poller] feil:', err.message));
 
     poller.start();
-    poller.pause(); // start pauset — venter på "Start arbeidsøkt"
+    poller.pause(); // start pauset - venter på "Start arbeidsøkt"
   }
 
   scheduleSync();
@@ -157,7 +157,7 @@ function updateTrayMenu() {
 
     if (workSessionActive) {
       const elapsedSec = Math.round((Date.now() - workSessionStart) / 1000);
-      items.push({ label: `🟢 Arbeidsøkt aktiv — ${formatDur(elapsedSec)}`, enabled: false });
+      items.push({ label: `🟢 Arbeidsøkt aktiv - ${formatDur(elapsedSec)}`, enabled: false });
       if (status?.currentSession?.sakTitle) {
         items.push({ label: `   🎯 ${truncate(status.currentSession.sakTitle, 38)}`, enabled: false });
       } else if (status?.currentSession) {
@@ -171,7 +171,7 @@ function updateTrayMenu() {
         click: () => togglePause(),
       });
     } else {
-      items.push({ label: '⏹  Ingen arbeidsøkt — klikk Start for å logge', enabled: false });
+      items.push({ label: '⏹  Ingen arbeidsøkt - klikk Start for å logge', enabled: false });
       items.push({ type: 'separator' });
       items.push({ label: '▶  Start arbeidsøkt', click: () => startWorkSession() });
     }
@@ -246,7 +246,7 @@ function startWorkSession() {
   workSessionSessions = [];
   poller.resume();
   updateTrayMenu();
-  notify('Sakspilot', 'Arbeidsøkt startet — logging aktiv');
+  notify('Sakspilot', 'Arbeidsøkt startet - logging aktiv');
   // Hent friske regler ved start
   refreshRules();
 }
@@ -279,7 +279,7 @@ async function stopWorkSession() {
       type: 'info',
       title: 'Sakspilot',
       message: 'Arbeidsøkt avsluttet',
-      detail: `Varighet: ${formatDur(durSec)}\nIngen aktivitet logget — sessions under 5 sekunder ignoreres.`,
+      detail: `Varighet: ${formatDur(durSec)}\nIngen aktivitet logget - sessions under 5 sekunder ignoreres.`,
       buttons: ['OK'],
     });
     return;
@@ -419,10 +419,10 @@ async function syncSessions() {
       const apiUrl = store.get('apiUrl') || 'https://api.sakspilot.no';
       const isLocalhost = apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1');
       new Notification({
-        title: 'Sakspilot — sync feilet',
+        title: 'Sakspilot - sync feilet',
         body: isLocalhost
           ? `Kan ikke nå API på ${apiUrl}. Endre i Innstillinger → API URL til https://api.sakspilot.no`
-          : `Kan ikke nå ${apiUrl}: ${err.message}. Sessions beholdes — prøver igjen om 5 min.`,
+          : `Kan ikke nå ${apiUrl}: ${err.message}. Sessions beholdes - prøver igjen om 5 min.`,
         urgency: 'normal',
       }).show();
       store.set('lastSyncErrorNotif', Date.now());
@@ -451,7 +451,7 @@ function openSettingsWindow() {
   settingsWindow = new BrowserWindow({
     width: 520,
     height: 650,
-    title: 'Sakspilot — Innstillinger',
+    title: 'Sakspilot - Innstillinger',
     autoHideMenuBar: true,
     resizable: false,
     webPreferences: {
@@ -485,7 +485,7 @@ function openDashboardWindow() {
   dashboardWindow = new BrowserWindow({
     width: 1280,
     height: 800,
-    title: 'Sakspilot — Dashbord',
+    title: 'Sakspilot - Dashbord',
     autoHideMenuBar: false,
     backgroundColor: '#1E3A5F', // unngå hvit-blink før innhold laster
     webPreferences: { contextIsolation: true, nodeIntegration: false },
@@ -575,7 +575,7 @@ function openDashboardWindow() {
   function loadSplash() {
     if (!dashboardWindow) return;
     const splashHTML = `
-      <!DOCTYPE html><html><head><meta charset="utf-8"><title>Sakspilot — laster</title>
+      <!DOCTYPE html><html><head><meta charset="utf-8"><title>Sakspilot - laster</title>
       <style>
         body { margin:0; font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
                background: #1E3A5F; color: white; height: 100vh;
@@ -605,7 +605,7 @@ function openDashboardWindow() {
   function loadErrorPage(code, desc, url) {
     if (!dashboardWindow) return;
     const errorHTML = `
-      <!DOCTYPE html><html><head><meta charset="utf-8"><title>Sakspilot — kunne ikke koble til</title>
+      <!DOCTYPE html><html><head><meta charset="utf-8"><title>Sakspilot - kunne ikke koble til</title>
       <style>
         * { box-sizing: border-box; }
         body { margin:0; padding: 0; font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
@@ -656,7 +656,7 @@ function openDashboardWindow() {
           </p>
 
           <div class="meta">
-            <strong>Teknisk:</strong> ${code} — ${desc}<br>
+            <strong>Teknisk:</strong> ${code} - ${desc}<br>
             <strong>URL forsøkt:</strong> ${url}<br>
             <strong>Når web er live på sakspilot.no</strong> trenger du ikke kjøre dette lokalt.
           </div>

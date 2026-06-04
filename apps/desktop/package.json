@@ -2,7 +2,7 @@
   "name": "@sakspilot/desktop",
   "version": "0.0.14",
   "private": true,
-  "description": "Sakspilot desktop-agent — tray-app som logger aktivt vindu og kobler til sak. Cross-platform (Windows + macOS + Linux).",
+  "description": "Sakspilot desktop-agent - tray-app som logger aktivt vindu og kobler til sak. Cross-platform (Windows + macOS + Linux).",
   "author": {
     "name": "Helene Åsheim Grønberg",
     "email": "helene@helene.cloud"

@@ -15,14 +15,14 @@ const FEATURES = [
   'Prosjekt-CRM med kanban + tabell',
   'Automatisk tidsregistrering (Windows-app)',
   'Outlook-integrasjon (Microsoft Graph)',
-  'AI-assistent (Claude — oppsummer + skriv eposter)',
+  'AI-assistent (Claude - oppsummer + skriv eposter)',
   'Klient-portal med delte lenker',
   'CSV-eksport til Tripletex / Fiken',
   'Agenter (automatiseringer Monday-stil)',
   'Klistrelapper + kanban',
   'Kalender + tidslinje',
   'GDPR-eksport + slette-rett',
-  'Mobil-app (PWA — iOS + Android)',
+  'Mobil-app (PWA - iOS + Android)',
   'Ubegrenset antall prosjekter + klienter',
 ];
 
@@ -56,7 +56,7 @@ export default function PriserPage() {
             }}
           >
             <Zap size={16} strokeWidth={2.5} />
-            Pilotperiode pågår — alle planer er <strong>helt gratis</strong> frem til 31. desember 2026
+            Pilotperiode pågår - alle planer er <strong>helt gratis</strong> frem til 31. desember 2026
           </div>
 
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
@@ -66,7 +66,7 @@ export default function PriserPage() {
             <p style={{ fontSize: 18, color: tokens.color.textMuted, maxWidth: 600, margin: '0 auto', lineHeight: 1.5 }}>
               Gratis i pilotperioden, så 199 kr/mnd når vi går live.{' '}
               <strong style={{ color: tokens.color.navy }}>14 dagers gratis prøveperiode</strong>{' '}
-              også etter pilotperioden — ingen kredittkort kreves.
+              også etter pilotperioden - ingen kredittkort kreves.
             </p>
           </div>
 
@@ -133,7 +133,7 @@ export default function PriserPage() {
                 },
                 {
                   q: 'Får jeg refundert hvis jeg ikke er fornøyd?',
-                  a: 'Ja — full refusjon innen 30 dager etter første betaling, uten spørsmål. Etter det: pro-rata refusjon for ubrukt periode.',
+                  a: 'Ja - full refusjon innen 30 dager etter første betaling, uten spørsmål. Etter det: pro-rata refusjon for ubrukt periode.',
                 },
                 {
                   q: 'Trenger jeg å koble til kort i pilotperioden?',

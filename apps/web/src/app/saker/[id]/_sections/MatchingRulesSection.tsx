@@ -47,7 +47,7 @@ function buildRuleTemplates(sak: Sak) {
 
   // Plukk meningsfulle ord fra tittel (før bindestrek), filtrer stopp-ord
   const significantWords = sak.title
-    .replace(/[—–-].+$/, '')
+    .replace(/[-–-].+$/, '')
     .trim()
     .split(/\s+/)
     .map((w) => w.toLowerCase())
@@ -80,14 +80,14 @@ function buildRuleTemplates(sak: Sak) {
       label: '⚡ Auto: match prosjektets navn (fleksibel)',
       type: 'title' as const,
       pattern: autoFlexPattern,
-      hint: `Matcher uansett rekkefølge — f.eks. "${significantWords.join(' ')}" treffer både "${significantWords.join('-')}.docx", "${[...significantWords].reverse().join(' ')}.dwg" og "Notater om ${significantWords.join(' ')}.pdf"`,
+      hint: `Matcher uansett rekkefølge - f.eks. "${significantWords.join(' ')}" treffer både "${significantWords.join('-')}.docx", "${[...significantWords].reverse().join(' ')}.dwg" og "Notater om ${significantWords.join(' ')}.pdf"`,
     },
     {
       id: 'auto-title-strict',
       label: '🎯 Auto: streng match (ord i rekkefølge)',
       type: 'title' as const,
       pattern: titleWords,
-      hint: 'Krever ordene i samme rekkefølge med kun mellomrom/bindestrek/understrek mellom — færre falske treff',
+      hint: 'Krever ordene i samme rekkefølge med kun mellomrom/bindestrek/understrek mellom - færre falske treff',
     },
     {
       id: 'folder',
@@ -104,7 +104,7 @@ function buildRuleTemplates(sak: Sak) {
       label: '📄 Word-dokumenter (alle .docx)',
       type: 'title' as const,
       pattern: '\\.docx?\\b',
-      hint: 'Match enhver Word-fil — bredt, kombineres med spesifikk regel',
+      hint: 'Match enhver Word-fil - bredt, kombineres med spesifikk regel',
     },
     {
       id: 'excel',
@@ -132,7 +132,7 @@ function buildRuleTemplates(sak: Sak) {
       label: '📧 Outlook (hele appen)',
       type: 'app' as const,
       pattern: '^outlook',
-      hint: 'All tid i Outlook teller — kombiner med e-postregel for prosjekt-spesifikt',
+      hint: 'All tid i Outlook teller - kombiner med e-postregel for prosjekt-spesifikt',
     },
     {
       id: 'email-subject',
@@ -169,7 +169,7 @@ function buildRuleTemplates(sak: Sak) {
       label: '💻 VS Code / Cursor (auto fra prosjektets navn)',
       type: 'title' as const,
       pattern: titleWords + '.*\\b(Visual Studio Code|Cursor)\\b',
-      hint: 'Editor-vinduer som har prosjektets navn i tittel — mappenavn eller fil',
+      hint: 'Editor-vinduer som har prosjektets navn i tittel - mappenavn eller fil',
     },
     {
       id: 'github',
@@ -183,7 +183,7 @@ function buildRuleTemplates(sak: Sak) {
       label: '🌐 WordPress-admin for klient',
       type: 'title' as const,
       pattern: '(wp-admin|wordpress).*' + titleWords,
-      hint: 'For freelance WP-arbeid — Chrome-tab på klientens wp-admin',
+      hint: 'For freelance WP-arbeid - Chrome-tab på klientens wp-admin',
     },
     {
       id: 'figma',
@@ -344,7 +344,7 @@ export default function MatchingRulesSection({
               marginBottom: 10,
             }}
           >
-            Maler — klikk for å bruke
+            Maler - klikk for å bruke
           </div>
           <div style={{ display: 'grid', gap: 6 }}>
             {templates.map((t) => (

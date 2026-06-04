@@ -160,7 +160,7 @@ export async function api<T = unknown>(
       path.startsWith('/auth/me')
     ) {
       const keys = [
-        'sakspilot_token',   // legacy — XSS-fix 3/6
+        'sakspilot_token',   // legacy - XSS-fix 3/6
         'sakspilot_authed',
         'sakspilot_active_user',
         'sakspilot_onboarded',

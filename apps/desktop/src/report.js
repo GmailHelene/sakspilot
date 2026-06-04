@@ -52,7 +52,7 @@ function buildWorkSessionReport({ workSessionStart, workSessionEnd, sessions, us
 
   // ── Ark 1: Sammendrag ──────────────────────────────────────
   const sammendrag = [
-    ['Sakspilot — arbeidsøktsrapport'],
+    ['Sakspilot - arbeidsøktsrapport'],
     [],
     ['Bruker', userName || ''],
     ['Organisasjon', orgName || ''],
@@ -87,8 +87,8 @@ function buildWorkSessionReport({ workSessionStart, workSessionEnd, sessions, us
     const defaultTitle = s.sakId
       ? s.sakTitle
       : isAutoTracked
-      ? 'Ukategorisert (auto-sporet — fordel til prosjekt i Sakspilot)'
-      : 'Ukategorisert (ingen match — fordel til prosjekt i Sakspilot)';
+      ? 'Ukategorisert (auto-sporet - fordel til prosjekt i Sakspilot)'
+      : 'Ukategorisert (ingen match - fordel til prosjekt i Sakspilot)';
     const existing = perSakMap.get(key) || {
       sakTitle: defaultTitle,
       hourlyRate: s.sakHourlyRate || 0,

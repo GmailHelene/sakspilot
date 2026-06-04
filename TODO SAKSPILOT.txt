@@ -1,9 +1,9 @@
-SAKSPILOT TODO — oppdatert 1. juni 2026
+SAKSPILOT TODO - oppdatert 1. juni 2026
 ==========================================
 
 DENNE UKA (kritisk)
 - [ ] Send Nicole-epost (docs/pilot-epost-nicole.md, versjon A)
-- [ ] Post på LinkedIn (docs/linkedin-post.md, versjon A — founder-story)
+- [ ] Post på LinkedIn (docs/linkedin-post.md, versjon A - founder-story)
 - [ ] Post i WordPress Norge FB-gruppe (docs/post-fb-wp-norge.md)
 - [ ] Sjekk at /last-ned faktisk laster ned siste exe (versjonsløs URL)
 - [ ] Test demo-video på sakspilot.no (er nå live, 65 MB)
@@ -64,7 +64,7 @@ LENGRE SIKT (Q3/Q4 2026)
 - [ ] AI-foreslår status-endring basert på milepæl-mønster
 - [ ] Klistrelapp-deling mellom team-medlemmer
 
-INTEGRASJONER — venter
+INTEGRASJONER - venter
 - [ ] Tripletex partner-status
 
 DEMO + DEV

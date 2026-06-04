@@ -74,7 +74,7 @@ export default function FeedbackPage() {
         </h1>
         <p style={{ color: tokens.color.textMuted, fontSize: 15, marginBottom: 28, lineHeight: 1.5 }}>
           Som pilot er din ærlige tilbakemelding gull verdt. Svar på det som
-          treffer — du trenger ikke svare på alle. Vi leser hvert eneste svar.
+          treffer - du trenger ikke svare på alle. Vi leser hvert eneste svar.
         </p>
 
         {done ? (
@@ -97,13 +97,13 @@ export default function FeedbackPage() {
             />
             <Field
               label="Hva frustrerer deg eller bremser deg?"
-              hint="Småting teller — knapper som er rare, ting som henger seg, uklar tekst."
+              hint="Småting teller - knapper som er rare, ting som henger seg, uklar tekst."
               value={whatFrustrates}
               onChange={setWhatFrustrates}
             />
             <Field
-              label="Hva mangler — hva skulle du ønske Sakspilot kunne?"
-              hint="Funksjoner, integrasjoner, snarveier — alt fra ville idéer til små ønsker."
+              label="Hva mangler - hva skulle du ønske Sakspilot kunne?"
+              hint="Funksjoner, integrasjoner, snarveier - alt fra ville idéer til små ønsker."
               value={whatIsMissing}
               onChange={setWhatIsMissing}
             />
@@ -120,7 +120,7 @@ export default function FeedbackPage() {
                   Jeg vil gjerne ha en kort video-samtale med Helene
                 </span>
                 <span style={{ display: 'block', fontSize: 13, color: tokens.color.textMuted, marginTop: 2 }}>
-                  15–20 min — for å gå dypere i hvordan du jobber og hva som kunne hjulpet.
+                  15–20 min - for å gå dypere i hvordan du jobber og hva som kunne hjulpet.
                 </span>
               </span>
             </label>

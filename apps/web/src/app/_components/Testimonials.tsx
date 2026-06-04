@@ -7,7 +7,7 @@ import { tokens } from '@/lib/tokens';
  * PLACEHOLDER_LABEL-banneret.
  */
 
-const PLACEHOLDER_LABEL = '(eksempel — ekte sitater kommer når piloter har testet)';
+const PLACEHOLDER_LABEL = '(eksempel - ekte sitater kommer når piloter har testet)';
 
 const TESTIMONIALS = [
   {
@@ -18,7 +18,7 @@ const TESTIMONIALS = [
     fg: tokens.color.blue,
   },
   {
-    quote: 'Tidsregistreringen tar 0 minutter per dag — den bare skjer.',
+    quote: 'Tidsregistreringen tar 0 minutter per dag - den bare skjer.',
     name: 'Sara',
     role: 'Designer',
     color: tokens.color.pinkSoft,

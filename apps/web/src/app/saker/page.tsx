@@ -518,17 +518,17 @@ function TabellView({ saker }: { saker: Sak[] }) {
                       </span>
                     )}
                   </td>
-                  <td style={tdStyle}>{s.client?.name || '—'}</td>
+                  <td style={tdStyle}>{s.client?.name || '-'}</td>
                   <td style={tdStyle}>
                     <StatusBadge status={s.status} />
                   </td>
                   <td style={{ ...tdStyle, color: overdue ? tokens.color.red : 'inherit', fontWeight: overdue ? 600 : 400 }}>
                     {s.deadline
                       ? new Date(s.deadline).toLocaleDateString('nb-NO')
-                      : '—'}
+                      : '-'}
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'right' }}>
-                    {s.hourlyRate ? `${s.hourlyRate.toLocaleString('nb-NO')} kr/t` : '—'}
+                    {s.hourlyRate ? `${s.hourlyRate.toLocaleString('nb-NO')} kr/t` : '-'}
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'right' }}>{s._count.timeEntries}</td>
                 </tr>

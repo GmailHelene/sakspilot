@@ -95,7 +95,7 @@ export function PortalTopBar({
         )}
         <span>
           {displayName}
-          <span style={{ color: tokens.color.textMuted, fontWeight: 500 }}> — {tagline}</span>
+          <span style={{ color: tokens.color.textMuted, fontWeight: 500 }}> - {tagline}</span>
         </span>
       </Link>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>

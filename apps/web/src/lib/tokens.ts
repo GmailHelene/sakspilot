@@ -37,8 +37,8 @@ export const tokens = {
     // Nøytral — leser fra CSS-variabler så de flipper i mørk modus
     // (se globals.css :root og [data-mode="dark"]). Fallback-verdiene
     // matcher lys modus så SSR/tidlig render ser riktig ut.
-    white: '#FFFFFF',                                       // ren hvit — for tekst på mørke flater (header-tekst, badges osv). Endres IKKE av mørk modus.
-    surface: 'var(--sp-bg-surface, #FFFFFF)',               // kort-/panel-bakgrunn — flipper til mørk grå i mørk modus
+    white: '#FFFFFF',                                       // ren hvit - for tekst på mørke flater (header-tekst, badges osv). Endres IKKE av mørk modus.
+    surface: 'var(--sp-bg-surface, #FFFFFF)',               // kort-/panel-bakgrunn - flipper til mørk grå i mørk modus
     bg: 'var(--sp-bg, #F8F9FB)',                            // app-bakgrunn
     bgAlt: 'var(--sp-bg-alt, #F1F3F7)',                     // sub-flater (sidebar add-form, hover)
     border: 'var(--sp-border, #E6E9EF)',

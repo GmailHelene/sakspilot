@@ -1,11 +1,11 @@
-# Sakspilot for ansvarlig søker — bruksanvisning
+# Sakspilot for ansvarlig søker - bruksanvisning
 
 Skreddersydd for Nicole Torgersen / byggesakshåndtering. Skal kunne leses på
 20 min og dekke alt hun trenger for de første 4 ukene.
 
 ---
 
-## Del 1 — Komme i gang (15 min, gjøres én gang)
+## Del 1 - Komme i gang (15 min, gjøres én gang)
 
 ### Steg 1: Registrer konto
 
@@ -15,11 +15,11 @@ Skreddersydd for Nicole Torgersen / byggesakshåndtering. Skal kunne leses på
    - Bedriftsnavn (f.eks. «Torgersen Bygg AS» eller ditt ENK-navn)
    - Ditt navn
    - E-post (samme som du bruker på jobb)
-   - Passord (min 12 tegn — bruk en passord-manager hvis du ikke har)
+   - Passord (min 12 tegn - bruk en passord-manager hvis du ikke har)
 4. Klikk **«Opprett konto»**
 
 Du blir logget inn automatisk og får 14 dagers gratis trial.
-Pilotbrukere får i tillegg gratis ut hele **2026-12-31** — Helene aktiverer
+Pilotbrukere får i tillegg gratis ut hele **2026-12-31** - Helene aktiverer
 dette manuelt etter at du har registrert.
 
 ### Steg 2: Onboarding-veileder (popper opp automatisk)
@@ -37,17 +37,17 @@ Klikk **«Start uten å klikke videre»** for å lukke veiviseren.
 
 ### Steg 3: Last ned og installer Windows-appen
 
-Dette er det som gjør automatisk tidsregistrering mulig — uten den må du
+Dette er det som gjør automatisk tidsregistrering mulig - uten den må du
 fortsatt logge timer manuelt.
 
 1. I Sakspilot, klikk på navnet ditt → **«Last ned Sakspilot Desktop»**
    (eller spør Helene om direkte-lenke til zip-en)
-2. Pakk ut zip-fila — du får en mappe `Sakspilot-win32-x64`
+2. Pakk ut zip-fila - du får en mappe `Sakspilot-win32-x64`
 3. Flytt mappa et sted permanent (f.eks. `C:\Programmer\Sakspilot\`)
 4. Dobbeltklikk **`Sakspilot.exe`** inni mappa
-5. Et tray-ikon dukker opp i hjørnet (nederst til høyre) — det betyr appen
+5. Et tray-ikon dukker opp i hjørnet (nederst til høyre) - det betyr appen
    kjører. Klikk på det for å åpne dashboardet
-6. Første gang spør den om innlogging — bruk samme e-post + passord som på
+6. Første gang spør den om innlogging - bruk samme e-post + passord som på
    web-en
 
 **Tips:** Legg snarvei i Windows Start-meny ved å høyreklikke
@@ -59,7 +59,7 @@ Slik at e-poster fra byggherrer og kommune knyttes til riktig sak automatisk.
 
 1. I Sakspilot, gå til **Innstillinger → Integrasjoner** (i sidebaren)
 2. Klikk **«Koble til Outlook»**
-3. Et popup-vindu åpnes med Microsoft-pålogging — logg inn med jobb-e-posten
+3. Et popup-vindu åpnes med Microsoft-pålogging - logg inn med jobb-e-posten
 4. Godta tilgangene Sakspilot ber om (lese e-post, ingen sending)
 5. Popup-en lukkes automatisk når det er ferdig
 
@@ -70,7 +70,7 @@ manuelt.
 
 ---
 
-## Del 2 — Daglig bruk
+## Del 2 - Daglig bruk
 
 ### Dette gjør du første gang en byggesak kommer inn
 
@@ -93,7 +93,7 @@ Når Windows-appen er installert og du har klikket **«Start arbeidsøkt»**
 (enten i tray-menyen eller på Hjem-siden):
 
 - Sakspilot ser hva som er aktivt vindu hvert sekund
-- Hvis vindustittelen matcher en regel — knytter den tid til riktig sak
+- Hvis vindustittelen matcher en regel - knytter den tid til riktig sak
 - Du ser timer dukke opp på saken etter ca 30 sek
 
 **Sett opp matching-regler første gang:**
@@ -125,13 +125,13 @@ Når du sliter med å formulere en e-post til kommunen eller byggherren:
 1. Åpne saken
 2. Scroll til **«AI-assistent»** (Claude)
 3. Klikk **«Skriv e-post-utkast»** og velg:
-   - **«Status-oppdatering»** — gir byggherre kort statusrapport
-   - **«Frist-utsettelse»** — ber kommune/byggherre om utvidet tidsfrist
-   - **«Faktura-påminnelse»** — hyggelig påminnelse om kommende faktura
-   - **«Egendefinert»** — du skriver hva e-posten skal si
-4. Du får et utkast på 5-10 sek — kopier, lim inn i Outlook, juster, send
+   - **«Status-oppdatering»** - gir byggherre kort statusrapport
+   - **«Frist-utsettelse»** - ber kommune/byggherre om utvidet tidsfrist
+   - **«Faktura-påminnelse»** - hyggelig påminnelse om kommende faktura
+   - **«Egendefinert»** - du skriver hva e-posten skal si
+4. Du får et utkast på 5-10 sek - kopier, lim inn i Outlook, juster, send
 
-**OBS:** AI-en kjenner ikke konfidensiell info — den får bare saks-tittel,
+**OBS:** AI-en kjenner ikke konfidensiell info - den får bare saks-tittel,
 klient-navn, milepæler, timer. Ingen klient-eposter eller telefon. Du kan
 trygt bruke den.
 
@@ -152,11 +152,11 @@ trygt bruke den.
 8. Kontroller, send fra Fiken
 
 **Uten Fiken:** Bruk CSV-eksport i stedet. **Rapport → Måned →
-Eksporter CSV** — importer i Tripletex eller Fiken manuelt.
+Eksporter CSV** - importer i Tripletex eller Fiken manuelt.
 
 ---
 
-## Del 3 — Spesifikt for byggesaksbehandling
+## Del 3 - Spesifikt for byggesaksbehandling
 
 ### Anbefalt sak-mal for ansvarlig søker
 
@@ -178,24 +178,24 @@ milepæl (f.eks. «ring nabo Per om garasjefasade»).
 
 ### Holte-arbeidsflyt
 
-- Klikk Holte-snarveien i sidebaren — den åpner i en innbygd fane i Windows-
+- Klikk Holte-snarveien i sidebaren - den åpner i en innbygd fane i Windows-
   appen (eller i ny nettleser-fane på web). Sakspilot fortsetter å logge tid
   selv om du jobber i Holte
 - Lag mappe-snarveier til prosjekt-mapper på lokalt disk under **«Mine
-  mapper»** i sidebaren — så åpner du Holte-prosjekt-mappa raskt
+  mapper»** i sidebaren - så åpner du Holte-prosjekt-mappa raskt
 - Bruk matching-regel **«App = SmartByggSak.exe»** for å knytte all Holte-
   tid til riktig sak
 
 ### Kommune-dialog
 
 - Knytt alle e-poster fra kommunesaksbehandler til saken
-- Bruk AI-assistenten til formelle svar — den treffer en god tone for
+- Bruk AI-assistenten til formelle svar - den treffer en god tone for
   kommune-korrespondanse
 - Lag klistrelapp med kommunens saksbehandler-navn og direktenummer
 
 ### Nabovarsel
 
-- Lag en klient per nabo (skjelett — bare navn + adresse)
+- Lag en klient per nabo (skjelett - bare navn + adresse)
 - Bruk **«Del med klient»**-funksjonen for å gi naboen lenke til status uten
   innlogging
 
@@ -210,7 +210,7 @@ Mange byggherrer vil se «hva du har brukt tid på». Generer rapport:
 
 ---
 
-## Del 4 — Når noe ikke virker
+## Del 4 - Når noe ikke virker
 
 | Problem | Løsning |
 |---|---|
@@ -231,7 +231,7 @@ Slik at du kan sende faktura med ett klikk fra en ferdig sak.
 
 1. Logg inn på Fiken og gå til **Innstillinger → API-tilgang**
 2. Klikk **«Generer personlig token»** og kopier tokenet (lang streng)
-3. Noter bedrifts-slug-en din — finn det i URL-en når du er inne i bedriften.
+3. Noter bedrifts-slug-en din - finn det i URL-en når du er inne i bedriften.
    F.eks. `https://fiken.no/foretak/torgersen-bygg/...` → slug er
    `torgersen-bygg`
 4. Tilbake i Sakspilot: **Innstillinger → Integrasjoner → Fiken**
@@ -243,14 +243,14 @@ fra når som helst.
 
 
 
-## Del 5 — Hva Sakspilot **ikke** gjør (og hvorfor)
+## Del 5 - Hva Sakspilot **ikke** gjør (og hvorfor)
 
-- **Sender ikke e-poster for deg** — AI lager utkast, du sender. Bevisst valg
+- **Sender ikke e-poster for deg** - AI lager utkast, du sender. Bevisst valg
   så ikke noe sendes ved uhell
-- **Genererer ikke byggesøknader** — fortsatt Holte/eByggeSøk som lager dem.
+- **Genererer ikke byggesøknader** - fortsatt Holte/eByggeSøk som lager dem.
   Sakspilot er styringssystemet, ikke fagsystemet
-- **Bokfører ikke** — Fiken/Tripletex gjør det. Sakspilot pusher kun timene
-- **Lagrer ikke kommune-vedtak som juridiske dokumenter** — bruk Drive/
+- **Bokfører ikke** - Fiken/Tripletex gjør det. Sakspilot pusher kun timene
+- **Lagrer ikke kommune-vedtak som juridiske dokumenter** - bruk Drive/
   OneDrive til arkivering, knytt lenker fra saken
 
 ---
@@ -258,7 +258,7 @@ fra når som helst.
 ## Kontakt
 
 - **Helene:** helene721@gmail.com · 📞 96912907
-- **Akutt feil i prod:** SMS — jeg fikser samme dag i pilotperioden
+- **Akutt feil i prod:** SMS - jeg fikser samme dag i pilotperioden
 - **Tilbakemelding / forslag:** bare skriv i samme tråd, jeg leser alt
 
 🙏 Tusen takk for at du tester!

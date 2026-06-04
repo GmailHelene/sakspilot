@@ -7,7 +7,7 @@ REM  Stopper alle kjoerende Sakspilot/Electron-prosesser foerst
 REM  (ellers feiler bygget med EBUSY-laasing).
 REM  Verifiserer at electron + app-builder-bin er installert.
 REM ─────────────────────────────────────────────────────────────
-title Sakspilot — Bygg installer
+title Sakspilot - Bygg installer
 
 echo.
 echo  ══════════════════════════════════════════════════════════
@@ -26,7 +26,7 @@ if not exist "node_modules\app-builder-bin\win\x64\app-builder.exe" goto :needsi
 goto :build
 
 :needsinstall
-echo        Mangler avhengigheter — kjoerer npm install --force
+echo        Mangler avhengigheter - kjoerer npm install --force
 echo        (kan ta 1-2 min foerste gang)
 call npm install --force
 if errorlevel 1 (

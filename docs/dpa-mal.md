@@ -1,18 +1,18 @@
-# Databehandleravtale (DPA) — Sakspilot
+# Databehandleravtale (DPA) - Sakspilot
 
 **Versjon:** 1.0
 **Sist oppdatert:** 28. mai 2026
 **Format:** Bokmål, norsk lov, GDPR-kompatibel (artikkel 28)
 
 Denne mal-en brukes som:
-1. **Vedlegg til Tripletex-partner-søknad** — viser at Sakspilot har formell databehandleravtale på plass
+1. **Vedlegg til Tripletex-partner-søknad** - viser at Sakspilot har formell databehandleravtale på plass
 2. **Standard DPA** mellom Sakspilot og pilot-/betalende kunder
 3. **Internt referansedokument** for sikkerhetsrutiner
 
 **Slik bruker du den:**
 - Bytt ut `{KUNDE_NAVN}`, `{KUNDE_ORG_NR}` osv med faktisk kundeinformasjon
 - Skriv ut til PDF eller signér digitalt (BankID, Signere.no, Penneo, DocuSign)
-- Gi kunden én signert kopi, behold én selv (lagres i `docs/signerte-dpaer/` lokalt — IKKE i Git)
+- Gi kunden én signert kopi, behold én selv (lagres i `docs/signerte-dpaer/` lokalt - IKKE i Git)
 - Oppdater versjonsnummer + dato ved endringer
 
 ---
@@ -28,7 +28,7 @@ Denne mal-en brukes som:
 - Kontaktperson: `{KUNDE_KONTAKT_NAVN}`, `{KUNDE_KONTAKT_EPOST}`
 
 **Databehandler** (heretter «Sakspilot»):
-- Navn: Helene Åsheim Grønberg (ENK) — eier av Sakspilot
+- Navn: Helene Åsheim Grønberg (ENK) - eier av Sakspilot
 - Organisasjonsnummer: `{HELENE_ORG_NR}`
 - Adresse: `{HELENE_ADRESSE}`
 - Kontaktperson: Helene Åsheim Grønberg, helene@helene.cloud
@@ -82,7 +82,7 @@ Sakspilot behandler ikke personopplysninger for andre formål uten skriftlig ins
 | **Identitetsdata (Kunden)** | Navn, e-post, organisasjonsnummer |
 | **Identitetsdata (klienter)** | Navn, e-post, telefon, adresse, organisasjonsnummer |
 | **Sakshåndteringsdata** | Prosjekttittel, beskrivelse, status, frister, milepæler |
-| **Tidsregistreringsdata** | Vindustittel (f.eks. «Word — kontraktsutkast.docx»), app-navn, varighet, fakturerbar status |
+| **Tidsregistreringsdata** | Vindustittel (f.eks. «Word - kontraktsutkast.docx»), app-navn, varighet, fakturerbar status |
 | **E-postmetadata** | Emnefelt, avsender, sendt-tidspunkt, kobling til prosjekt |
 | **Autentiseringsdata** | E-post, bcrypt-hash (ikke klartekstpassord), JWT-token-versjon |
 | **Audit-logg** | Brukerhandlinger med tidsstempel og IP-adresse (for sikkerhet) |
@@ -143,18 +143,18 @@ Kunden gir Sakspilot **generell forhåndsgodkjenning** til å benytte underdatab
 | **Neon, Inc.** | Postgres-database (all app-data) | EU (Frankfurt, AWS eu-central-1) | https://neon.tech/legal/dpa |
 | **Render, Inc.** | API-server + logger | EU (Frankfurt) | https://render.com/legal/dpa |
 | **Vercel, Inc.** | Web frontend + statiske assets | Global CDN (data-at-rest i USA) | https://vercel.com/legal/dpa |
-| **Microsoft Ireland Operations Ltd.** | Microsoft Graph (Outlook-integrasjon) — kun aktiv hvis Kunden kobler til | EU (kundens 365-tenant-region) | Microsoft Online Services DPA + SCCs |
+| **Microsoft Ireland Operations Ltd.** | Microsoft Graph (Outlook-integrasjon) - kun aktiv hvis Kunden kobler til | EU (kundens 365-tenant-region) | Microsoft Online Services DPA + SCCs |
 | **Anthropic PBC** | Claude AI-modell (kun ved bruk av AI-assistent) | USA (eu-west region tilgjengelig via Bedrock-stub, kan aktiveres) | https://www.anthropic.com/legal/dpa + SCCs |
 | **Tripletex AS** | Regnskaps-API (kun ved aktivert integrasjon) | Norge | Tripletex' standard partner-DPA |
 | **Fiken AS** | Regnskaps-API (kun ved Kundens personlig token) | Norge | Fiken-vilkår |
-| **Resend (Domain Manager Inc.)** | Transactional e-post (passord-reset, varsler) | EU (Frankfurt) — planlagt aktivering juni 2026 | https://resend.com/legal/dpa |
+| **Resend (Domain Manager Inc.)** | Transactional e-post (passord-reset, varsler) | EU (Frankfurt) - planlagt aktivering juni 2026 | https://resend.com/legal/dpa |
 | **Umami Cloud (Umami Software)** | Anonymisert webanalytikk (ingen cookies, ingen PII) | EU | https://umami.is/legal/dpa |
 
 ### Tredjeland-overføringer
 
 Anthropic (USA), Vercel (delvis USA) og Microsoft (delvis USA via 365-tenant) er etablert i USA. For disse benyttes:
 - **EUs standardkontrakter (SCC)** modul én/to der relevant
-- **Tilleggsbeskyttelse:** PII-minimisering — Sakspilot sender aldri klient-epost eller -telefon til Anthropic
+- **Tilleggsbeskyttelse:** PII-minimisering - Sakspilot sender aldri klient-epost eller -telefon til Anthropic
 - **Adequacy-vurdering:** USA er ikke ansett som adekvat. SCCs + Data Privacy Framework (DPF) påberopes der underdatabehandler er sertifisert (Microsoft, Vercel)
 
 ---
@@ -185,7 +185,7 @@ Sakspilot bistår Kunden ved henvendelser fra registrerte om:
 | Retting (art. 16) | Kunden retter direkte i Sakspilot-UI |
 | Sletting (art. 17) | `/innstillinger/sikkerhet → Slett konto + all data` |
 | Dataportabilitet (art. 20) | JSON-eksport (samme som innsyn) |
-| Innsigelse (art. 21) | Kontakt helene@helene.cloud — manuell håndtering |
+| Innsigelse (art. 21) | Kontakt helene@helene.cloud - manuell håndtering |
 
 Kunden er ansvarlig for å svare den registrerte. Sakspilot leverer tekniske verktøy.
 
@@ -259,7 +259,7 @@ Signatur: ____________________________
 
 ---
 
-# VEDLEGG A — Tekniske og organisatoriske sikkerhetstiltak
+# VEDLEGG A - Tekniske og organisatoriske sikkerhetstiltak
 
 ## A.1 Konfidensialitet
 
@@ -267,7 +267,7 @@ Signatur: ____________________________
 - 2FA aktivert på alle administrasjonskontoer (GitHub, Vercel, Render, Neon)
 - Ingen tredjepart har shell-tilgang til produksjonsservere
 - Fremtidige ansatte signerer taushetserklæring før tilgang
-- Passord lagres som bcrypt-hash med 12 rounds — aldri klartekst
+- Passord lagres som bcrypt-hash med 12 rounds - aldri klartekst
 - API-tokens og refresh-tokens krypteres med AES-256-GCM før lagring i DB
 
 ## A.2 Integritet
@@ -320,13 +320,13 @@ Kunden har 30 dager til å motsette seg endringen før den trer i kraft.
 
 ---
 
-# VEDLEGG B — Skjema for personvernbrudd-varsling
+# VEDLEGG B - Skjema for personvernbrudd-varsling
 
 (Brukes hvis Sakspilot oppdager et brudd og må varsle Kunden innen 24 timer.)
 
 **Til:** `{KUNDE_KONTAKT_EPOST}`
 **Fra:** helene@helene.cloud
-**Emne:** [VIKTIG] Personvernbrudd-varsel — Sakspilot
+**Emne:** [VIKTIG] Personvernbrudd-varsel - Sakspilot
 
 **Dato/tid for hendelsen:** `{TIDSPUNKT}`
 **Dato/tid for oppdagelse:** `{OPPDAGET}`
@@ -335,7 +335,7 @@ Kunden har 30 dager til å motsette seg endringen før den trer i kraft.
 `{KORT_BESKRIVELSE}`
 
 **Antall berørte registrerte:**
-`{ANTALL}` (anslag — kan oppdateres)
+`{ANTALL}` (anslag - kan oppdateres)
 
 **Kategorier data berørt:**
 `{KATEGORIER}` (f.eks. e-post, klientnavn, tidsoppføringer)

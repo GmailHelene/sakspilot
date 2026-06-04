@@ -214,7 +214,7 @@ function maybeShowNativeNotification(r: DueReminder) {
   if (typeof window === 'undefined' || !('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
   try {
-    const n = new Notification('Sakspilot — påminnelse', {
+    const n = new Notification('Sakspilot - påminnelse', {
       body: r.content || '(tom klistrelapp)',
       tag: `sakspilot-sticky-${r.id}`, // dedupe i samme browser-instans
       silent: false,

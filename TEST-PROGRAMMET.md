@@ -1,10 +1,10 @@
-# Test Sakspilot lokalt — komplett sjekkliste
+# Test Sakspilot lokalt - komplett sjekkliste
 
 Slik tester du alt som er bygget så langt. Tar ca. 15 minutter.
 
 ## Start systemet (2 min)
 
-I én terminal — start API + web:
+I én terminal - start API + web:
 ```bash
 cd C:\Users\helen\Desktop\sakspilot
 npm run dev
@@ -28,12 +28,12 @@ npm start
 
 - [ ] Tidsbasert hilsen ("God ettermiddag, Helene!" eller liknende)
 - [ ] 4 KPI-kort på toppen: Aktive saker, Timer denne uka, Frister i dag, Forsinket
-- [ ] Widget "Kommende frister" — viser dine forsinkede/i-dag/uka frister
-- [ ] Widget "Nylige saker" — liste av siste saker
-- [ ] Widget "Hurtighandlinger" — 4 knapper (Ny sak, Ny klient, Kalender, Tidslinje)
-- [ ] Widget "Tips for dagen" — kontekstuelle gule tips
+- [ ] Widget "Kommende frister" - viser dine forsinkede/i-dag/uka frister
+- [ ] Widget "Nylige saker" - liste av siste saker
+- [ ] Widget "Hurtighandlinger" - 4 knapper (Ny sak, Ny klient, Kalender, Tidslinje)
+- [ ] Widget "Tips for dagen" - kontekstuelle gule tips
 
-Hvis du har 0 saker: KPI-er viser "—" eller "0", widgets viser tom-tilstand.
+Hvis du har 0 saker: KPI-er viser "-" eller "0", widgets viser tom-tilstand.
 
 ## Sjekk 2: Venstre launcher (1 min)
 
@@ -54,7 +54,7 @@ På venstre kant skal det være en smal mørk-blå kolonne med 12 brand-logoer:
 220px-bred sidebar til høyre for launcheren:
 
 - [ ] Seksjon "Sakspilot" med 5 ikoner: Hjem, Saker, Klienter, Kalender, Tidslinje
-- [ ] Klikk hver — du navigerer mellom sidene
+- [ ] Klikk hver - du navigerer mellom sidene
 - [ ] Aktiv side er markert med mørk-blå bakgrunn
 - [ ] Seksjon "Mine snarveier" med 6 forhåndskonfigurerte
 - [ ] Klikk `+` → fyll inn emoji + navn + URL → klikk "Lagre snarvei"
@@ -62,7 +62,7 @@ På venstre kant skal det være en smal mørk-blå kolonne med 12 brand-logoer:
 - [ ] Hover viser slett-knappen (kurv)
 - [ ] Slett virker
 
-## Sjekk 4: Saker — Kanban + Tabell (3 min)
+## Sjekk 4: Saker - Kanban + Tabell (3 min)
 
 Navigér til **Saker** i sidebar.
 
@@ -110,7 +110,7 @@ Sidebar → **Tidslinje**.
 - [ ] Forsinkede saker har rød kant
 - [ ] Klikk bjelke → åpner saken
 
-## Sjekk 8: Desktop-app — tray + dashbord (3 min)
+## Sjekk 8: Desktop-app - tray + dashbord (3 min)
 
 I trayen (nederst til høyre, evt. under ^):
 
@@ -132,32 +132,32 @@ For å teste den passive logging:
 
 1. Dobbeltklikk tray-ikonet (åpner settings-vinduet)
 2. Klikk **▶ Start arbeidsøkt**
-3. Jobb i 2-3 minutter — bytt mellom apper (Word, Outlook, nettleser)
+3. Jobb i 2-3 minutter - bytt mellom apper (Word, Outlook, nettleser)
 4. Hvis du har en sak med matching-regler: åpne en fil/side som matcher → sjekk at tray-menyen viser "🎯 Logger: [saksnavn]"
 5. Klikk **■ Stopp + rapport**
 6. Velg hvor Excel-fila lagres (default: Dokumenter)
-7. Åpne fila — du skal se 4 ark:
-   - **Sammendrag** — totaltid, beløp
-   - **Per sak** — fakturagrunnlag
-   - **Per applikasjon** — tid per program
-   - **Detaljer** — hver enkelt vindusperiode
+7. Åpne fila - du skal se 4 ark:
+   - **Sammendrag** - totaltid, beløp
+   - **Per sak** - fakturagrunnlag
+   - **Per applikasjon** - tid per program
+   - **Detaljer** - hver enkelt vindusperiode
 
 Hvis du har 0 matching-regler: tiden går til "ikke-matchet" og du ser fortsatt totaltall + per-app, bare ikke per-sak.
 
-## Sjekk 9b: Auto-spor (én bryter — NY)
+## Sjekk 9b: Auto-spor (én bryter - NY)
 
 Auto-spor lar deg slippe matching-regler helt:
 
 1. **I tray-menyen:** klikk **🎯 Auto-spor AV** øverst → den bytter til **🎯 Auto-spor PÅ (alt jeg åpner telles)** med haken på
 2. **ELLER i web-widgeten** (nede til venstre, klokke-knapp): klikk pillen "Auto-spor alt jeg åpner" → badgen bytter fra AV (grå) til PÅ (grønn)
-3. **Arbeidsøkt skal starte automatisk** — du ser elapsed-tid begynne å telle
-4. **Naviger til en sak** (`/saker/[id]`) — widgeten viser nå "↳ tilordnes <saksnavn>"
+3. **Arbeidsøkt skal starte automatisk** - du ser elapsed-tid begynne å telle
+4. **Naviger til en sak** (`/saker/[id]`) - widgeten viser nå "↳ tilordnes <saksnavn>"
 5. **Klikk en Launcher-snarvei** (f.eks. Gmail) eller en `Mine snarveier`-lenke → den åpnes i ny fane
 6. **Sjekk:** i tray-menyen, "X sessions i denne økten" øker med 1 umiddelbart
 7. Naviger bort fra sak-siden → widgeten viser ikke lenger noen sak (sessions vil få `sakId=null` deretter)
 8. **Slå av igjen:** klikk pillen → badgen blir grå → arbeidsøkten kjører fortsatt, men nye åpne-handlinger logges ikke ekstra
 
-Auto-spor fungerer **sammen med** matching-regler — regler overstyrer fallback hvis de matcher.
+Auto-spor fungerer **sammen med** matching-regler - regler overstyrer fallback hvis de matcher.
 
 ## Sjekk 9c: Multi-tab snarveier (NY)
 
@@ -182,16 +182,16 @@ Etter en arbeidsøkt:
 | Problem | Sjekk |
 |---|---|
 | Sider er hvite/tomme | `npm run dev` kjører? Sjekk terminal. |
-| "Kunne ikke koble til serveren" | Åpne `http://localhost:8001/health` — får du JSON? |
+| "Kunne ikke koble til serveren" | Åpne `http://localhost:8001/health` - får du JSON? |
 | Tray-ikon vises ikke | Sjekk under ^ for skjulte ikoner. Hvis ikke der: avslutt + start på nytt. |
 | Matching-regel matcher ikke | Filnavnet ditt må inneholde sakens nøkkelord. F.eks. lagre Word-fil som "Bygdoy-12-notat.docx", ikke "notat.docx". |
-| Sak-detaljside har ikke sidebar | Riktig — den siden bruker fortsatt gammel layout. Fikses neste runde. |
+| Sak-detaljside har ikke sidebar | Riktig - den siden bruker fortsatt gammel layout. Fikses neste runde. |
 
-## Etter testing — hva sier du?
+## Etter testing - hva sier du?
 
 Hvis alt fungerer som forventet:
 - ✅ Klar for Railway-deploy (se RAILWAY-DEPLOY.md)
 - ✅ Klar for å vise Nicole
 
 Hvis noe ikke funker eller du har innspill:
-- Si fra hva du så — så fikser vi det først
+- Si fra hva du så - så fikser vi det først

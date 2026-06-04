@@ -9,12 +9,12 @@ REM    3. Limt inn DATABASE_URL i apps\api\.env
 REM
 REM  Installerer alle avhengigheter og pusher schema til Neon.
 REM ─────────────────────────────────────────────────────────────
-title Sakspilot — foerstegangs-oppsett
+title Sakspilot - foerstegangs-oppsett
 cd /d "%~dp0"
 
 echo.
 echo  ══════════════════════════════════════════════════════════
-echo    Sakspilot — foerstegangs-oppsett
+echo    Sakspilot - foerstegangs-oppsett
 echo  ══════════════════════════════════════════════════════════
 echo.
 echo  Sjekker forutsetninger...

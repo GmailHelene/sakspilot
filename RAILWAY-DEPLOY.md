@@ -8,13 +8,13 @@ server.
 
 ---
 
-## Forberedelse (gjør dette først — 10 min)
+## Forberedelse (gjør dette først - 10 min)
 
 ### Bestem deg for arkitekturen
 
 Vi deployer SOM TO SEPARATE Railway-tjenester i samme Railway-prosjekt:
-- **sakspilot-api** — backend (port 8001), eksponert på `api.sakspilot.no`
-- **sakspilot-web** — Next.js frontend (port 3001), eksponert på `sakspilot.no`
+- **sakspilot-api** - backend (port 8001), eksponert på `api.sakspilot.no`
+- **sakspilot-web** - Next.js frontend (port 3001), eksponert på `sakspilot.no`
 
 Databasen er allerede på Neon (gratis). Railway kobler bare til den via env-vars.
 
@@ -27,7 +27,7 @@ der:
 
 1. Gå til https://github.com/new
 2. Repo-navn: `sakspilot`
-3. **Privat** (anbefalt — du kan flytte til public senere)
+3. **Privat** (anbefalt - du kan flytte til public senere)
 4. Ikke initialiser med README (vi har en)
 5. Klikk "Create repository"
 
@@ -52,7 +52,7 @@ Hvis du ikke har en: https://github.com/settings/tokens → Generate new token
 2. Klikk **"New Project"** øverst til høyre
 3. Velg **"Deploy from GitHub repo"**
 4. Velg `sakspilot`-repoet
-5. Railway prøver å bygge — det vil **feile** første gang fordi vi har monorepo. Det fikser vi i neste steg.
+5. Railway prøver å bygge - det vil **feile** første gang fordi vi har monorepo. Det fikser vi i neste steg.
 
 ---
 
@@ -86,15 +86,15 @@ for hver av disse:
 |---|---|
 | `NODE_ENV` | `production` |
 | `PORT` | `8001` |
-| `DATABASE_URL` | (kopier fra apps/api/.env — pooled Neon-URL) |
-| `DIRECT_URL` | (samme som DATABASE_URL — pooled også) |
-| `JWT_SECRET` | (kopier fra apps/api/.env — den lange hex-strengen) |
+| `DATABASE_URL` | (kopier fra apps/api/.env - pooled Neon-URL) |
+| `DIRECT_URL` | (samme som DATABASE_URL - pooled også) |
+| `JWT_SECRET` | (kopier fra apps/api/.env - den lange hex-strengen) |
 | `JWT_EXPIRES_IN` | `8h` |
 | `FRONTEND_URL` | `https://sakspilot.no,https://www.sakspilot.no` |
 
-Lim inn forsiktig — ingen ekstra mellomrom på slutten av verdiene.
+Lim inn forsiktig - ingen ekstra mellomrom på slutten av verdiene.
 
-Etter siste variabel: klikk **"Deploy"** i topp-baren. Følg loggen — bygget tar
+Etter siste variabel: klikk **"Deploy"** i topp-baren. Følg loggen - bygget tar
 ca. 3–5 min.
 
 Når den er grønn: under **Settings → Networking → Generate Domain** for å få
@@ -111,7 +111,7 @@ Skal returnere `{"ok":true,"service":"sakspilot-api",...}`.
 Tilbake i Railway-prosjektet:
 
 1. Klikk **"+ New"** → **"GitHub Repo"** → samme `sakspilot`-repo
-2. Det opprettes en ny tjeneste — klikk på den
+2. Det opprettes en ny tjeneste - klikk på den
 3. **Settings:**
    - **Service Name:** `sakspilot-web`
    - **Root Directory:** `apps/web`
@@ -195,7 +195,7 @@ npm run build:exe
 ```
 
 Den nye `release\Sakspilot-0.0.1-win-x64.zip` peker nå mot prod. Send til
-pilotene — de trenger ikke kjøre noe lokalt.
+pilotene - de trenger ikke kjøre noe lokalt.
 
 ---
 
@@ -225,12 +225,12 @@ Hvis det funker: du er klar for Nicole.
 
 ---
 
-## Etter deploy — du har:
+## Etter deploy - du har:
 
 ✅ Sakspilot live på https://sakspilot.no  
 ✅ API live på https://api.sakspilot.no  
 ✅ SSL/HTTPS automatisk  
 ✅ Auto-deploy ved hver `git push` til main  
-✅ Klar til pilotene — bare last ned .exe og dobbeltklikk  
+✅ Klar til pilotene - bare last ned .exe og dobbeltklikk  
 
 **Kostnad totalt:** Railway $5/mnd + domeneshop $99/år = ~605 kr/år

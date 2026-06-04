@@ -67,7 +67,7 @@ function step(n, total, text) {
 
 async function main() {
   console.log('\n══════════════════════════════════════════════════════════');
-  console.log(`  Sakspilot — portable build (${BUILD.platform}/${BUILD.arch})`);
+  console.log(`  Sakspilot - portable build (${BUILD.platform}/${BUILD.arch})`);
   console.log('══════════════════════════════════════════════════════════');
 
   const pkg = require('./package.json');
@@ -82,7 +82,7 @@ async function main() {
   if (BUILD.platform !== process.platform) {
     console.log('\n⚠  Cross-platform-build: native modules (active-win) bygges normalt');
     console.log('   for host-OS, ikke target. Anbefales å kjøre denne builden PÅ');
-    console.log(`   target-OS (${BUILD.platform}) — bruk GitHub Actions matrix-runner.`);
+    console.log(`   target-OS (${BUILD.platform}) - bruk GitHub Actions matrix-runner.`);
   }
 
   // ── Steg 0: drep eventuelle Sakspilot/electron-prosesser ──
@@ -104,7 +104,7 @@ async function main() {
   } catch (err) {
     const fallback = path.join(ROOT, 'release-' + Date.now());
     console.log(`\n⚠  Bruker fallback output-mappe: ${path.basename(fallback)}`);
-    console.log('   (gammel release/ er låst — gå inn manuelt og slett den senere)');
+    console.log('   (gammel release/ er låst - gå inn manuelt og slett den senere)');
     RELEASE_DIR = fallback;
   }
   fs.mkdirSync(RELEASE_DIR, { recursive: true });
@@ -326,7 +326,7 @@ async function main() {
       console.warn(`        Brukere kan fortsatt installere via .zip-en.`);
     }
   } else if (IS_MAC) {
-    console.log(`      ⓘ .dmg hoppes over — krever macOS-host (hdiutil). Bygg via GitHub Actions for å få .dmg.`);
+    console.log(`      ⓘ .dmg hoppes over - krever macOS-host (hdiutil). Bygg via GitHub Actions for å få .dmg.`);
   }
 
   // ── Steg 6: rydd temp ─────────────────────────────────────
@@ -334,7 +334,7 @@ async function main() {
   try {
     fs.rmSync(TEMP_DIR, { recursive: true, force: true });
   } catch (e) {
-    console.log(`      ⚠ Klarte ikke slette ${TEMP_DIR} — du kan slette manuelt`);
+    console.log(`      ⚠ Klarte ikke slette ${TEMP_DIR} - du kan slette manuelt`);
   }
 
   console.log('\n══════════════════════════════════════════════════════════');
@@ -352,7 +352,7 @@ async function main() {
 
 function makeReadme(version) {
   if (IS_WIN) {
-    return `Sakspilot — portable utgave (Windows)
+    return `Sakspilot - portable utgave (Windows)
 ================================
 
 1. Dobbeltklikk Sakspilot.exe for å starte.
@@ -367,7 +367,7 @@ Bygget:   ${new Date().toISOString()}
 `;
   }
   if (IS_MAC) {
-    return `Sakspilot — portable utgave (macOS)
+    return `Sakspilot - portable utgave (macOS)
 ================================
 
 1. Dra Sakspilot.app til /Applications.
@@ -385,13 +385,13 @@ Versjon:  ${version}
 Bygget:   ${new Date().toISOString()}
 `;
   }
-  return `Sakspilot — portable utgave (Linux)
+  return `Sakspilot - portable utgave (Linux)
 ================================
 
 1. Pakk ut tar.gz:   tar -xzf Sakspilot-*-linux-x64.tar.gz
 2. Gå inn i mappa:   cd Sakspilot-linux-x64
 3. Start:            ./Sakspilot
-4. Tray-ikon dukker opp i system tray (krever StatusNotifierItem-støtte —
+4. Tray-ikon dukker opp i system tray (krever StatusNotifierItem-støtte -
    GNOME trenger gnome-shell-extension-appindicator).
 5. Logg inn med samme bruker som på sakspilot.no.
 
@@ -476,7 +476,7 @@ function zipDirectory(sourceDir, outPath) {
   return new Promise((resolve, reject) => {
     let archiver;
     try { archiver = loadArchiver(); }
-    catch { return reject(new Error('archiver ikke tilgjengelig — kan ikke zippe')); }
+    catch { return reject(new Error('archiver ikke tilgjengelig - kan ikke zippe')); }
     const output = fs.createWriteStream(outPath);
     const archive = archiver('zip', { zlib: { level: 9 } });
     output.on('close', resolve);
@@ -533,7 +533,7 @@ function tarGzDirectory(sourceDir, outPath) {
   return new Promise((resolve, reject) => {
     let archiver;
     try { archiver = loadArchiver(); }
-    catch { return reject(new Error('archiver ikke tilgjengelig — kan ikke tar.gz')); }
+    catch { return reject(new Error('archiver ikke tilgjengelig - kan ikke tar.gz')); }
     const output = fs.createWriteStream(outPath);
     // gzip-komprimert tar — standard på Linux. Bevarer exec-bit på Sakspilot-binaryen.
     const archive = archiver('tar', { gzip: true, gzipOptions: { level: 9 } });

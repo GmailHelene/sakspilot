@@ -139,7 +139,7 @@ export default function TimeEntriesSection({
                   {hours.toFixed(2)} t
                 </td>
                 <td style={{ ...teTdStyle, color: tokens.color.textMuted, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={`${e.appName || ''} ${e.windowTitle || ''}`}>
-                  {e.appName || '—'}
+                  {e.appName || '-'}
                   {e.windowTitle && (
                     <div style={{ fontSize: 11, color: tokens.color.textSubtle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {e.windowTitle}
@@ -155,7 +155,7 @@ export default function TimeEntriesSection({
                     fontWeight: amount > 0 ? 600 : 400,
                   }}
                 >
-                  {amount > 0 ? `${amount.toLocaleString('nb-NO')} kr` : '—'}
+                  {amount > 0 ? `${amount.toLocaleString('nb-NO')} kr` : '-'}
                 </td>
               </tr>
             );

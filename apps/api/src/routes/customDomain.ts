@@ -125,7 +125,7 @@ function buildDnsInstructions(hostname: string, token: string) {
       record: hostname,
       value: "sakspilot.no",
       description:
-        "I tillegg til TXT-recorden trenger du en CNAME som peker selve domenet til Sakspilot. NB: rot-domener (uten subdomain, f.eks. 'firma.no') krever A-record i stedet — kontakt support hvis du ikke vet hvilken type du trenger.",
+        "I tillegg til TXT-recorden trenger du en CNAME som peker selve domenet til Sakspilot. NB: rot-domener (uten subdomain, f.eks. 'firma.no') krever A-record i stedet - kontakt support hvis du ikke vet hvilken type du trenger.",
     },
   };
 }

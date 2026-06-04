@@ -106,7 +106,7 @@ export default function NySakPage() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder='F.eks. "Bygdøy 12 — rammetillatelse"'
+                  placeholder='F.eks. "Bygdøy 12 - rammetillatelse"'
                   required
                   autoFocus
                 />
@@ -118,7 +118,7 @@ export default function NySakPage() {
                   value={clientId}
                   onChange={(e) => setClientId(e.target.value)}
                 >
-                  <option value="">— Ingen / internt prosjekt —</option>
+                  <option value="">- Ingen / internt prosjekt -</option>
                   {clients.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}

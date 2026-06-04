@@ -100,11 +100,11 @@ const TOC = [
 // DEL 1 — Visjon og problem
 // ════════════════════════════════════════════════════════════════
 const DEL1 = [
-  H1('Del 1 — Visjon og problem'),
+  H1('Del 1 - Visjon og problem'),
 
   H2('1.1  Den menneskelige situasjonen'),
-  P('Nicole Torgersen er sentralt godkjent ansvarlig søker i byggebransjen. Hun jobber for seg selv, fakturerer per time, og har 5–10 aktive klientoppdrag samtidig. På en typisk arbeidsdag jobber hun i Word, AutoCAD, Holte, Outlook og PDF — om hverandre, ofte på samme sak innen samme 30-minutters periode.'),
-  P('Hun bruker Holte for byggesøk, Outlook for kommunikasjon, lokale Word-filer for notater. På slutten av dagen vet hun at hun har jobbet i 8–9 timer, men når hun skal fakturere kunden tipper hun "ca 6 timer" — fordi hun ikke har en presis logg. Hun lever stort sett ned 15–25 % av faktisk arbeidstid hver uke.'),
+  P('Nicole Torgersen er sentralt godkjent ansvarlig søker i byggebransjen. Hun jobber for seg selv, fakturerer per time, og har 5–10 aktive klientoppdrag samtidig. På en typisk arbeidsdag jobber hun i Word, AutoCAD, Holte, Outlook og PDF - om hverandre, ofte på samme sak innen samme 30-minutters periode.'),
+  P('Hun bruker Holte for byggesøk, Outlook for kommunikasjon, lokale Word-filer for notater. På slutten av dagen vet hun at hun har jobbet i 8–9 timer, men når hun skal fakturere kunden tipper hun "ca 6 timer" - fordi hun ikke har en presis logg. Hun lever stort sett ned 15–25 % av faktisk arbeidstid hver uke.'),
   P('Hun er ikke alene. Det samme gjelder arkitekter, advokater, regnskapsførere, designere, ingeniører og andre selvstendig næringsdrivende som fakturerer per time.'),
 
   H2('1.2  Hvorfor finnes ikke en løsning allerede?'),
@@ -118,9 +118,9 @@ const DEL1 = [
   H2('1.3  Sakspilot sin visjon'),
   PRich([
     { text: 'Du jobber som vanlig. Sakspilot teller timene. ', bold: true },
-    { text: 'En diskret tray-app kjører i bakgrunnen og logger automatisk hvilken sak du jobber på, basert på vindustittel og filsti. På slutten av dagen har du en presis fakturalogg — uten å ha startet eller stoppet en eneste timer.' },
+    { text: 'En diskret tray-app kjører i bakgrunnen og logger automatisk hvilken sak du jobber på, basert på vindustittel og filsti. På slutten av dagen har du en presis fakturalogg - uten å ha startet eller stoppet en eneste timer.' },
   ]),
-  P('Du ser oversikten i nettleser-dashbordet. Du eksporterer rapporten til Tripletex/Fiken eller Excel. Du fakturerer for det du faktisk jobbet — ikke det du husker.'),
+  P('Du ser oversikten i nettleser-dashbordet. Du eksporterer rapporten til Tripletex/Fiken eller Excel. Du fakturerer for det du faktisk jobbet - ikke det du husker.'),
 
   H2('1.4  Hvem er Sakspilot for?'),
   P('Selvstendig næringsdrivende som:'),
@@ -138,9 +138,9 @@ const DEL1 = [
 // DEL 2 — Marked og konkurranse
 // ════════════════════════════════════════════════════════════════
 const DEL2 = [
-  H1('Del 2 — Marked og konkurranse'),
+  H1('Del 2 - Marked og konkurranse'),
 
-  H2('2.1  Funksjonsmatrise — konkurrentanalyse'),
+  H2('2.1  Funksjonsmatrise - konkurrentanalyse'),
   P('Sammenligning av Sakspilot mot eksisterende løsninger på de syv hovedfunksjonene:'),
 
   new Table({
@@ -175,7 +175,7 @@ const DEL2 = [
   }),
 
   SPACER(),
-  CALLOUT('Sakspilot er den eneste norske løsningen som kombinerer passiv vinduslogging med sak-CRM. Risikoen er at Holte/SuperOffice kan kopiere på 12–18 mnd hvis de ser markedstraksjon — vi må kjøre fort og bygge moat via bredde (alle fag, ikke bare bygg) og fagsystem-agnostisme.', RED),
+  CALLOUT('Sakspilot er den eneste norske løsningen som kombinerer passiv vinduslogging med sak-CRM. Risikoen er at Holte/SuperOffice kan kopiere på 12–18 mnd hvis de ser markedstraksjon - vi må kjøre fort og bygge moat via bredde (alle fag, ikke bare bygg) og fagsystem-agnostisme.', RED),
 
   H2('2.2  Markedsstørrelse (Norge)'),
   BUL('~12 000 enkeltpersonforetak i bygge- og rådgiverbransjen (SSB)'),
@@ -187,7 +187,7 @@ const DEL2 = [
 
   H2('2.3  Konkurransefortrinn'),
   NUM('Teknisk: passiv vinduslogging er ikke-trivielt (Windows accessibility API, regex/ML-matching, offline-kø). 6–12 mnd lead på etterkommere.'),
-  NUM('Bredde: vi treffer alle fag som fakturerer per time — Holte er låst til byggebransjen.'),
+  NUM('Bredde: vi treffer alle fag som fakturerer per time - Holte er låst til byggebransjen.'),
   NUM('Agnostisk: vi krever ikke at brukeren bytter fagsystem. Sakspilot ligger oppå Holte/AutoCAD/Tripletex.'),
   NUM('Pris: 490–790 kr/mnd er under halvparten av Cordel + Memtime + SuperOffice kombinert.'),
 
@@ -198,7 +198,7 @@ const DEL2 = [
 // DEL 3 — Produktet
 // ════════════════════════════════════════════════════════════════
 const DEL3 = [
-  H1('Del 3 — Produktet'),
+  H1('Del 3 - Produktet'),
 
   H2('3.1  To komplementære komponenter'),
 
@@ -212,7 +212,7 @@ const DEL3 = [
       ]}),
       new TableRow({ children: [
         CELL('Passiv datafangst:\nLogger aktivt vindu hvert 15s i bakgrunnen. Kan "se" alle apper (Word, AutoCAD, Outlook, Holte i browser).\n\nKjører alltid. Ingen UI uten å høyreklikke tray-ikonet.\n\nStart/Stopp arbeidsøkt. Stopp gir Excel-rapport.', { width: 4680, size: 18 }),
-        CELL('Datavisning og planlegging:\nViser saker, klienter, tidssammendrag. Setter opp matching-regler. Genererer rapporter for klient og regnskap.\n\nÅpnes ved behov — typisk 1–3 ganger per dag.', { width: 4680, size: 18, fill: GRAY_LIGHT }),
+        CELL('Datavisning og planlegging:\nViser saker, klienter, tidssammendrag. Setter opp matching-regler. Genererer rapporter for klient og regnskap.\n\nÅpnes ved behov - typisk 1–3 ganger per dag.', { width: 4680, size: 18, fill: GRAY_LIGHT }),
       ]}),
     ],
   }),
@@ -246,26 +246,26 @@ const DEL3 = [
   H2('3.3  Brukergrensesnitt'),
 
   H3('Web-app (http://localhost:3001)'),
-  BUL('/                — landingsside med funksjonsoversikt'),
-  BUL('/registrer       — opprett konto (auto-oppretter organisasjon)'),
-  BUL('/login           — innlogging'),
-  BUL('/saker           — kanban-oversikt over alle saker, 5 kolonner'),
-  BUL('/saker/ny        — opprett ny sak (tittel, klient, frist, sats, mappe)'),
-  BUL('/saker/[id]      — detaljvisning: tidssammendrag, matching-regler (med malsystem), frister, status'),
-  BUL('/klienter        — tabell med alle klienter'),
-  BUL('/klienter/ny     — opprett klient'),
+  BUL('/                - landingsside med funksjonsoversikt'),
+  BUL('/registrer       - opprett konto (auto-oppretter organisasjon)'),
+  BUL('/login           - innlogging'),
+  BUL('/saker           - kanban-oversikt over alle saker, 5 kolonner'),
+  BUL('/saker/ny        - opprett ny sak (tittel, klient, frist, sats, mappe)'),
+  BUL('/saker/[id]      - detaljvisning: tidssammendrag, matching-regler (med malsystem), frister, status'),
+  BUL('/klienter        - tabell med alle klienter'),
+  BUL('/klienter/ny     - opprett klient'),
 
   H3('Desktop-agent (tray-ikon)'),
   P('Høyreklikk-meny endrer seg basert på status:'),
   P('Når INGEN arbeidsøkt:', { italic: true }),
   BUL('📍 Brukernavn'),
-  BUL('⏹  Ingen arbeidsøkt — klikk Start for å logge'),
+  BUL('⏹  Ingen arbeidsøkt - klikk Start for å logge'),
   BUL('▶  Start arbeidsøkt'),
   BUL('Synk / Åpne web / Innstillinger / Logg ut / Avslutt'),
   P('Når ARBEIDSØKT AKTIV:', { italic: true }),
   BUL('📍 Brukernavn'),
-  BUL('🟢 Arbeidsøkt aktiv — 23m 14s'),
-  BUL('   🎯 Bygdøy 12 — rammetillatelse'),
+  BUL('🟢 Arbeidsøkt aktiv - 23m 14s'),
+  BUL('   🎯 Bygdøy 12 - rammetillatelse'),
   BUL('   8 sessions i denne økten'),
   BUL('■  Stopp arbeidsøkt + lag rapport'),
   BUL('⏸  Pause (kort avbrudd)'),
@@ -277,39 +277,39 @@ const DEL3 = [
 // DEL 4 — Brukermanual
 // ════════════════════════════════════════════════════════════════
 const DEL4 = [
-  H1('Del 4 — Brukermanual (how-to)'),
+  H1('Del 4 - Brukermanual (how-to)'),
 
   H2('4.1  Førstegangsoppsett (sluttbruker)'),
   P('Når Sakspilot er ferdig som .exe-installer:'),
   NUM('Last ned Sakspilot-Setup-X.X.X.exe fra sakspilot.no'),
-  NUM('Dobbeltklikk for å installere (per-user — ingen admin nødvendig)'),
+  NUM('Dobbeltklikk for å installere (per-user - ingen admin nødvendig)'),
   NUM('Sakspilot starter automatisk + dukker opp i system-tray'),
   NUM('Innstillinger-vindu åpner seg. Klikk "åpne sakspilot.no/registrer" for å opprette konto i nettleser'),
   NUM('Etter registrering: gå tilbake til desktop-vinduet, logg inn med samme e-post + passord'),
-  NUM('Lukk vinduet — agenten kjører i bakgrunnen som tray-ikon'),
+  NUM('Lukk vinduet - agenten kjører i bakgrunnen som tray-ikon'),
 
-  H2('4.2  Daglig bruk — typisk arbeidsdag'),
+  H2('4.2  Daglig bruk - typisk arbeidsdag'),
 
-  H3('Morgen — kom i gang'),
+  H3('Morgen - kom i gang'),
   NUM('Åpne sakspilot.no i nettleser (eller klikk "Åpne Sakspilot på web" i tray)'),
   NUM('Sjekk kanban: hvilke saker er aktive? Hva venter på kunde?'),
   NUM('Om du har en ny sak: klikk "+ Ny sak", fyll inn tittel + klient + frist + sats'),
   NUM('Når du er klar til å starte: høyreklikk tray-ikonet → "▶ Start arbeidsøkt"'),
 
-  H3('Underveis — agenten jobber for deg'),
+  H3('Underveis - agenten jobber for deg'),
   P('Du fortsetter å jobbe normalt. Agenten logger i bakgrunnen. Hver gang du bytter mellom Word, Outlook, AutoCAD osv. registreres det.'),
   P('For sak-matching: agenten leser vindustittelen. Hvis tittelen matcher en av sakens matching-regler, kobles tiden til den saken.'),
 
   H3('Trenger en pause? (lunsj, privat-tlf)'),
-  P('Høyreklikk tray → "⏸ Pause". Agenten stopper logging midlertidig. Klikk "▶ Fortsett" når du er tilbake. Arbeidsøkten kjører fortsatt — bare logging er pauset.'),
+  P('Høyreklikk tray → "⏸ Pause". Agenten stopper logging midlertidig. Klikk "▶ Fortsett" når du er tilbake. Arbeidsøkten kjører fortsatt - bare logging er pauset.'),
 
-  H3('Slutt av dagen — generer rapport'),
+  H3('Slutt av dagen - generer rapport'),
   NUM('Høyreklikk tray → "■ Stopp arbeidsøkt + lag rapport"'),
   NUM('Velg hvor Excel-fila skal lagres (default: Dokumenter-mappa)'),
   NUM('Filnavn auto-genereres: Sakspilot-arbeidsokt-2026-05-27-0830.xlsx'),
   NUM('Etter lagring: klikk "Åpne fil" for å se den, eller "Vis i mappe"'),
 
-  H2('4.3  Sette opp matching-regler — det viktigste steget'),
+  H2('4.3  Sette opp matching-regler - det viktigste steget'),
 
   P('Uten matching-regler blir all logging "ikke-matchet" og må kategoriseres manuelt. Reglene er det som gjør Sakspilot magisk.'),
 
@@ -317,16 +317,16 @@ const DEL4 = [
   NUM('I web-appen, åpne sak-detaljvisningen (klikk på en sak i kanban)'),
   NUM('Scroll ned til seksjonen "Matching-regler for desktop-agent"'),
   NUM('Klikk "⚡ Velg mal" for å se en liste over typiske regler'),
-  NUM('Klikk en mal — skjemaet pre-utfylles. Klikk "Lagre regel".'),
+  NUM('Klikk en mal - skjemaet pre-utfylles. Klikk "Lagre regel".'),
 
   H3('Vanlige maler'),
-  BUL_RICH([{ text: '⚡ Auto: match dokumenter med sakens navn ', bold: true }, { text: '— anbefalt for alle saker. Genererer regex fra sakens tittel.' }]),
-  BUL_RICH([{ text: '📁 Filer i lokal sak-mappe ', bold: true }, { text: '— hvis du har en dedikert mappe per sak på disk.' }]),
-  BUL_RICH([{ text: '📧 Outlook (hele appen) ', bold: true }, { text: '— all tid i Outlook regnes som arbeid på denne saken.' }]),
-  BUL_RICH([{ text: '🏢 Holte (smart.holte.no) ', bold: true }, { text: '— tid i Holte-portalen.' }]),
+  BUL_RICH([{ text: '⚡ Auto: match dokumenter med sakens navn ', bold: true }, { text: '- anbefalt for alle saker. Genererer regex fra sakens tittel.' }]),
+  BUL_RICH([{ text: '📁 Filer i lokal sak-mappe ', bold: true }, { text: '- hvis du har en dedikert mappe per sak på disk.' }]),
+  BUL_RICH([{ text: '📧 Outlook (hele appen) ', bold: true }, { text: '- all tid i Outlook regnes som arbeid på denne saken.' }]),
+  BUL_RICH([{ text: '🏢 Holte (smart.holte.no) ', bold: true }, { text: '- tid i Holte-portalen.' }]),
 
   H3('Eksempel: Bygdøy 12'),
-  P('Sak: "Bygdøy 12 — rammetillatelse"'),
+  P('Sak: "Bygdøy 12 - rammetillatelse"'),
   P('Klikk "⚡ Velg mal" → "Auto: match dokumenter med sakens navn" → skjema fylles med:'),
   PRich([{ text: '  Type: Vindustittel', size: 20 }, { text: '\n  Mønster: bygd[øo]y[\\s\\-_]*12', size: 20 }]),
   P('Klikk Lagre. Når desktop-agenten ser et Word-vindu med tittel "Bygdoy-12.docx - Word" → tiden kobles automatisk til Bygdøy-saken. 🎯'),
@@ -362,7 +362,7 @@ const DEL4 = [
 // DEL 5 — Arkitektur
 // ════════════════════════════════════════════════════════════════
 const DEL5 = [
-  H1('Del 5 — Arkitektur og teknologi'),
+  H1('Del 5 - Arkitektur og teknologi'),
 
   H2('5.1  Tre komponenter'),
   P('Sakspilot består av tre tjenester som snakker over HTTPS:'),
@@ -371,15 +371,15 @@ const DEL5 = [
   BUL_RICH([{ text: 'Desktop-agent: ', bold: true }, { text: 'Electron 30 + get-windows + electron-store + xlsx. Bygges som NSIS-installer for Windows via electron-builder.' }]),
 
   H2('5.2  Datamodell (Prisma)'),
-  BUL('Organization (1) ←→ User (N) — hver bruker eier sin organisasjon ved registrering'),
-  BUL('Organization (1) ←→ Client (N) — klientregister per organisasjon'),
-  BUL('Client (1) ←→ Sak (N) — saker knyttet til klienter (kan også være interne uten klient)'),
-  BUL('Sak (1) ←→ MatchingRule (N) — regex-mønstre som agenten matcher mot'),
-  BUL('Sak (1) ←→ Milestone (N) — frister med 7+1 dagers varsel'),
-  BUL('Sak (1) ←→ TimeEntry (N) — automatisk-loggede tidsperioder fra agent'),
-  BUL('Sak (1) ←→ EmailLink (N) — Outlook-meldinger (kommer fase 2)'),
-  BUL('User (1) ←→ AgentSession (N) — sporing av aktive desktop-installasjoner'),
-  BUL('Org/User (1) ←→ AuditLog (N) — alle skrive-operasjoner logget'),
+  BUL('Organization (1) ←→ User (N) - hver bruker eier sin organisasjon ved registrering'),
+  BUL('Organization (1) ←→ Client (N) - klientregister per organisasjon'),
+  BUL('Client (1) ←→ Sak (N) - saker knyttet til klienter (kan også være interne uten klient)'),
+  BUL('Sak (1) ←→ MatchingRule (N) - regex-mønstre som agenten matcher mot'),
+  BUL('Sak (1) ←→ Milestone (N) - frister med 7+1 dagers varsel'),
+  BUL('Sak (1) ←→ TimeEntry (N) - automatisk-loggede tidsperioder fra agent'),
+  BUL('Sak (1) ←→ EmailLink (N) - Outlook-meldinger (kommer fase 2)'),
+  BUL('User (1) ←→ AgentSession (N) - sporing av aktive desktop-installasjoner'),
+  BUL('Org/User (1) ←→ AuditLog (N) - alle skrive-operasjoner logget'),
 
   H2('5.3  API-endepunkter (komplette)'),
 
@@ -428,13 +428,13 @@ const DEL5 = [
 
   SPACER(),
   H2('5.4  Sikkerhet og GDPR'),
-  BUL('Hosting: Postgres på Neon EU/Frankfurt — ingen data forlater EU/EØS'),
+  BUL('Hosting: Postgres på Neon EU/Frankfurt - ingen data forlater EU/EØS'),
   BUL('Passord: bcrypt 12 rounds (samme som ByggPilot)'),
   BUL('Tokens: JWT 8t levetid, lagret i cookie + localStorage (fallback for cross-site)'),
   BUL('Transport: kun HTTPS/TLS 1.3 i prod, HSTS-headere'),
-  BUL('Multi-tenant: alle queries filtreres på organizationId — agent kan ikke skrive til andres saker'),
+  BUL('Multi-tenant: alle queries filtreres på organizationId - agent kan ikke skrive til andres saker'),
   BUL('Vinduslogging: KUN tittel + app-navn. Ingen skjermbilder, ingen tastetrykk, ingen innhold'),
-  BUL('Brukeren eier ALT — kan eksportere og slette komplett (GDPR art. 15 + 17 — endepunkter kommer fase 2)'),
+  BUL('Brukeren eier ALT - kan eksportere og slette komplett (GDPR art. 15 + 17 - endepunkter kommer fase 2)'),
   BUL('Audit-log på alle skrive-operasjoner'),
 
   new Paragraph({ children: [new PageBreak()] }),
@@ -444,9 +444,9 @@ const DEL5 = [
 // DEL 6 — Fremdriftsplan
 // ════════════════════════════════════════════════════════════════
 const DEL6 = [
-  H1('Del 6 — Fremdriftsplan'),
+  H1('Del 6 - Fremdriftsplan'),
 
-  H2('6.1  Statusoversikt — hva er ferdig?'),
+  H2('6.1  Statusoversikt - hva er ferdig?'),
 
   new Table({
     width: { size: 9360, type: WidthType.DXA },
@@ -474,7 +474,7 @@ const DEL6 = [
         ['14', 'Desktop: Excel-rapport (xlsx) med 4 ark per arbeidsøkt', 'FERDIG'],
         ['15', 'Sync: desktop sender sessions til /agent/sync hvert 5. min', 'FERDIG'],
         ['16', '.bat-snarveier for én-klikks dev/start/installer', 'FERDIG'],
-        ['—', '', ''],
+        ['-', '', ''],
         ['17', 'Bygg .exe-installer (NSIS, Windows x64)', 'PÅGÅR'],
         ['18', 'Frist-varsler via e-post (Brevo HTTP)', 'PLANLAGT (fase 2)'],
         ['19', 'Outlook-integrasjon via Microsoft Graph API', 'PLANLAGT (fase 2)'],
@@ -516,11 +516,11 @@ const DEL6 = [
         CELL('Status', { width: 1880, bold: true, fill: NAVY, color: 'FFFFFF', center: true }),
       ]}),
       ...[
-        ['0', 'Validering — intervju 6–8 personer', '2 uker', '10. juni', 'IKKE STARTET'],
+        ['0', 'Validering - intervju 6–8 personer', '2 uker', '10. juni', 'IKKE STARTET'],
         ['1', 'MVP-kjerne (backend + web + desktop POC)', '6 uker', 'gjort tidlig', 'FERDIG'],
         ['2', 'Outlook + Tripletex/Fiken + polish', '4 uker', '8. juli', 'PÅGÅR'],
-        ['3', 'Pilot med 5 betalende brukere (gratis pilotperiode)', '4 uker', '5. august', '—'],
-        ['4', 'Soft launch + SEO + 25 kunder', '4 uker', '2. september', '—'],
+        ['3', 'Pilot med 5 betalende brukere (gratis pilotperiode)', '4 uker', '5. august', '-'],
+        ['4', 'Soft launch + SEO + 25 kunder', '4 uker', '2. september', '-'],
       ].map((row, i) => new TableRow({ children: row.map((c, j) => CELL(c, {
         width: [800, 2600, 2200, 1880, 1880][j],
         center: j !== 1, bold: j === 0,
@@ -531,8 +531,8 @@ const DEL6 = [
   }),
 
   SPACER(),
-  P('Hardt GO/NO-GO-punkt etter Fase 0 (validering): minst 4 av 8 intervjuobjekter må si "ja, jeg ville betalt 500+ kr/mnd". Hvis ikke — stopp.'),
-  P('Hardt GO/NO-GO-punkt etter Fase 3 (pilot): minst 3 av 5 piloter må konvertere til betalende. Hvis ikke — analyser og pivot.'),
+  P('Hardt GO/NO-GO-punkt etter Fase 0 (validering): minst 4 av 8 intervjuobjekter må si "ja, jeg ville betalt 500+ kr/mnd". Hvis ikke - stopp.'),
+  P('Hardt GO/NO-GO-punkt etter Fase 3 (pilot): minst 3 av 5 piloter må konvertere til betalende. Hvis ikke - analyser og pivot.'),
 
   new Paragraph({ children: [new PageBreak()] }),
 ];
@@ -541,7 +541,7 @@ const DEL6 = [
 // DEL 7 — Forretningsmodell
 // ════════════════════════════════════════════════════════════════
 const DEL7 = [
-  H1('Del 7 — Forretningsmodell'),
+  H1('Del 7 - Forretningsmodell'),
 
   H2('7.1  Prismodell'),
 
@@ -593,7 +593,7 @@ const DEL7 = [
 // DEL 8 — Risiko
 // ════════════════════════════════════════════════════════════════
 const DEL8 = [
-  H1('Del 8 — Risiko og avhengigheter'),
+  H1('Del 8 - Risiko og avhengigheter'),
 
   H2('8.1  Risikomatrise'),
   new Table({
@@ -607,7 +607,7 @@ const DEL8 = [
       ]}),
       ...[
         ['Holte kopierer passiv tidsreg. på 12–18 mnd', 'Middels', 'Bygg moat: bredere markedsposisjon, agnostisk overfor fagsystem, bedre UX'],
-        ['Validering (fase 0) feiler — <4/8 vil betale', 'Lav-middels', 'Stopp uten kodeskriving. Tap = 2 uker, ikke 5 mnd'],
+        ['Validering (fase 0) feiler - <4/8 vil betale', 'Lav-middels', 'Stopp uten kodeskriving. Tap = 2 uker, ikke 5 mnd'],
         ['Pilot (fase 3) konverterer ikke', 'Middels', 'Sleng pilot 4 uker til, intervju hva som mangler, vurder pivot'],
         ['Windows SmartScreen blokkerer .exe', 'Høy (uten sertifikat)', 'Kjøp code signing-sertifikat (~3000 kr/år) etter første 10 betalende'],
         ['Vinduslogging mistolket som spionvare', 'Middels', 'Tydelig privacy-policy, åpen kildekode-agent, lokal kontroll'],
@@ -638,7 +638,7 @@ const DEL8 = [
 // ── Bygg dokumentet ────────────────────────────────────────
 const doc = new Document({
   creator: 'Helene Åsheim Grønberg',
-  title: 'Sakspilot — Komplett dokumentasjon',
+  title: 'Sakspilot - Komplett dokumentasjon',
   styles: {
     default: { document: { run: { font: FONT_B, size: 22 } } },
     paragraphStyles: [
@@ -657,7 +657,7 @@ const doc = new Document({
   sections: [{
     properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } } },
     headers: {
-      default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'Sakspilot — Komplett dokumentasjon v1.0', size: 18, color: GRAY_DARK, font: FONT_B })] })] }),
+      default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'Sakspilot - Komplett dokumentasjon v1.0', size: 18, color: GRAY_DARK, font: FONT_B })] })] }),
     },
     footers: {
       default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [

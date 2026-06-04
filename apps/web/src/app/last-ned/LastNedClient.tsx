@@ -95,7 +95,7 @@ export default function LastNedClient() {
           </p>
         </div>
 
-        {/* Hovedkort — primær CTA for detektert OS */}
+        {/* Hovedkort - primær CTA for detektert OS */}
         <div
           style={{
             background: 'white',
@@ -242,7 +242,7 @@ export default function LastNedClient() {
           </div>
         )}
 
-        {/* Installasjonsguide — plattform-spesifikk */}
+        {/* Installasjonsguide - plattform-spesifikk */}
         <section style={cardStyle}>
           <h2 style={h2Style}>Slik installerer du</h2>
           {os === 'windows' && (
@@ -314,24 +314,24 @@ export default function LastNedClient() {
           <h2 style={h2Style}>Hva gjør desktop-appen?</h2>
           <ul style={ulStyle}>
             <li>
-              <strong>Automatisk tidsregistrering</strong> — leser aktivt
+              <strong>Automatisk tidsregistrering</strong> - leser aktivt
               vindu (tittel + app-navn) og kobler tid til riktig prosjekt
               basert på matching-regler du setter opp
             </li>
             <li>
-              <strong>Embedded snarveier</strong> — åpner Outlook, Tripletex,
+              <strong>Embedded snarveier</strong> - åpner Outlook, Tripletex,
               Holte osv. som faner inni Sakspilot-vinduet
             </li>
             <li>
-              <strong>Lokale program-snarveier</strong> — start Cyberduck,
+              <strong>Lokale program-snarveier</strong> - start Cyberduck,
               Notepad++, Postman osv. fra venstre Launcher
             </li>
             <li>
-              <strong>Mappe-snarveier</strong> — åpne prosjekt-mapper med ett
+              <strong>Mappe-snarveier</strong> - åpne prosjekt-mapper med ett
               klikk
             </li>
             <li>
-              <strong>Tray-/menubar-ikon</strong> — kjører i bakgrunnen,
+              <strong>Tray-/menubar-ikon</strong> - kjører i bakgrunnen,
               start/stopp/pause arbeidsøkt fra hjørnet
             </li>
           </ul>

@@ -100,7 +100,7 @@ export default function KlistrelapperPage() {
             <div style={{ fontSize: 48, marginBottom: 12 }}>📌</div>
             <h2 style={{ color: tokens.color.navy, marginBottom: 8 }}>Ingen klistrelapper enda</h2>
             <p style={{ color: tokens.color.textMuted, marginBottom: 20 }}>
-              Bruk dem til raske notater, idéer, oppgaver — alt du vil huske.
+              Bruk dem til raske notater, idéer, oppgaver - alt du vil huske.
             </p>
             <button onClick={addNote} style={primaryBtn}>+ Lag din første</button>
           </div>
@@ -215,7 +215,7 @@ function StickyCard({
         transition: 'transform 0.1s',
       }}
     >
-      {/* Verktøyrad — synlig på hover */}
+      {/* Verktøyrad - synlig på hover */}
       <div
         style={{
           padding: '8px 10px',
@@ -343,7 +343,7 @@ function StickyCard({
         </button>
       </div>
 
-      {/* Innhold — alltid redigerbart */}
+      {/* Innhold - alltid redigerbart */}
       <textarea
         value={draft}
         onChange={(e) => handleChange(e.target.value)}
@@ -362,7 +362,7 @@ function StickyCard({
         }}
       />
 
-      {/* Stemmenotat — inline recorder, åpnes via mikrofon-knappen.
+      {/* Stemmenotat - inline recorder, åpnes via mikrofon-knappen.
           Auto-åpnes også når det allerede finnes audio så bruker kan
           spille av uten ekstra klikk. */}
       {(showRecorder || audioValue) && (
@@ -371,7 +371,7 @@ function StickyCard({
         </div>
       )}
 
-      {/* Tidsstempel nederst — viser også påminnelse hvis satt */}
+      {/* Tidsstempel nederst - viser også påminnelse hvis satt */}
       <div
         style={{
           padding: '6px 12px',

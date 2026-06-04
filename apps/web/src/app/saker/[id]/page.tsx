@@ -130,7 +130,7 @@ export default function SakDetailPage() {
                   value={
                     summary.totalAmount > 0
                       ? `${summary.totalAmount.toLocaleString('nb-NO')} kr`
-                      : '—'
+                      : '-'
                   }
                 />
                 <Stat label="Entries" value={String(summary.entryCount)} />
@@ -164,7 +164,7 @@ export default function SakDetailPage() {
                   fontSize: 14,
                 }}
               >
-                Ingen tid logget enda. Installer desktop-agenten — den fyller dette automatisk
+                Ingen tid logget enda. Installer desktop-agenten - den fyller dette automatisk
                 når den oppdager at du jobber på prosjektet (matching-regler avgjør koblingen).
               </div>
             ) : null}

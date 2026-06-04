@@ -432,7 +432,7 @@ function CreateMilestoneModal({
               {saker.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.title}
-                  {s.client?.name ? ` — ${s.client.name}` : ''}
+                  {s.client?.name ? ` - ${s.client.name}` : ''}
                 </option>
               ))}
             </select>

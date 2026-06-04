@@ -555,7 +555,7 @@ router.get("/:sakId/time-summary", async (req: Request, res: Response) => {
     where: { sakId },
     select: { durationSec: true, billable: true, hourlyRate: true, startedAt: true },
     orderBy: { startedAt: "desc" },
-    take: 1000, // siste 1000 — mer enn nok for visning
+    take: 1000, // siste 1000 - mer enn nok for visning
   });
 
   const totalSec = entries.reduce((s, e) => s + e.durationSec, 0);

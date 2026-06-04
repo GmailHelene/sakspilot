@@ -149,7 +149,7 @@ export default function DesktopShortcutOverlay() {
           Tilbake
         </button>
 
-        {/* Tab-pills — én per åpen snarvei */}
+        {/* Tab-pills - én per åpen snarvei */}
         <div
           style={{
             display: 'flex',

@@ -183,7 +183,7 @@ export default function IntegrasjonerPage() {
               <p style={{ fontSize: 13, color: tokens.color.textMuted, marginBottom: 14 }}>
                 Sakspilot leser nye e-poster og kobler dem automatisk til riktig prosjekt
                 basert på avsender (klient-epost) eller emnefelt. Sender ikke e-poster
-                — det gjør du fortsatt fra Outlook.
+                - det gjør du fortsatt fra Outlook.
               </p>
 
               {!ms?.configured ? (
@@ -396,7 +396,7 @@ function FikenSection({
           </div>
           <p style={{ fontSize: 13, color: tokens.color.textMuted, marginBottom: 14 }}>
             Send fakturaer direkte til Fiken fra «Ferdig»-prosjekter. Bruker personlig
-            API-token — ingen partner-godkjenning trengs. Tokenet lagres kryptert
+            API-token - ingen partner-godkjenning trengs. Tokenet lagres kryptert
             (AES-256-GCM) og kan slettes når som helst.
           </p>
 

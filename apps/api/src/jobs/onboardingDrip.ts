@@ -138,7 +138,7 @@ async function sendDripForUser(
     );
     if (!result.ok) {
       console.warn(
-        `[onboarding-drip] dag ${day} — send feilet for ${user.email}: ${result.error}`
+        `[onboarding-drip] dag ${day} - send feilet for ${user.email}: ${result.error}`
       );
       return "failed";
     }
@@ -154,7 +154,7 @@ async function sendDripForUser(
     return "sent";
   } catch (err) {
     console.error(
-      `[onboarding-drip] dag ${day} — uventet feil for ${user.email}:`,
+      `[onboarding-drip] dag ${day} - uventet feil for ${user.email}:`,
       err
     );
     return "failed";
@@ -178,7 +178,7 @@ async function main(): Promise<void> {
     const skipped = all.length - candidates.length;
     totalSkipped += skipped;
     console.log(
-      `[onboarding-drip] dag 3 — fant ${all.length} kandidat(er), ${skipped} har allerede installert app, sender til ${candidates.length}`
+      `[onboarding-drip] dag 3 - fant ${all.length} kandidat(er), ${skipped} har allerede installert app, sender til ${candidates.length}`
     );
     for (const user of candidates) {
       const status = await sendDripForUser(user, 3, desktopAppReminderEmail);
@@ -191,7 +191,7 @@ async function main(): Promise<void> {
   {
     const candidates = await findCandidatesForDay(7);
     console.log(
-      `[onboarding-drip] dag 7 — sender feedback-prompt til ${candidates.length} bruker(e)`
+      `[onboarding-drip] dag 7 - sender feedback-prompt til ${candidates.length} bruker(e)`
     );
     for (const user of candidates) {
       const status = await sendDripForUser(user, 7, feedbackPromptEmail);
@@ -207,7 +207,7 @@ async function main(): Promise<void> {
     const skipped = all.length - candidates.length;
     totalSkipped += skipped;
     console.log(
-      `[onboarding-drip] dag 14 — fant ${all.length} kandidat(er), ${skipped} har allerede gitt feedback, sender til ${candidates.length}`
+      `[onboarding-drip] dag 14 - fant ${all.length} kandidat(er), ${skipped} har allerede gitt feedback, sender til ${candidates.length}`
     );
     for (const user of candidates) {
       const status = await sendDripForUser(user, 14, videocallOfferEmail);
@@ -218,7 +218,7 @@ async function main(): Promise<void> {
 
   const elapsedMs = Date.now() - startedAt;
   console.log(
-    `[onboarding-drip] ferdig på ${elapsedMs}ms — sendt: ${totalSent}, hoppet over: ${totalSkipped}, feilet: ${totalFailed}`
+    `[onboarding-drip] ferdig på ${elapsedMs}ms - sendt: ${totalSent}, hoppet over: ${totalSkipped}, feilet: ${totalFailed}`
   );
 
   await prisma.$disconnect();
@@ -228,7 +228,7 @@ async function main(): Promise<void> {
 }
 
 main().catch(async (err) => {
-  console.error("[onboarding-drip] FATAL — jobben kunne ikke kjøre:", err);
+  console.error("[onboarding-drip] FATAL - jobben kunne ikke kjøre:", err);
   try {
     await prisma.$disconnect();
   } catch {

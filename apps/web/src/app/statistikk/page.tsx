@@ -199,7 +199,7 @@ export default function StatistikkPage() {
             )}
 
             {/* Lead-konvertering visualisering */}
-            <Section title="Forespørsler — fordeling">
+            <Section title="Forespørsler - fordeling">
               <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, padding: 16 }}>
                 <div style={{ display: 'flex', height: 32, borderRadius: 4, overflow: 'hidden', background: '#f1f5f9' }}>
                   {(['ny', 'i_dialog', 'vunnet', 'tapt', 'arkivert'] as const).map((s) => {

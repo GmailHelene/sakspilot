@@ -40,7 +40,7 @@ async function isTokenStillValid(session: SakspilotSession): Promise<boolean> {
   // tokens kunne leve evig — selv etter passordbytte. Tokens uten tv-claim
   // tvinges nå å re-loginne (8h JWT TTL gjør at det er en engangshendelse).
   if (typeof session.tv !== "number") {
-    console.warn(`[auth] Avviser legacy-token uten tv-claim for user=${session.userId} — må re-logge inn`);
+    console.warn(`[auth] Avviser legacy-token uten tv-claim for user=${session.userId} - må re-logge inn`);
     return false;
   }
 
@@ -106,7 +106,7 @@ const clientTokenVersionCache = new Map<string, { v: number; expires: number }>(
 async function isClientTokenStillValid(
   session: SakspilotClientSession
 ): Promise<boolean> {
-  if (typeof session.tv !== "number") return false; // alltid krev tv på klient — nyere felt
+  if (typeof session.tv !== "number") return false; // alltid krev tv på klient - nyere felt
   const cached = clientTokenVersionCache.get(session.clientId);
   if (cached && cached.expires > Date.now()) {
     return cached.v === session.tv;

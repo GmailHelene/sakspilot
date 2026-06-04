@@ -185,7 +185,7 @@ function NotGeneratedView({
       >
         Sakspilot kan generere en URL som du legger inn i kalender-appen din. Da
         dukker alle åpne frister og milepæler opp som hendelser, og oppdateres
-        automatisk når du endrer noe i Sakspilot. Synkronisering er enveis —
+        automatisk når du endrer noe i Sakspilot. Synkronisering er enveis -
         endringer du gjør i kalenderen påvirker ikke prosjektene.
       </p>
 
@@ -209,7 +209,7 @@ function NotGeneratedView({
         />
         <div>
           <strong>Hvem som helst med URL-en kan se dine åpne frister.</strong> URL-en
-          er din eneste beskyttelse — del den bare med deg selv (kalender-appen).
+          er din eneste beskyttelse - del den bare med deg selv (kalender-appen).
           Hvis den lekker kan du når som helst generere en ny.
         </div>
       </div>
@@ -293,7 +293,7 @@ function ActiveView({
         />
         <div>
           Hvem som helst med denne URL-en kan se dine åpne frister og prosjektnavn.
-          Ikke del med uvedkommende. Hvis den har lekket — generer en ny (den
+          Ikke del med uvedkommende. Hvis den har lekket - generer en ny (den
           gamle slutter da å virke).
         </div>
       </div>
@@ -312,7 +312,7 @@ function ActiveView({
           onClick={onRevoke}
           disabled={!!busy}
           style={dangerBtn}
-          title="Deaktiver feeden helt — ingen kalender-app kan lese den lenger."
+          title="Deaktiver feeden helt - ingen kalender-app kan lese den lenger."
         >
           <Trash2 size={14} strokeWidth={2} />
           {busy === 'revoke' ? 'Slår av…' : 'Skru av'}

@@ -114,7 +114,7 @@ router.get("/:token", async (req: Request, res: Response) => {
     for (const m of sak.milestones) {
       events.push({
         uid: `${m.id}@sakspilot.no`,
-        summary: `${clientPrefix}${sak.title} — ${m.title}`,
+        summary: `${clientPrefix}${sak.title} - ${m.title}`,
         description: `Milepæl i sak: ${sak.title}`,
         start: m.dueDate,
         allDay: true,
@@ -124,7 +124,7 @@ router.get("/:token", async (req: Request, res: Response) => {
   }
 
   const ical = buildIcalFeed({
-    name: `Sakspilot — ${user.name}`,
+    name: `Sakspilot - ${user.name}`,
     description: "Frister og milepæler fra dine åpne saker i Sakspilot",
     events,
   });

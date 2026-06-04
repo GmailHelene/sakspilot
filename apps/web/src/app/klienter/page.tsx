@@ -168,18 +168,18 @@ export default function KlienterPage() {
                         </div>
                       </td>
                       <td style={tdStyle}>
-                        <div style={{ fontSize: 13 }}>{c.contactEmail || '—'}</div>
+                        <div style={{ fontSize: 13 }}>{c.contactEmail || '-'}</div>
                         {c.contactPhone && (
                           <div style={{ fontSize: 12, color: tokens.color.textSubtle }}>
                             {c.contactPhone}
                           </div>
                         )}
                       </td>
-                      <td style={tdStyle}>{c.orgNumber || '—'}</td>
+                      <td style={tdStyle}>{c.orgNumber || '-'}</td>
                       <td style={{ ...tdStyle, textAlign: 'right' }}>
                         {c.defaultHourlyRate
                           ? `${c.defaultHourlyRate.toLocaleString('nb-NO')} kr/t`
-                          : '—'}
+                          : '-'}
                       </td>
                       <td style={{ ...tdStyle, textAlign: 'right' }}>{c._count.saker}</td>
                     </tr>

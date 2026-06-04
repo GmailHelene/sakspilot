@@ -11,7 +11,7 @@ Neon. Denne jobben gir oss vårt eget månedlige arkiv på et uavhengig sted.
 `apps/api/src/jobs/dbBackup.ts` (kjøres med `npm run job:db-backup`):
 
 1. Kjører `pg_dump --no-owner --no-acl` mot `DIRECT_URL` (Neon direct,
-   ikke pooler — pooler støtter ikke pg_dump sin streaming-stil).
+   ikke pooler - pooler støtter ikke pg_dump sin streaming-stil).
 2. Gzip-er output til `apps/api/backups/sakspilot-backup-YYYY-MM-DD.sql.gz`.
 3. Hvis R2-env-vars er satt → laster opp til Cloudflare R2, og roterer
    (beholder siste 12 månedlige).
@@ -36,7 +36,7 @@ Neon. Denne jobben gir oss vårt eget månedlige arkiv på et uavhengig sted.
    npm install @aws-sdk/client-s3
    ```
    (SDK-en er ~10 MB og er kun lastet inn av backup-jobben hvis R2-env-vars er
-   satt — derfor lastes den dynamisk og er ikke i baseline-dependencies.)
+   satt - derfor lastes den dynamisk og er ikke i baseline-dependencies.)
 
 ## Env-vars som må settes på Render
 
@@ -95,14 +95,14 @@ gunzip < sakspilot-backup-2026-05-01.sql.gz | psql "$DIRECT_URL"
 ```
 
 `DIRECT_URL` her bør peke til **mål-databasen** (f.eks. en staging-DB eller en
-ny tom Neon-branch — ikke produksjon med mindre du faktisk vil overskrive den).
+ny tom Neon-branch - ikke produksjon med mindre du faktisk vil overskrive den).
 
 Hvis du restorer til en helt tom DB, kjør først `prisma migrate deploy` _ikke_
 trengs siden dumpen inneholder hele skjemaet.
 
 ## Lokal testing
 
-For å teste mot en staging-DB (anbefales — ikke kjør pg_dump mot prod fra
+For å teste mot en staging-DB (anbefales - ikke kjør pg_dump mot prod fra
 laptop med mindre du må):
 
 ```bash
@@ -137,6 +137,6 @@ Hvis du ikke har rukket å sette opp R2 og bare vil ha backup _et eller annet st
 
 - Kjør jobben uten R2-env. Den lager fila lokalt i `apps/api/backups/`.
 - På Render: laster ikke det opp noe sted, og containerens disk er ephemeral
-  — fila forsvinner ved neste deploy/restart.
+  - fila forsvinner ved neste deploy/restart.
 - **Midlertidig løsning:** kjør jobben fra laptopen din månedlig og last opp
   manuelt til Drive/Dropbox til R2 er på plass.

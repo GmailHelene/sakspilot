@@ -218,7 +218,7 @@ async function main(): Promise<void> {
       await uploadToR2(r2, localPath, filename);
       log("done", "ferdig (R2)", { remote: `r2://${r2.bucket}/${filename}` });
     } catch (err) {
-      log("error", "R2 upload feilet — fila ligger fortsatt lokalt", {
+      log("error", "R2 upload feilet - fila ligger fortsatt lokalt", {
         message: (err as Error).message,
         localPath,
       });
@@ -227,7 +227,7 @@ async function main(): Promise<void> {
   } else {
     log(
       "done",
-      "ferdig (lokal lagring) — R2_*-env ikke satt. " +
+      "ferdig (lokal lagring) - R2_*-env ikke satt. " +
         "Kopier fila til et trygt sted manuelt, ellers forsvinner den når kontaineren resetter.",
       { localPath }
     );

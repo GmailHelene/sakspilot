@@ -1,7 +1,7 @@
 # Sakspilot
 
 **Regnskaps- og prosjektverktøy for selvstendig næringsdrivende i Norge.**
-Forespørsler → fakturaer → regnskap → MVA-rapport — i ett verktøy, med desktop-agent
+Forespørsler → fakturaer → regnskap → MVA-rapport - i ett verktøy, med desktop-agent
 for passiv tidsregistrering og varsler.
 
 ## Modenhets-status (ærlig vurdert, 3. juni 2026)
@@ -11,14 +11,14 @@ men ikke produksjonsherdet på alle akser. Hva det betyr i praksis:
 
 | Aspekt | Tilstand |
 |---|---|
-| Funksjonsbredde | ✅ Real — 25+ sider/features fungerer |
-| Datamodell | ✅ Solid — multi-tenant, indekser, audit-log |
-| Sikkerhets-fundament | ✅ Bra — tenant-filter, bcrypt, AES-256, rate-limit |
+| Funksjonsbredde | ✅ Real - 25+ sider/features fungerer |
+| Datamodell | ✅ Solid - multi-tenant, indekser, audit-log |
+| Sikkerhets-fundament | ✅ Bra - tenant-filter, bcrypt, AES-256, rate-limit |
 | Sikkerhets-herding | ✅ JWT i cookie, konstant-tid forgot-password, fail-closed token-revokering. Gjenstående: PDF-DoS-isolasjon, paginering. Se `docs/SECURITY-NOTES.md` |
-| Testdekning | 🟡 Penger + krypto dekket — 8 testfiler, 153 tester (4 nye 3/6). DB-integrasjonstester eksisterer men krever Neon. UI/E2E mangler |
-| Skalering | ⚠️ Ingen paginering — fungerer for piloter, ikke 5k+ poster |
-| Hosting | ⚠️ Render Free-tier (kaldstart 30-60 sek) — må oppgraderes til Starter for betalende |
-| Code-signing | 🔴 Ingen — Mac/Windows-brukere må bekrefte "ikke verifisert" |
+| Testdekning | 🟡 Penger + krypto dekket - 8 testfiler, 153 tester (4 nye 3/6). DB-integrasjonstester eksisterer men krever Neon. UI/E2E mangler |
+| Skalering | ⚠️ Ingen paginering - fungerer for piloter, ikke 5k+ poster |
+| Hosting | ⚠️ Render Free-tier (kaldstart 30-60 sek) - må oppgraderes til Starter for betalende |
+| Code-signing | 🔴 Ingen - Mac/Windows-brukere må bekrefte "ikke verifisert" |
 
 **Egnet for:** lukkede piloter, egen bruk, demo, MVP-validering.
 **Ikke egnet for:** offentlige innkjøp, regulert bransje uten ekstra herding, store team.
@@ -120,7 +120,7 @@ npm install
 Kopier `apps/api/.env.example` til `apps/api/.env` og fyll inn:
 - `DATABASE_URL` + `DIRECT_URL` (Neon Postgres)
 - `JWT_SECRET` (random 64-tegn streng)
-- `ENCRYPTION_KEY` (64 hex tegn — `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
+- `ENCRYPTION_KEY` (64 hex tegn - `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
 - `ANTHROPIC_API_KEY` (valgfritt for lokal dev)
 
 ### 3. Sett opp DB
@@ -153,21 +153,21 @@ cd apps/desktop && npm run build:exe
 
 ## Dokumenter
 
-- **[Status pr 3. juni 2026](docs/STATUS-2026-06-03.md)** — siste snapshot (27 nye fixes på én dag, fullt feature-sett dokumentert)
-- [Status pr 1. juni 2026](docs/STATUS-2026-06-01.md) — forrige snapshot
-- [Status pr 31. mai 2026](docs/STATUS-2026-05-31.md) — eldre snapshot
-- [Status pr 28. mai 2026](docs/STATUS-2026-05-28.md) — eldre snapshot
-- [Neste steg + roadmap](docs/NESTE-STEG.md) — hva som gjenstår og prioritering
-- [Pilot-invitasjon til Nicole](docs/pilot-epost-nicole.md) — 3 versjoner
-- [Bruksanvisning for ansvarlig søker](docs/nicole-bruksanvisning-byggesak.md) — vedlegg til Nicole
-- [LinkedIn-post (3 versjoner)](docs/linkedin-post.md) — lansering
-- [FB-post WordPress Norge](docs/post-fb-wp-norge.md) — rekruttering av testbrukere
+- **[Status pr 3. juni 2026](docs/STATUS-2026-06-03.md)** - siste snapshot (27 nye fixes på én dag, fullt feature-sett dokumentert)
+- [Status pr 1. juni 2026](docs/STATUS-2026-06-01.md) - forrige snapshot
+- [Status pr 31. mai 2026](docs/STATUS-2026-05-31.md) - eldre snapshot
+- [Status pr 28. mai 2026](docs/STATUS-2026-05-28.md) - eldre snapshot
+- [Neste steg + roadmap](docs/NESTE-STEG.md) - hva som gjenstår og prioritering
+- [Pilot-invitasjon til Nicole](docs/pilot-epost-nicole.md) - 3 versjoner
+- [Bruksanvisning for ansvarlig søker](docs/nicole-bruksanvisning-byggesak.md) - vedlegg til Nicole
+- [LinkedIn-post (3 versjoner)](docs/linkedin-post.md) - lansering
+- [FB-post WordPress Norge](docs/post-fb-wp-norge.md) - rekruttering av testbrukere
 - [GDPR / DPA-sjekkliste](docs/dpa-sjekkliste.md)
 - [DPA-mal (databehandleravtale)](docs/dpa-mal.md)
-- [Personvern desktop-agent](docs/personvern-desktop-agent.md) — inkl. auto-spor
+- [Personvern desktop-agent](docs/personvern-desktop-agent.md) - inkl. auto-spor
 - [Tripletex/Fiken partner-søknad](docs/tripletex-fiken-soknad.md)
-- [Test-programmet](TEST-PROGRAMMET.md) — 15-min ende-til-ende sjekkliste
-- [Setup-guide (første gang)](SETUP-GUIDE.md) — lokal dev fra null
+- [Test-programmet](TEST-PROGRAMMET.md) - 15-min ende-til-ende sjekkliste
+- [Setup-guide (første gang)](SETUP-GUIDE.md) - lokal dev fra null
 
 ## Lisens
 

@@ -152,7 +152,7 @@ const authWriteLimiter = rateLimit({
   max: 30,                     // 30 login/register/forgot/reset per 15 min per IP
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "For mange påloggings-forsøk — prøv igjen om 15 minutter." },
+  message: { error: "For mange påloggings-forsøk - prøv igjen om 15 minutter." },
 });
 
 const authReadLimiter = rateLimit({
@@ -160,7 +160,7 @@ const authReadLimiter = rateLimit({
   max: 120,                    // 120 /auth/me + /auth/logout per minutt per IP
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "For mange sesjons-sjekker — vent et minutt." },
+  message: { error: "For mange sesjons-sjekker - vent et minutt." },
 });
 
 // AI er dyrt — strammere limit per IP (forhindrer "API-tyveri" ved
@@ -170,7 +170,7 @@ const aiLimiter = rateLimit({
   max: 20,                     // 20 AI-kall per minutt per IP
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "For mange AI-forespørsler — vent et minutt." },
+  message: { error: "For mange AI-forespørsler - vent et minutt." },
 });
 
 // OAuth init: bot-resistent
@@ -189,7 +189,7 @@ const pdfLimiter = rateLimit({
   max: 30,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "For mange PDF-genereringer — vent et minutt." },
+  message: { error: "For mange PDF-genereringer - vent et minutt." },
 });
 
 // Public endepunkter (delte saker) — sikrer mot enumeration
@@ -228,7 +228,7 @@ app.use("/stickies", stickiesRouter);
 app.use("/me", meRouter);
 app.use("/automations", automationsRouter);
 app.use("/reports", reportsRouter);
-app.use("/saker", shareAuthRouter);   // /saker/:sakId/share (delt prefix med sakerRouter — fungerer)
+app.use("/saker", shareAuthRouter);   // /saker/:sakId/share (delt prefix med sakerRouter - fungerer)
 app.use("/public", publicLimiter, sharePublicRouter); // /public/sak/:token
 // iCal-feed — PUBLIC (token i URL er eneste auth). Bak publicLimiter for å
 // hindre brute-force av tokens, men limit er løs nok til at kalender-klienter

@@ -252,7 +252,7 @@ router.post(
     if (!sak.client) {
       return res.status(400).json({
         error:
-          "Prosjektet har ingen klient — kan ikke opprette faktura uten mottaker.",
+          "Prosjektet har ingen klient - kan ikke opprette faktura uten mottaker.",
       });
     }
     if (sak.timeEntries.length === 0) {
@@ -291,7 +291,7 @@ router.post(
           clientEmail: sak.client.contactEmail,
           clientPhone: sak.client.contactPhone,
           clientOrgNumber: sak.client.orgNumber,
-          description: `${sak.title}${sak.saksnummer ? ` (prosjektnr ${sak.saksnummer})` : ""} — ${totalHours} timer`,
+          description: `${sak.title}${sak.saksnummer ? ` (prosjektnr ${sak.saksnummer})` : ""} - ${totalHours} timer`,
           hours: totalHours,
           hourlyRate,
           daysUntilDue,

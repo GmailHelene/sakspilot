@@ -47,7 +47,7 @@ export default function TeamPage() {
           </h1>
           <p style={{ color: tokens.color.textMuted, fontSize: 14, marginTop: 4 }}>
             Inviter team-medlemmer til organisasjonen. Alle medlemmer ser
-            samme prosjekter, klienter og kalender — tilgangskontroll skjer på
+            samme prosjekter, klienter og kalender - tilgangskontroll skjer på
             organisasjons-nivå.
           </p>
         </div>
@@ -298,7 +298,7 @@ function InviteForm({
     <Section
       icon={<UserPlus size={18} strokeWidth={2} />}
       title="Inviter nytt medlem"
-      description="Inviterer du noen via e-post — de får en lenke for å sette passord og bli med."
+      description="Inviterer du noen via e-post - de får en lenke for å sette passord og bli med."
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'end' }}>
         <Field label="E-post">

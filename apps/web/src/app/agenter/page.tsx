@@ -298,7 +298,7 @@ export default function AgenterPage() {
             />
             <h2 style={{ color: tokens.color.navy, marginBottom: 8 }}>Ingen agenter enda</h2>
             <p style={{ color: tokens.color.textMuted, marginBottom: 20, maxWidth: 420, margin: '0 auto 20px' }}>
-              Agenter gjør boring repetitivt arbeid for deg — som å opprette
+              Agenter gjør boring repetitivt arbeid for deg - som å opprette
               faktura-påminnelser når et prosjekt er ferdig, eller varsle om
               nærmende frister.
             </p>

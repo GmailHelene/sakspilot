@@ -18,7 +18,7 @@ interface SearchBarProps {
   placeholder?: string;
   /** Debounce-millisekunder. Default 300. */
   debounceMs?: number;
-  /** Innstilt bredde — default 240px */
+  /** Innstilt bredde - default 240px */
   width?: number;
 }
 

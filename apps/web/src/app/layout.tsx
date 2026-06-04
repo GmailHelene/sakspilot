@@ -9,11 +9,11 @@ import ThemeInit from '@/components/ThemeInit';
 export const metadata: Metadata = {
   metadataBase: new URL('https://sakspilot.no'),
   title: {
-    default: 'Sakspilot — Workspace for selvstendig næringsdrivende',
+    default: 'Sakspilot - Workspace for selvstendig næringsdrivende',
     template: '%s · Sakspilot',
   },
   description:
-    'Prosjekt-CRM, passiv tidsregistrering, Outlook-integrasjon og faktura — i ett verktøy. For ansvarlige søkere, arkitekter, advokater, regnskapsførere, designere og konsulenter.',
+    'Prosjekt-CRM, passiv tidsregistrering, Outlook-integrasjon og faktura - i ett verktøy. For ansvarlige søkere, arkitekter, advokater, regnskapsførere, designere og konsulenter.',
   applicationName: 'Sakspilot',
   manifest: '/manifest.json',
   alternates: { canonical: '/' },
@@ -55,21 +55,21 @@ export const metadata: Metadata = {
     locale: 'nb_NO',
     url: 'https://sakspilot.no',
     siteName: 'Sakspilot',
-    title: 'Sakspilot — Workspace for selvstendig næringsdrivende',
+    title: 'Sakspilot - Workspace for selvstendig næringsdrivende',
     description:
-      'Prosjekt-CRM + automatisk tidsregistrering + Outlook + AI-assistent + faktura — i ett verktøy. Gratis i pilotperioden.',
+      'Prosjekt-CRM + automatisk tidsregistrering + Outlook + AI-assistent + faktura - i ett verktøy. Gratis i pilotperioden.',
     images: [
       {
         url: '/icon-512.svg',
         width: 512,
         height: 512,
-        alt: 'Sakspilot — workspace for selvstendig næringsdrivende',
+        alt: 'Sakspilot - workspace for selvstendig næringsdrivende',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sakspilot — Workspace for selvstendig næringsdrivende',
+    title: 'Sakspilot - Workspace for selvstendig næringsdrivende',
     description:
       'Du jobber. Sakspilot teller timene. Prosjekt-CRM, passiv tidsregistrering, AI-assistent, faktura.',
     images: ['/icon-512.svg'],
@@ -101,7 +101,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#1F1F1F', // charcoal — matcher S-ikonet
+  themeColor: '#1F1F1F', // charcoal - matcher S-ikonet
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
@@ -121,7 +121,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
-        {/* Umami Analytics — GDPR-vennlig, ingen cookies */}
+        {/* Umami Analytics - GDPR-vennlig, ingen cookies */}
         <script
           defer
           src="https://cloud.umami.is/script.js"

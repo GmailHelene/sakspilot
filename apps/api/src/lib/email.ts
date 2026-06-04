@@ -37,7 +37,7 @@ function getTransporter(): Transporter | null {
   if (!host || !user || !pass) {
     console.warn(
       "[email] SMTP ikke konfigurert (mangler SMTP_HOST/USER/PASS). " +
-        "E-poster vil ikke sendes — bare logges. Sett env-vars på Render."
+        "E-poster vil ikke sendes - bare logges. Sett env-vars på Render."
     );
     return null;
   }
@@ -92,8 +92,8 @@ export async function sendEmail(msg: EmailMessage): Promise<EmailResult> {
 
   const t = getTransporter();
   if (!t) {
-    console.log(`[email] STUB — ville sendt til ${msg.to}: ${msg.subject}`);
-    return { ok: false, error: "Verken BREVO_API_KEY eller SMTP_HOST er satt — epost ikke sendt" };
+    console.log(`[email] STUB - ville sendt til ${msg.to}: ${msg.subject}`);
+    return { ok: false, error: "Verken BREVO_API_KEY eller SMTP_HOST er satt - epost ikke sendt" };
   }
 
   const from = process.env.EMAIL_FROM || "noreply@sakspilot.no";
@@ -247,7 +247,7 @@ function baseEmailLayout(innerHtml: string): string {
           ${innerHtml}
           <hr style="border:none;border-top:1px solid #E6E9EF;margin:24px 0;" />
           <p style="font-size:12px;color:#8993A4;line-height:1.5;margin:0;">
-            — Sakspilot · <a href="https://sakspilot.no" style="color:#1F1F1F;">sakspilot.no</a>
+            - Sakspilot · <a href="https://sakspilot.no" style="color:#1F1F1F;">sakspilot.no</a>
           </p>
         </td></tr>
       </table>
@@ -272,29 +272,29 @@ export function welcomeEmail(user: OnboardingUser): EmailMessage {
     <h1 style="font-size:22px;color:#1F1F1F;margin:0 0 16px 0;">Velkommen til Sakspilot, ${firstName}!</h1>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
       Hyggelig å ha deg med. Sakspilot er et arbeidsrom for deg som er selvstendig
-      næringsdrivende — prosjekter, kanban, timer, kalender og automatiseringer på ett sted.
+      næringsdrivende - prosjekter, kanban, timer, kalender og automatiseringer på ett sted.
     </p>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
       <strong>Slik kommer du i gang:</strong>
     </p>
     <ol style="font-size:14px;line-height:1.7;color:#5E6C84;margin:0 0 20px 20px;padding:0;">
       <li>Logg inn på <a href="https://sakspilot.no" style="color:#1F1F1F;">sakspilot.no</a> og opprett ditt første prosjekt.</li>
-      <li>Last ned <strong>Windows-appen</strong> — den registrerer arbeidstid automatisk i bakgrunnen mens du jobber.</li>
+      <li>Last ned <strong>Windows-appen</strong> - den registrerer arbeidstid automatisk i bakgrunnen mens du jobber.</li>
       <li>Sett opp en agent (f.eks. "Påminn meg 3 dager før frist") fra Agenter-menyen.</li>
     </ol>
     <p style="margin:0 0 24px 0;">
       <a href="https://sakspilot.no/last-ned" style="display:inline-block;padding:12px 24px;background:#1F1F1F;color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">Last ned Windows-appen</a>
     </p>
     <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:0;">
-      Spørsmål? Bare svar på denne e-posten — den går rett til meg.
+      Spørsmål? Bare svar på denne e-posten - den går rett til meg.
     </p>
     <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:8px 0 0 0;">
-      — Helene, Sakspilot
+      - Helene, Sakspilot
     </p>
   `;
   return {
     to: user.email,
-    subject: "Velkommen til Sakspilot — kom i gang på 3 minutter",
+    subject: "Velkommen til Sakspilot - kom i gang på 3 minutter",
     html: baseEmailLayout(inner),
   };
 }
@@ -316,18 +316,18 @@ export function desktopAppReminderEmail(user: OnboardingUser): EmailMessage {
       én-klikks-tilgang til alt fra systemkurven.
     </p>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
-      Installasjonen tar under ett minutt og du trenger ikke å konfigurere noe — den logger
+      Installasjonen tar under ett minutt og du trenger ikke å konfigurere noe - den logger
       inn med samme konto som webappen.
     </p>
     <p style="margin:0 0 24px 0;">
       <a href="https://sakspilot.no/last-ned" style="display:inline-block;padding:12px 24px;background:#1F1F1F;color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">Last ned nå</a>
     </p>
     <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:0;">
-      Bruker du Mac eller Linux? Svar på denne e-posten — jeg prioriterer å bygge
+      Bruker du Mac eller Linux? Svar på denne e-posten - jeg prioriterer å bygge
       for de plattformene tidligere hvis det er etterspørsel.
     </p>
     <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:8px 0 0 0;">
-      — Helene
+      - Helene
     </p>
   `;
   return {
@@ -352,9 +352,9 @@ export function feedbackPromptEmail(user: OnboardingUser): EmailMessage {
       <strong>Svar på denne e-posten med ett ord:</strong>
     </p>
     <ul style="font-size:14px;line-height:1.7;color:#5E6C84;margin:0 0 20px 20px;padding:0;">
-      <li><strong>bra</strong> — du har funnet ut av det og bruker det</li>
-      <li><strong>dårlig</strong> — du har slitt eller ikke kommet i gang</li>
-      <li><strong>blandet</strong> — noe funker, annet ikke</li>
+      <li><strong>bra</strong> - du har funnet ut av det og bruker det</li>
+      <li><strong>dårlig</strong> - du har slitt eller ikke kommet i gang</li>
+      <li><strong>blandet</strong> - noe funker, annet ikke</li>
     </ul>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
       Vil du gi mer detaljert tilbakemelding? Da kan du fylle ut det fulle skjemaet:
@@ -363,10 +363,10 @@ export function feedbackPromptEmail(user: OnboardingUser): EmailMessage {
       <a href="https://sakspilot.no/feedback" style="display:inline-block;padding:12px 24px;background:#1F1F1F;color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">Gi tilbakemelding</a>
     </p>
     <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:0;">
-      All input — selv ett ord — hjelper meg å gjøre Sakspilot bedre for deg.
+      All input - selv ett ord - hjelper meg å gjøre Sakspilot bedre for deg.
     </p>
     <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:8px 0 0 0;">
-      — Helene
+      - Helene
     </p>
   `;
   return {
@@ -387,12 +387,12 @@ export function videocallOfferEmail(user: OnboardingUser): EmailMessage {
       Hei ${firstName}, du har hatt Sakspilot i to uker nå.
     </p>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
-      Jeg vil veldig gjerne høre hvordan du opplever det — spesielt hva som er tungvint
+      Jeg vil veldig gjerne høre hvordan du opplever det - spesielt hva som er tungvint
       eller forvirrende. Det er den raskeste måten jeg kan forbedre produktet på.
     </p>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
       <strong>Har du 20 minutter til en videocall?</strong> Jeg deler skjerm med deg,
-      ser hvordan du jobber, og du forteller meg hva som irriterer. Helt uformelt — og
+      ser hvordan du jobber, og du forteller meg hva som irriterer. Helt uformelt - og
       du får selvfølgelig hjelp med det du sliter med samtidig.
     </p>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
@@ -400,10 +400,10 @@ export function videocallOfferEmail(user: OnboardingUser): EmailMessage {
       så sender jeg en lenke.
     </p>
     <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:0;">
-      Passer ikke videocall? Skriv gjerne to setninger i stedet — alt hjelper.
+      Passer ikke videocall? Skriv gjerne to setninger i stedet - alt hjelper.
     </p>
     <p style="font-size:13px;color:#5E6C84;line-height:1.6;margin:8px 0 0 0;">
-      — Helene, Sakspilot
+      - Helene, Sakspilot
     </p>
   `;
   return {
@@ -442,7 +442,7 @@ export function clientPortalInviteEmail(opts: {
     </p>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
       <strong>${freelancerName}</strong> har invitert deg til klient-portalen i Sakspilot.
-      Her kan du se status på prosjektene dine, milepæler og fakturahistorikk —
+      Her kan du se status på prosjektene dine, milepæler og fakturahistorikk -
       når det måtte passe deg, uten å måtte spørre.
     </p>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
@@ -459,7 +459,7 @@ export function clientPortalInviteEmail(opts: {
       ${acceptUrl}
     </p>
     <p style="font-size:12px;color:#8993A4;line-height:1.5;margin:0;">
-      Fikk du denne uten å forvente det? Da kan du trygt ignorere e-posten —
+      Fikk du denne uten å forvente det? Da kan du trygt ignorere e-posten -
       ingenting skjer før du selv aktiverer tilgangen.
     </p>
   `;
@@ -479,7 +479,7 @@ export function clientPortalPasswordResetEmail(
   resetUrl: string
 ): EmailMessage {
   const inner = `
-    <h1 style="font-size:22px;color:#1F1F1F;margin:0 0 16px 0;">Nullstill passord — klient-portal</h1>
+    <h1 style="font-size:22px;color:#1F1F1F;margin:0 0 16px 0;">Nullstill passord - klient-portal</h1>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
       Vi mottok en forespørsel om å nullstille passordet for klient-portalen din i Sakspilot.
       Klikk lenken nedenfor for å sette et nytt passord. Lenken er gyldig i 1 time.
@@ -499,7 +499,7 @@ export function clientPortalPasswordResetEmail(
   `;
   return {
     to: recipientEmail,
-    subject: "Nullstill passord — Sakspilot klient-portal",
+    subject: "Nullstill passord - Sakspilot klient-portal",
     html: baseEmailLayout(inner),
   };
 }
@@ -535,7 +535,7 @@ export function teamInviteEmail(opts: {
     </p>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 16px 0;">
       <strong>${inviterName}</strong> har invitert deg som <strong>${roleLabel}</strong>
-      i <strong>${organizationName}</strong> på Sakspilot — et arbeidsrom for
+      i <strong>${organizationName}</strong> på Sakspilot - et arbeidsrom for
       prosjekter, klienter, timer og kalender.
     </p>
     <p style="font-size:14px;line-height:1.6;color:#5E6C84;margin:0 0 20px 0;">
@@ -552,7 +552,7 @@ export function teamInviteEmail(opts: {
       ${acceptUrl}
     </p>
     <p style="font-size:12px;color:#8993A4;line-height:1.5;margin:0;">
-      Fikk du denne uten å forvente det? Da kan du trygt ignorere e-posten —
+      Fikk du denne uten å forvente det? Da kan du trygt ignorere e-posten -
       ingenting skjer før du selv aktiverer kontoen.
     </p>
   `;
@@ -593,7 +593,7 @@ export function passwordResetEmail(
             Passordet ditt er uendret.
           </p>
           <p style="font-size:12px;color:#8993A4;line-height:1.5;margin:16px 0 0 0;">
-            — Sakspilot · <a href="https://sakspilot.no" style="color:#1F1F1F;">sakspilot.no</a>
+            - Sakspilot · <a href="https://sakspilot.no" style="color:#1F1F1F;">sakspilot.no</a>
           </p>
         </td></tr>
       </table>

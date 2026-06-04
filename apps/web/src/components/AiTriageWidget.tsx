@@ -196,7 +196,7 @@ export default function AiTriageWidget() {
               marginBottom: 12,
             }}
           >
-            {lastRun.message || 'Ingen nye forslag — alle entries er enten kategorisert eller uten åpenbar match.'}
+            {lastRun.message || 'Ingen nye forslag - alle entries er enten kategorisert eller uten åpenbar match.'}
           </div>
         )}
 
@@ -329,7 +329,7 @@ function SuggestionRow({
           onClick={onReject}
           disabled={busy}
           style={iconBtnStyle(tokens.color.red, busy)}
-          title="Avslå — ikke spør igjen"
+          title="Avslå - ikke spør igjen"
           aria-label="Avslå"
         >
           <X size={14} strokeWidth={2.5} />

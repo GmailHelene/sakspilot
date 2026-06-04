@@ -4,7 +4,7 @@ import Header from '@/components/Header';
 import { tokens } from '@/lib/tokens';
 
 export const metadata: Metadata = {
-  title: 'Sakspilot vs Tripletex, Toggl, Notion, Asana — sammenligning',
+  title: 'Sakspilot vs Tripletex, Toggl, Notion, Asana - sammenligning',
   description:
     'Hvordan Sakspilot skiller seg fra Tripletex, Toggl, Notion og Asana. Bygd for norske ENK-er som vil ha prosjekt-CRM, automatisk tidsregistrering og AI-utkast i ett verktøy.',
   alternates: { canonical: '/sammenligning' },
@@ -37,7 +37,7 @@ const COMPARISONS: Comparison[] = [
       'Bedre integrasjoner mot bank og offentlig sektor',
     ],
     verdict:
-      'De fleste bruker BÅDE — Sakspilot for daglig arbeidsflyt + tidsføring, Tripletex for selve regnskapet. Vi pusher timer fra Sakspilot til Tripletex via CSV (direkte API kommer Q3 2026).',
+      'De fleste bruker BÅDE - Sakspilot for daglig arbeidsflyt + tidsføring, Tripletex for selve regnskapet. Vi pusher timer fra Sakspilot til Tripletex via CSV (direkte API kommer Q3 2026).',
   },
   {
     competitor: 'Toggl',
@@ -45,7 +45,7 @@ const COMPARISONS: Comparison[] = [
     bestFor: 'Frilansere som bare vil ha en enkel timer å starte/stoppe.',
     whereSakspilotWins: [
       'Automatisk tidsregistrering (Toggl krever manuell start)',
-      'Klient-CRM, prosjekt-CRM, kalender, klistrelapper, agenter — Toggl har ingen av disse',
+      'Klient-CRM, prosjekt-CRM, kalender, klistrelapper, agenter - Toggl har ingen av disse',
       'AI-utkast til klient-eposter',
       'Outlook-integrasjon',
       'Fakturering via Fiken',
@@ -68,7 +68,7 @@ const COMPARISONS: Comparison[] = [
       'Automatisk tidsregistrering (Notion har ingen)',
       'Faktura-flyt mot Fiken',
       'Norsk språk og support',
-      'Mindre å sette opp — Notion krever du bygger din egen mal',
+      'Mindre å sette opp - Notion krever du bygger din egen mal',
     ],
     whereTheyWin: [
       'Mye mer fleksibel hvis du har egne arbeidsflyt-behov',
@@ -77,17 +77,17 @@ const COMPARISONS: Comparison[] = [
       'Engelsk-fokus med stor community',
     ],
     verdict:
-      'Notion er en blank skiferplate — du må bygge alt. Sakspilot er ferdig oppsett for norske frilansere. Bruk Notion for personlig kunnskap, Sakspilot for kunde-arbeid.',
+      'Notion er en blank skiferplate - du må bygge alt. Sakspilot er ferdig oppsett for norske frilansere. Bruk Notion for personlig kunnskap, Sakspilot for kunde-arbeid.',
   },
   {
     competitor: 'Asana / ClickUp / Monday',
     tagline: 'Prosjektstyring for team',
     bestFor: 'Team på 5-50 personer som koordinerer komplekse prosjekter.',
     whereSakspilotWins: [
-      'Bygget for ENN-bruker (Asana er bygget for team — solo-bruk føles overdimensjonert)',
-      'Innebygd timeregistrering + faktura — Asana krever ekstra abonnement på Asana Goals + Harvest',
+      'Bygget for ENN-bruker (Asana er bygget for team - solo-bruk føles overdimensjonert)',
+      'Innebygd timeregistrering + faktura - Asana krever ekstra abonnement på Asana Goals + Harvest',
       'Norsk språk og EU-data (Asana er amerikansk, data i USA som default)',
-      'Ingen abonnement-fastlås — pilot gratis ut 2026, ingen kredittkort',
+      'Ingen abonnement-fastlås - pilot gratis ut 2026, ingen kredittkort',
     ],
     whereTheyWin: [
       'Skikkelig team-koordinering med roller og rettigheter',
@@ -109,7 +109,7 @@ export default function SammenligningPage() {
             Sakspilot vs andre verktøy
           </h1>
           <p style={{ fontSize: 17, color: tokens.color.textMuted, lineHeight: 1.6, marginBottom: 40, maxWidth: 700 }}>
-            Vi gir ærlige svar. Sakspilot er ikke best for alle — under finner du hvor vi vinner og hvor andre verktøy passer bedre.
+            Vi gir ærlige svar. Sakspilot er ikke best for alle - under finner du hvor vi vinner og hvor andre verktøy passer bedre.
           </p>
 
           {COMPARISONS.map((c) => (

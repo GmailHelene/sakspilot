@@ -411,7 +411,7 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
     emailSent = result.ok;
     if (!result.ok) {
       console.log(
-        `[forgot-password] SMTP fallback — reset-lenke for ${email}: ${resetUrl}` +
+        `[forgot-password] SMTP fallback - reset-lenke for ${email}: ${resetUrl}` +
           (result.error ? ` (årsak: ${result.error})` : "")
       );
     } else {
@@ -466,7 +466,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
   const parsed = ResetSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({
-      error: "Ugyldig input — passordet må være minst 12 tegn",
+      error: "Ugyldig input - passordet må være minst 12 tegn",
       details: parsed.error.flatten().fieldErrors,
     });
   }

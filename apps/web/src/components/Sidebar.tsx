@@ -301,7 +301,7 @@ export default function Sidebar() {
 
   return (
     <aside style={sidebarStyle}>
-      {/* Seksjon: Sakspilot — primær nav alltid synlig + "Mer..."-collapse */}
+      {/* Seksjon: Sakspilot - primær nav alltid synlig + "Mer..."-collapse */}
       <SidebarSection title="Sakspilot">
         {(() => {
           const primaryItems = navLinks.filter((n) => n.primary);
@@ -520,7 +520,7 @@ export default function Sidebar() {
         ))}
       </SidebarSection>
 
-      {/* My Sites — egne live-prosjekter/nettsider som PWA-ikoner-grid */}
+      {/* My Sites - egne live-prosjekter/nettsider som PWA-ikoner-grid */}
       <SidebarSection
         title="Mine sites"
         action={

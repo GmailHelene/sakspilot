@@ -1,5 +1,5 @@
 @echo off
-REM Claude Code launcher — pakkene snakker med deg via terminal
+REM Claude Code launcher - pakkene snakker med deg via terminal
 REM Hvis Windows Terminal (wt.exe) er installert, brukes det for bedre UX
 setlocal
 

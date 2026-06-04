@@ -6,7 +6,7 @@ import { tokens } from '@/lib/tokens';
 export const metadata: Metadata = {
   title: 'Personvernerklæring',
   description:
-    'Hvordan Sakspilot samler, lagrer og deler personopplysninger. GDPR-kompatibel — EU-host, ingen tracking-cookies, full innsyn og slette-rett.',
+    'Hvordan Sakspilot samler, lagrer og deler personopplysninger. GDPR-kompatibel - EU-host, ingen tracking-cookies, full innsyn og slette-rett.',
   alternates: { canonical: '/personvern' },
 };
 
@@ -83,7 +83,7 @@ export default function PersonvernPage() {
               </p>
               <ul>
                 <li>✅ All data lagres i EU (Neon, Frankfurt)</li>
-                <li>✅ Ingen tracking-cookies — analytics uten samtykke-krav (Umami)</li>
+                <li>✅ Ingen tracking-cookies - analytics uten samtykke-krav (Umami)</li>
                 <li>✅ Full innsyn og slette-rett innebygget i appen (Innstillinger → Sikkerhet)</li>
                 <li>✅ AI-funksjoner er valgfrie og merket tydelig</li>
               </ul>
@@ -134,18 +134,18 @@ export default function PersonvernPage() {
               <p>Vi behandler personopplysninger på følgende grunnlag (GDPR art. 6):</p>
               <ul>
                 <li>
-                  <strong>Avtale (art. 6.1.b)</strong> — for å levere tjenesten du har registrert deg for
+                  <strong>Avtale (art. 6.1.b)</strong> - for å levere tjenesten du har registrert deg for
                 </li>
                 <li>
-                  <strong>Berettiget interesse (art. 6.1.f)</strong> — for sikkerhet, feilretting,
+                  <strong>Berettiget interesse (art. 6.1.f)</strong> - for sikkerhet, feilretting,
                   og produktforbedring uten å påvirke dine rettigheter
                 </li>
                 <li>
-                  <strong>Samtykke (art. 6.1.a)</strong> — for valgfrie funksjoner som Outlook-integrasjon
+                  <strong>Samtykke (art. 6.1.a)</strong> - for valgfrie funksjoner som Outlook-integrasjon
                   og AI-assistent
                 </li>
                 <li>
-                  <strong>Lovkrav (art. 6.1.c)</strong> — for regnskapsdata som må oppbevares iht.
+                  <strong>Lovkrav (art. 6.1.c)</strong> - for regnskapsdata som må oppbevares iht.
                   bokføringsloven (5 år)
                 </li>
               </ul>
@@ -154,11 +154,11 @@ export default function PersonvernPage() {
             <Section id="hvor-lagres" title="Hvor data lagres">
               <p>All data lagres på servere i EU/EØS:</p>
               <ul>
-                <li><strong>Neon Postgres</strong> — Frankfurt, Tyskland (kunde-, prosjekt- og tidsdata)</li>
-                <li><strong>Render</strong> — Frankfurt, Tyskland (API-host, ingen vedvarende lagring)</li>
-                <li><strong>Vercel</strong> — global CDN for statiske ressurser (ingen personopplysninger)</li>
-                <li><strong>Umami Cloud</strong> — EU (anonym analytics)</li>
-                <li><strong>Microsoft Graph</strong> — EU eller annet område avhengig av din 365-tenant</li>
+                <li><strong>Neon Postgres</strong> - Frankfurt, Tyskland (kunde-, prosjekt- og tidsdata)</li>
+                <li><strong>Render</strong> - Frankfurt, Tyskland (API-host, ingen vedvarende lagring)</li>
+                <li><strong>Vercel</strong> - global CDN for statiske ressurser (ingen personopplysninger)</li>
+                <li><strong>Umami Cloud</strong> - EU (anonym analytics)</li>
+                <li><strong>Microsoft Graph</strong> - EU eller annet område avhengig av din 365-tenant</li>
               </ul>
               <p>
                 <strong>Unntak:</strong> Anthropic Claude (AI) er hostet i USA. Se eget avsnitt.
@@ -211,12 +211,12 @@ export default function PersonvernPage() {
               <ul>
                 <li>Prosjekt-tittel, status, beskrivelse</li>
                 <li>Milepæler og frister</li>
-                <li>Klientens navn (firmanavn — for at AI-en skal kunne tilpasse tonen)</li>
+                <li>Klientens navn (firmanavn - for at AI-en skal kunne tilpasse tonen)</li>
                 <li>Tidsstatistikk (totaltimer, ikke detaljer)</li>
                 <li>Din spørsmål-tekst</li>
               </ul>
               <p>
-                <strong>PII-minimisering — hva Anthropic IKKE får:</strong>
+                <strong>PII-minimisering - hva Anthropic IKKE får:</strong>
               </p>
               <ul>
                 <li>Klient-eposter eller telefonnumre</li>
@@ -237,7 +237,7 @@ export default function PersonvernPage() {
                 er regulert av Standard Contractual Clauses (SCC) iht. GDPR art. 46.
               </p>
               <p>
-                Du kan deaktivere AI-funksjoner helt ved å la dem være — alle andre funksjoner i
+                Du kan deaktivere AI-funksjoner helt ved å la dem være - alle andre funksjoner i
                 Sakspilot fungerer uten AI.
               </p>
             </Section>
@@ -248,7 +248,7 @@ export default function PersonvernPage() {
                 hvert 15. sekund. Den ser:
               </p>
               <ul>
-                <li>✅ Vindustittel (f.eks. «Bygdøy 12 — rammetillatelse.docx — Word»)</li>
+                <li>✅ Vindustittel (f.eks. «Bygdøy 12 - rammetillatelse.docx - Word»)</li>
                 <li>✅ Applikasjonsnavn (f.eks. «WINWORD.EXE»)</li>
                 <li>✅ Filsti hvis et dokument er åpent</li>
                 <li>✅ Tidsstempel</li>
@@ -258,7 +258,7 @@ export default function PersonvernPage() {
                 nettleserhistorikk, eller andre brukeres aktivitet.
               </p>
               <p>
-                Vindustitler kan inneholde klient-navn fra dokumenter — det regnes som
+                Vindustitler kan inneholde klient-navn fra dokumenter - det regnes som
                 personopplysninger. Vår behandling baseres på berettiget interesse: selvstendig
                 næringsdrivende trenger korrekt tidsføring per prosjekt for fakturering.
               </p>
@@ -305,7 +305,7 @@ export default function PersonvernPage() {
                 </li>
                 <li>
                   <strong>Sletting (art. 17):</strong> Slett kontoen din direkte i appen.
-                  Alle relasjoner cascades — ingenting beholdes utover audit-logg (12 mnd) og
+                  Alle relasjoner cascades - ingenting beholdes utover audit-logg (12 mnd) og
                   fakturahistorikk (5 år, lovpålagt).
                 </li>
                 <li>

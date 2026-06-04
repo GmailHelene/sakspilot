@@ -165,7 +165,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
   if (existing._count.saker > 0) {
     return res.status(400).json({
-      error: "Klienten har prosjekter — arkiver istedenfor å slette",
+      error: "Klienten har prosjekter - arkiver istedenfor å slette",
       saker: existing._count.saker,
     });
   }
@@ -254,7 +254,7 @@ router.post("/:id/invite-to-portal", async (req: Request, res: Response) => {
   emailSent = result.ok;
   if (!result.ok) {
     console.log(
-      `[client-portal invite] SMTP fallback — invite-lenke for ${client.contactEmail}: ${acceptUrl}`
+      `[client-portal invite] SMTP fallback - invite-lenke for ${client.contactEmail}: ${acceptUrl}`
     );
   }
 
@@ -275,7 +275,7 @@ router.post("/:id/invite-to-portal", async (req: Request, res: Response) => {
     ok: true,
     message: emailSent
       ? `Invitasjon sendt til ${client.contactEmail}`
-      : `Invitasjon opprettet. SMTP ikke konfigurert — lenken er logget på serveren.`,
+      : `Invitasjon opprettet. SMTP ikke konfigurert - lenken er logget på serveren.`,
     expiresAt,
     // I dev / SMTP-fail: returner lenken så frilanseren kan kopiere manuelt
     ...(isDev || !emailSent ? { _devInviteUrl: acceptUrl } : {}),

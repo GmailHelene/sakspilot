@@ -167,7 +167,7 @@ export default function PortalSakDetailPage() {
                 Milepæler
                 {sak.milestonesTotal > 0 && (
                   <span style={{ fontSize: 13, color: tokens.color.textMuted, fontWeight: 400, marginLeft: 8 }}>
-                    ({sak.milestonesCompleted} av {sak.milestonesTotal} fullført — {sak.progressPct}%)
+                    ({sak.milestonesCompleted} av {sak.milestonesTotal} fullført - {sak.progressPct}%)
                   </span>
                 )}
               </h2>

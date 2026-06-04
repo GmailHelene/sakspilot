@@ -209,7 +209,7 @@ router.post("/fiken/create-invoice", async (req: Request, res: Response) => {
   if (!sak) return res.status(404).json({ error: "Prosjekt ikke funnet" });
   if (!sak.client) {
     return res.status(400).json({
-      error: "Prosjektet har ingen klient — kan ikke opprette faktura uten mottaker.",
+      error: "Prosjektet har ingen klient - kan ikke opprette faktura uten mottaker.",
     });
   }
   if (sak.timeEntries.length === 0) {
@@ -278,14 +278,14 @@ router.post("/fiken/create-invoice", async (req: Request, res: Response) => {
     issueDate,
     dueDate,
     customerId: contactId,
-    bankAccountCode: "1920:10001", // standard — bruker må evt endre i Fiken
+    bankAccountCode: "1920:10001", // standard - bruker må evt endre i Fiken
     cash: false,
     lines: [
       {
-        description: `${sak.title}${sak.saksnummer ? ` (prosjektnr ${sak.saksnummer})` : ""} — ${totalHours} timer`,
+        description: `${sak.title}${sak.saksnummer ? ` (prosjektnr ${sak.saksnummer})` : ""} - ${totalHours} timer`,
         unitPrice: Math.round(hourlyRate * 100), // Fiken bruker øre
         quantity: totalHours,
-        vatType: "HIGH", // 25% — bruker må endre hvis tjenesten er fritatt
+        vatType: "HIGH", // 25% - bruker må endre hvis tjenesten er fritatt
         incomeAccount: "3000",
       },
     ],

@@ -196,11 +196,11 @@ console.log('✓ icon.png (256x256 hovedikon)');
       fs.writeFileSync(path.join(outDir, 'icon.icns'), icnsBuffer);
       console.log(`✓ icon.icns (${icnsBuffer.length} bytes)`);
     } else {
-      console.warn('⚠  png2icons.createICNS returnerte null — hopper over icon.icns');
+      console.warn('⚠  png2icons.createICNS returnerte null - hopper over icon.icns');
     }
   } catch (err) {
     console.warn('⚠  Kunne ikke generere icon.icns:', err.message);
-    console.warn('   .app-bundlet faller tilbake til icon.png — fungerer, men ser litt fast ut i Dock.');
+    console.warn('   .app-bundlet faller tilbake til icon.png - fungerer, men ser litt fast ut i Dock.');
   }
 })();
 

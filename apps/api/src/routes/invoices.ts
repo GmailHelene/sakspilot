@@ -340,11 +340,11 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
 // ── Send faktura på epost ────────────────────────────────────────
 const SendEmailSchema = z.object({
-  /** Mottaker — eposten fakturaen sendes til. */
+  /** Mottaker - eposten fakturaen sendes til. */
   to: z.string().email("Ugyldig epost"),
   /** Valgfri CC, komma-separert eller array. */
   cc: z.union([z.string(), z.array(z.string().email())]).optional(),
-  /** Valgfritt subject — default genereres fra fakturanummer. */
+  /** Valgfritt subject - default genereres fra fakturanummer. */
   subject: z.string().min(1).max(200).optional(),
   /** Valgfri brødtekst (HTML). Default: standard hilsen. */
   body: z.string().max(20000).optional(),
@@ -463,7 +463,7 @@ router.post("/:id/send-email", async (req: Request, res: Response) => {
     doc.fontSize(9).fillColor("#172B4D")
       .text(`Tjenester ${fmtDate(invoice.periodStart)} – ${fmtDate(invoice.periodEnd)}`, 50, y, { width: 300 })
       .text(String(invoice.totalHours), 360, y, { width: 50, align: "right" })
-      .text("—", 415, y, { width: 60, align: "right" })
+      .text("-", 415, y, { width: 60, align: "right" })
       .text(fmtKr(subtotal), 480, y, { width: 65, align: "right" });
     y = doc.y + 6;
   }
@@ -558,7 +558,7 @@ router.post("/:id/send-email", async (req: Request, res: Response) => {
 
 // ── Send purring på forfalt faktura ──────────────────────────────
 const SendReminderSchema = z.object({
-  /** Mottaker — default fra sak.client.contactEmail eller forrige sentEmailTo. */
+  /** Mottaker - default fra sak.client.contactEmail eller forrige sentEmailTo. */
   to: z.string().email().optional(),
   /** Valgfri custom subject/body. Default genereres basert på reminderCount. */
   subject: z.string().min(1).max(200).optional(),
@@ -601,13 +601,13 @@ router.post("/:id/send-reminder", async (req: Request, res: Response) => {
 
   // Forretningsregler
   if (invoice.paidAt) {
-    return res.status(400).json({ error: "Fakturaen er allerede betalt — ingen purring nødvendig" });
+    return res.status(400).json({ error: "Fakturaen er allerede betalt - ingen purring nødvendig" });
   }
   if (invoice.status === "cancelled") {
     return res.status(400).json({ error: "Fakturaen er annullert" });
   }
   if (!invoice.dueDate || invoice.dueDate > new Date()) {
-    return res.status(400).json({ error: "Fakturaen er ikke forfalt enda — kan ikke purre" });
+    return res.status(400).json({ error: "Fakturaen er ikke forfalt enda - kan ikke purre" });
   }
 
   // Mottaker: body.to → siste sendEmailTo → klientens contactEmail
@@ -719,7 +719,7 @@ router.post("/:id/send-reminder", async (req: Request, res: Response) => {
     <p>Vi har dessverre ikke registrert betaling for faktura <strong>${invNum}</strong> på <strong>${fmtKr(subtotal)}</strong>, som hadde forfall ${fmtDate(invoice.dueDate)} (${daysOverdue} dager siden).</p>
     <p>${sluttsetning}</p>
     ${org.bankAccount ? `<p>Innbetales til <strong>${org.bankAccount}</strong>. Merk innbetalingen med fakturanummer <strong>${invNum}</strong>.</p>` : ""}
-    <p>Hvis du allerede har betalt — beklager mas. Send oss gjerne kvittering så vi får registrert det.</p>
+    <p>Hvis du allerede har betalt - beklager mas. Send oss gjerne kvittering så vi får registrert det.</p>
     <p>Mvh<br>${org.name}</p>
   `;
 

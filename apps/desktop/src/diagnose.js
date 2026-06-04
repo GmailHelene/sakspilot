@@ -32,12 +32,12 @@ const readline = require('node:readline');
   }
 
   console.log('╔══════════════════════════════════════════════════════════════════╗');
-  console.log('║      Sakspilot — diagnose: snapshot av aktivt vindu             ║');
+  console.log('║      Sakspilot - diagnose: snapshot av aktivt vindu             ║');
   console.log('╚══════════════════════════════════════════════════════════════════╝');
   console.log('Slik bruker du:');
   console.log('  1. Klikk på vinduet du vil teste (Chrome, Word, AutoCAD, Holte, ...)');
   console.log('  2. Bytt tilbake til terminalen (Alt+Tab eller klikk)');
-  console.log('  3. Trykk Enter — får snapshot fra 3 sekunder etter du trykker');
+  console.log('  3. Trykk Enter - får snapshot fra 3 sekunder etter du trykker');
   console.log('     (3s ventetid så du rekker å klikke tilbake til appen)');
   console.log('  4. Ctrl+C for å avslutte\n');
 
@@ -50,7 +50,7 @@ const readline = require('node:readline');
   const prompt = () => {
     rl.question('▶ Trykk Enter for snapshot (eller bytt til app FØRST, så Enter)... ', async () => {
       snapshotNum++;
-      console.log(`\n⏱  Venter 3 sekunder — bytt til appen du vil måle nå...`);
+      console.log(`\n⏱  Venter 3 sekunder - bytt til appen du vil måle nå...`);
 
       // Countdown
       for (let i = 3; i > 0; i--) {
@@ -94,15 +94,15 @@ const readline = require('node:readline');
           const hasUrl = !!win.url;
 
           if (hasGoodTitle) {
-            console.log(`   ✅ God tittel — kan matches med regex (f.eks. /bygd[øo]y/i)`);
+            console.log(`   ✅ God tittel - kan matches med regex (f.eks. /bygd[øo]y/i)`);
           } else {
-            console.log(`   ⚠ Tittel er tom eller lik app-navn — vanskeligere å matche`);
+            console.log(`   ⚠ Tittel er tom eller lik app-navn - vanskeligere å matche`);
           }
           if (hasUrl) {
-            console.log(`   ✅ URL tilgjengelig — kan matche på nettside (Holte, Tripletex osv.)`);
+            console.log(`   ✅ URL tilgjengelig - kan matche på nettside (Holte, Tripletex osv.)`);
           }
           if (hasPath) {
-            console.log(`   ✅ Filsti tilgjengelig — kan matche på prosjektmappe`);
+            console.log(`   ✅ Filsti tilgjengelig - kan matche på prosjektmappe`);
           }
           console.log('');
         }

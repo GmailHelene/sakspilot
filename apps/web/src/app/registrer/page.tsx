@@ -49,7 +49,7 @@ export default function RegistrerPage() {
         const fieldError = details ? Object.values(details)[0]?.[0] : null;
         setError(fieldError || err.message);
       } else {
-        setError('Ukjent feil — prøv igjen');
+        setError('Ukjent feil - prøv igjen');
       }
     } finally {
       setLoading(false);

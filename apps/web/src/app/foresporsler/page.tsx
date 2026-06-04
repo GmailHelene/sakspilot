@@ -280,7 +280,7 @@ export default function ForesporslerPage() {
                           userSelect: 'none',
                         }}
                       >
-                        {/* Navn — inline-redigerbart */}
+                        {/* Navn - inline-redigerbart */}
                         <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
                           <InlineEdit
                             value={f.name}
@@ -295,7 +295,7 @@ export default function ForesporslerPage() {
                             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
                           }}>{f.message}</div>
                         )}
-                        {/* Estimert verdi — inline-redigerbart */}
+                        {/* Estimert verdi - inline-redigerbart */}
                         <div style={{ fontSize: 11, color: '#0f172a', fontWeight: 600 }}>
                           <InlineEdit
                             value={f.estimatedValue != null ? String(f.estimatedValue) : ''}
@@ -382,7 +382,7 @@ function CreateModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
         <Field label="Hva de spør om">
           <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={3} style={{ ...inputStyle, fontFamily: 'inherit' }} />
         </Field>
-        <Field label="Estimert verdi (kr) — valgfritt">
+        <Field label="Estimert verdi (kr) - valgfritt">
           <input type="number" value={estimatedValue} onChange={(e) => setEstimatedValue(e.target.value)} style={inputStyle} />
         </Field>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

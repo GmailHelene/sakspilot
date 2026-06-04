@@ -66,7 +66,7 @@ function getConsumerToken(useTestEnv: boolean): string {
   const t = process.env.TRIPLETEX_CONSUMER_TOKEN;
   if (!t) {
     throw new Error(
-      "TRIPLETEX_CONSUMER_TOKEN mangler i env — be Helene sette den på Render."
+      "TRIPLETEX_CONSUMER_TOKEN mangler i env - be Helene sette den på Render."
     );
   }
   return t;
@@ -258,7 +258,7 @@ export async function verifyEmployeeToken(
     const employee = employeeList.values[0];
     if (!employee) {
       throw new TripletexError(
-        "Tripletex returnerte ingen employee — sjekk at EmployeeToken er aktivt",
+        "Tripletex returnerte ingen employee - sjekk at EmployeeToken er aktivt",
         502
       );
     }

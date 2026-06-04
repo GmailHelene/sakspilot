@@ -231,10 +231,10 @@ export default function FakturaerPage() {
                     onClick={() => setSelected(inv)}
                     style={{ borderTop: '1px solid #f1f5f9', cursor: 'pointer' }}
                   >
-                    <td style={td}>{inv.invoiceNumber || '—'}</td>
+                    <td style={td}>{inv.invoiceNumber || '-'}</td>
                     <td style={td}>{fmtDate(inv.periodEnd)}</td>
-                    <td style={td}>{inv.sak?.client?.name || inv.customerName || '—'}</td>
-                    <td style={td}>{inv.sak?.title || '—'}</td>
+                    <td style={td}>{inv.sak?.client?.name || inv.customerName || '-'}</td>
+                    <td style={td}>{inv.sak?.title || '-'}</td>
                     <td style={{ ...td, textAlign: 'right', fontWeight: 600 }}>
                       {fmtAmount(inv.totalAmount)} {inv.currency}
                     </td>
@@ -246,7 +246,7 @@ export default function FakturaerPage() {
                           ? <span style={{ color: isOverdue(inv.dueDate) ? '#dc2626' : '#64748b' }}>
                               {isOverdue(inv.dueDate) ? 'Forfalt' : 'Forfall'} {fmtDate(inv.dueDate)}
                             </span>
-                          : '—'}
+                          : '-'}
                     </td>
                   </tr>
                 ))}
@@ -255,7 +255,7 @@ export default function FakturaerPage() {
           </div>
         )}
 
-        {/* Mobil-vennlig kort-stack — vises i stedet for tabell under 700px */}
+        {/* Mobil-vennlig kort-stack - vises i stedet for tabell under 700px */}
         {filtered.length > 0 && isNarrow && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {filtered.map((inv) => (
@@ -271,7 +271,7 @@ export default function FakturaerPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
-                      {inv.sak?.client?.name || inv.customerName || '—'}
+                      {inv.sak?.client?.name || inv.customerName || '-'}
                     </div>
                     <div style={{ fontSize: 11, color: '#64748b' }}>
                       {inv.invoiceNumber ? `#${inv.invoiceNumber} · ` : ''}{fmtDate(inv.periodEnd)}
@@ -421,10 +421,10 @@ function CreateInvoiceModal({ onClose, onCreated }: { onClose: () => void; onCre
               Tilknyttet sak (anbefalt)
             </label>
             <select value={sakId} onChange={(e) => setSakId(e.target.value)} style={modalInput}>
-              <option value="">— Ingen sak (manuell faktura) —</option>
+              <option value="">- Ingen sak (manuell faktura) -</option>
               {saker.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.title} {s.client ? `(${s.client.name})` : '— ingen klient'}
+                  {s.title} {s.client ? `(${s.client.name})` : '- ingen klient'}
                 </option>
               ))}
             </select>
@@ -474,7 +474,7 @@ function CreateInvoiceModal({ onClose, onCreated }: { onClose: () => void; onCre
                     <input type="number" step="0.5" value={l.quantity} onChange={(e) => updateLine(i, 'quantity', e.target.value)} style={{ ...modalInput, textAlign: 'right' }} />
                     <input type="number" step="0.01" value={l.unitPrice} onChange={(e) => updateLine(i, 'unitPrice', e.target.value)} style={{ ...modalInput, textAlign: 'right' }} />
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', fontWeight: 600, color: '#0f172a', fontSize: 13 }}>
-                      {sum > 0 ? sum.toLocaleString('nb-NO') : '—'}
+                      {sum > 0 ? sum.toLocaleString('nb-NO') : '-'}
                     </div>
                     <button type="button" onClick={() => removeLine(i)} disabled={lines.length === 1}
                             style={{ background: 'transparent', border: 'none', cursor: lines.length === 1 ? 'not-allowed' : 'pointer', color: '#dc2626', opacity: lines.length === 1 ? 0.3 : 1 }}>
@@ -485,7 +485,7 @@ function CreateInvoiceModal({ onClose, onCreated }: { onClose: () => void; onCre
               })}
             </div>
             <div style={{ borderTop: '2px solid #cbd5e1', marginTop: 12, paddingTop: 8 }}>
-              {/* MVA-breakdown — antar pris inkl. 25 % MVA (hub-konvensjon).
+              {/* MVA-breakdown - antar pris inkl. 25 % MVA (hub-konvensjon).
                   Hvis vi senere får mvaInkludert-toggle, byttes formelen ut. */}
               {total > 0 && (() => {
                 const mva = total * 0.25 / 1.25;
@@ -668,7 +668,7 @@ function DetailModal({
         {/* Purring-historikk */}
         {inv.reminderCount > 0 && inv.reminderSentAt && (
           <div style={{ marginTop: 8, padding: 10, background: '#fef3c7', borderRadius: 6, fontSize: 12, color: '#92400e' }}>
-            🔔 {inv.reminderCount} purring{inv.reminderCount === 1 ? '' : 'er'} sendt — sist {new Date(inv.reminderSentAt).toLocaleString('nb-NO')}
+            🔔 {inv.reminderCount} purring{inv.reminderCount === 1 ? '' : 'er'} sendt - sist {new Date(inv.reminderSentAt).toLocaleString('nb-NO')}
           </div>
         )}
 

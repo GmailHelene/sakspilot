@@ -92,7 +92,7 @@ export default function HjemPage() {
     const api = (window as any).sakspilot;
     if (!api?.isDesktop || !api.startWorkSession) {
       alert(
-        'Tidsregistrering krever Sakspilot Desktop (.exe-versjonen). Last ned fra hjelp-menyen — i nettleseren kan vi ikke se hva du jobber på.'
+        'Tidsregistrering krever Sakspilot Desktop (.exe-versjonen). Last ned fra hjelp-menyen - i nettleseren kan vi ikke se hva du jobber på.'
       );
       return;
     }
@@ -278,28 +278,28 @@ export default function HjemPage() {
           <KPICard
             icon={<Briefcase size={20} strokeWidth={2} />}
             label="Aktive prosjekter"
-            value={stats?.activeSaker ?? '—'}
+            value={stats?.activeSaker ?? '-'}
             href="/saker"
             color={tokens.color.navy}
           />
           <KPICard
             icon={<Clock size={20} strokeWidth={2} />}
             label="Timer denne uka"
-            value={stats ? `${stats.totalHoursThisWeek} t` : '—'}
+            value={stats ? `${stats.totalHoursThisWeek} t` : '-'}
             href="/saker"
             color={tokens.color.green}
           />
           <KPICard
             icon={<CalendarClock size={20} strokeWidth={2} />}
             label="Frister i dag"
-            value={stats?.todayMilestones.length ?? '—'}
+            value={stats?.todayMilestones.length ?? '-'}
             href="/kalender"
             color={tokens.color.gold}
           />
           <KPICard
             icon={<TrendingUp size={20} strokeWidth={2} />}
             label="Forsinket"
-            value={stats?.overdueMilestones.length ?? '—'}
+            value={stats?.overdueMilestones.length ?? '-'}
             href="/kalender"
             color={stats && stats.overdueMilestones.length > 0 ? tokens.color.red : tokens.color.textSubtle}
           />
@@ -317,17 +317,17 @@ export default function HjemPage() {
         >
           <MiniKpi
             label="Omsetning denne uka"
-            value={stats ? `${stats.weekRevenue.toLocaleString('nb-NO')} kr` : '—'}
+            value={stats ? `${stats.weekRevenue.toLocaleString('nb-NO')} kr` : '-'}
             color={tokens.color.gold}
           />
           <MiniKpi
             label="Aktive agenter"
-            value={stats?.activeAutomations ?? '—'}
+            value={stats?.activeAutomations ?? '-'}
             color={tokens.color.purple}
           />
           <MiniKpi
             label="E-poster denne uka"
-            value={stats?.emailsThisWeek ?? '—'}
+            value={stats?.emailsThisWeek ?? '-'}
             color={tokens.color.blue}
           />
         </div>
@@ -422,10 +422,10 @@ export default function HjemPage() {
           </Widget>
           )}
 
-          {/* Tidsmål — uke/mnd-progress */}
+          {/* Tidsmål - uke/mnd-progress */}
           {!hidden.has('tidsmal') && <GoalProgressWidget />}
 
-          {/* AI-kategorisering — forslag fra Claude på ukategoriserte entries */}
+          {/* AI-kategorisering - forslag fra Claude på ukategoriserte entries */}
           {!hidden.has('aitriage') && <AiTriageWidget />}
 
           {/* Tips for dagen */}
@@ -436,7 +436,7 @@ export default function HjemPage() {
           >
             <div style={{ display: 'grid', gap: 12 }}>
               <Tip>
-                <strong>Start arbeidsøkten</strong> i Sakspilot Desktop (tray-ikonet) når du setter deg ned for å jobbe — så fanges alt automatisk.
+                <strong>Start arbeidsøkten</strong> i Sakspilot Desktop (tray-ikonet) når du setter deg ned for å jobbe - så fanges alt automatisk.
               </Tip>
               <Tip>
                 <strong>Bruk launcheren</strong> til venstre for å åpne Tripletex, Outlook, Holte og andre apper med ett klikk.

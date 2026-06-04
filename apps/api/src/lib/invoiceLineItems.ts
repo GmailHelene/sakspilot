@@ -41,7 +41,7 @@ export function safeParseLineItems(raw: unknown): LineItem[] {
   const parsed = LineItemsArraySchema.safeParse(raw);
   if (!parsed.success) {
     console.warn(
-      "[lineItems] validation feilet — bruker fallback. Feil:",
+      "[lineItems] validation feilet - bruker fallback. Feil:",
       parsed.error.flatten()
     );
     return [];

@@ -292,7 +292,7 @@ export default function TripletexPage() {
               </h3>
               <p style={{ fontSize: 13, color: tokens.color.text, lineHeight: 1.5 }}>
                 Du kan fortsatt eksportere månedsrapport som CSV og importere
-                manuelt i Tripletex —{' '}
+                manuelt i Tripletex -{' '}
                 <Link href="/rapport" style={linkStyle}>
                   åpne rapport-siden
                 </Link>

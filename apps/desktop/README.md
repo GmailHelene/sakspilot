@@ -36,22 +36,22 @@ Lager `release/Sakspilot Setup 0.0.1.exe` som kan installeres på
 Windows-maskiner. Krever ikke admin-rettigheter (per-user install).
 
 For ekte distribusjon trenger appen et **code signing-sertifikat**
-(~3000 kr/år hos Sectigo) — ellers vil SmartScreen advare brukere.
+(~3000 kr/år hos Sectigo) - ellers vil SmartScreen advare brukere.
 
 ---
 
-## POC — bevis at vinduslogging fungerer
+## POC - bevis at vinduslogging fungerer
 
 Denne mappen inneholder en frittstående Node.js-POC som beviser at vi kan
 lese aktivt vindu på Windows. Hvis denne kjører stabilt i 5 minutter med
-vindusbytter — er hovedkonseptet flygbart.
+vindusbytter - er hovedkonseptet flygbart.
 
 ### Kjør
 
 ```bash
 cd C:\Users\helen\Desktop\sakspilot\apps\desktop
 npm install
-npm run poc:fast     # 3s intervall, 2 min — rask test
+npm run poc:fast     # 3s intervall, 2 min - rask test
 ```
 
 ### Hva du skal se
@@ -59,9 +59,9 @@ npm run poc:fast     # 3s intervall, 2 min — rask test
 Konsollet logger hver gang du bytter vindu:
 
 ```
-[09:42:13] ▶  Code.exe: "poc-logger.js — Sakspilot — Visual Studio Code"
-[09:42:18] ▶  chrome.exe: "Sakspilot — Workspace for selvstendig…"
-[09:42:34] ▶  WINWORD.EXE: "Bygdoy 12 — rammetillatelse.docx — Word"
+[09:42:13] ▶  Code.exe: "poc-logger.js - Sakspilot - Visual Studio Code"
+[09:42:18] ▶  chrome.exe: "Sakspilot - Workspace for selvstendig…"
+[09:42:34] ▶  WINWORD.EXE: "Bygdoy 12 - rammetillatelse.docx - Word"
 ```
 
 Med `--rules`-flagget legger den til sak-matching:
@@ -71,7 +71,7 @@ npm run poc:matching
 ```
 
 ```
-[09:42:34] ▶  WINWORD.EXE: "Bygdoy 12 — rammetillatelse.docx — Word"  → 🎯 Bygdøy 12 — rammetillatelse (title)
+[09:42:34] ▶  WINWORD.EXE: "Bygdoy 12 - rammetillatelse.docx - Word"  → 🎯 Bygdøy 12 - rammetillatelse (title)
 ```
 
 ### Etter at POC-en er ferdig
@@ -106,7 +106,7 @@ Du får en sluttrapport som viser:
 ### Kjente begrensninger i POC
 
 - **Ingen filsti for alle apps**: Word/Excel viser filnavn i tittel, men ikke
-  alltid filsti. Vi henter `owner.path` (sti til .exe-en) — for full filsti
+  alltid filsti. Vi henter `owner.path` (sti til .exe-en) - for full filsti
   trenger vi Windows UI Automation API i full agent.
 - **Ingen lagring til backend**: POC-en skriver kun til lokal JSON. Full
   agent sender batch til `/agent/sync` hvert 5. minutt.

@@ -169,7 +169,7 @@ router.post("/accept-invite", async (req: Request, res: Response) => {
   const parsed = AcceptInviteSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({
-      error: "Ugyldig input — passord må være minst 12 tegn",
+      error: "Ugyldig input - passord må være minst 12 tegn",
       details: parsed.error.flatten().fieldErrors,
     });
   }
@@ -323,7 +323,7 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
     emailSent = result.ok;
     if (!result.ok) {
       console.log(
-        `[client-portal forgot] SMTP fallback — reset-lenke for ${email}: ${resetUrl}`
+        `[client-portal forgot] SMTP fallback - reset-lenke for ${email}: ${resetUrl}`
       );
     }
   }
@@ -345,7 +345,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
   const parsed = ResetSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({
-      error: "Ugyldig input — passordet må være minst 12 tegn",
+      error: "Ugyldig input - passordet må være minst 12 tegn",
       details: parsed.error.flatten().fieldErrors,
     });
   }

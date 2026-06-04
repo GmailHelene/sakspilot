@@ -353,7 +353,7 @@ export default function AiAssistantSection({ sakId }: { sakId: string }) {
 
           {!historyLoading && chat.length === 0 && (
             <div style={{ fontSize: 13, color: tokens.color.textMuted, padding: '8px 0' }}>
-              Ingen meldinger ennå — still et spørsmål under for å starte en samtale.
+              Ingen meldinger ennå - still et spørsmål under for å starte en samtale.
               AI-en husker konteksten innenfor dette prosjektet.
             </div>
           )}

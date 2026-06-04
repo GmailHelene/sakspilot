@@ -1,6 +1,6 @@
 @echo off
 REM Stopper alle kjoerende Sakspilot-prosesser (desktop + dev-server)
-title Sakspilot — Stopp alt
+title Sakspilot - Stopp alt
 echo Stopper Sakspilot...
 taskkill /F /IM Sakspilot.exe /T 2>nul
 taskkill /F /IM electron.exe /T 2>nul

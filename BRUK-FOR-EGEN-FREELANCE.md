@@ -1,7 +1,7 @@
 # Bruke Sakspilot for egen freelance
 
 Du har et helt fungerende verktøy for ditt eget bruk akkurat nå.
-Sakspilot er bevisst generisk — det er ikke kun for byggebransjen.
+Sakspilot er bevisst generisk - det er ikke kun for byggebransjen.
 Du har **akkurat samme profil** som målgruppen: flere klienter,
 forskjellige programmer, fakturerer per time.
 
@@ -24,7 +24,7 @@ Basert på din portefølje (fra MEMORY.md):
 | ConsentPilot (eget produkt, intern) | – |
 | aioptimalisering (eget produkt) | – |
 
-### Saker — én per oppdrag/feature
+### Saker - én per oppdrag/feature
 
 For hver klient, opprett saker du jobber med. Eksempler:
 
@@ -41,14 +41,14 @@ For hver klient, opprett saker du jobber med. Eksempler:
 
 På hver sak, klikk **⚡ Velg mal**. Du har nå disse nye utvikler-malene:
 
-- 💻 **VS Code / Cursor (auto fra sakens navn)** — editor-vinduer
-- 🐙 **GitHub-repo** — Chrome-tab på sakens repo
-- 🌐 **WordPress-admin for klient** — wp-admin på klientens side
-- 🎨 **Figma med sakens navn** — designarbeid
-- ⌨️ **Terminal i sak-mappa** — PowerShell/cmd med mappenavn
-- 🤖 **Claude Code (i sak-mappa)** — denne typen samtaler!
-- 📞 **Teams-møte med klient** — møtevinduer
-- 🌐 **Browser på klient-domene** — patiencesportswear.no, sjakktrening.no osv.
+- 💻 **VS Code / Cursor (auto fra sakens navn)** - editor-vinduer
+- 🐙 **GitHub-repo** - Chrome-tab på sakens repo
+- 🌐 **WordPress-admin for klient** - wp-admin på klientens side
+- 🎨 **Figma med sakens navn** - designarbeid
+- ⌨️ **Terminal i sak-mappa** - PowerShell/cmd med mappenavn
+- 🤖 **Claude Code (i sak-mappa)** - denne typen samtaler!
+- 📞 **Teams-møte med klient** - møtevinduer
+- 🌐 **Browser på klient-domene** - patiencesportswear.no, sjakktrening.no osv.
 
 Pluss de generelle (Outlook, alle .docx/.xlsx/.pdf, Holte, Tripletex...).
 
@@ -58,27 +58,27 @@ Pluss de generelle (Outlook, alle .docx/.xlsx/.pdf, Holte, Tripletex...).
 2. Opprett sak `Patience pre-launch` knyttet til klienten
 3. Sett **folderPath** = `C:\Users\helen\Desktop\patience` (din lokale mappe)
 4. Klikk **⚡ Velg mal** → legg til:
-   - **VS Code / Cursor (auto fra sakens navn)** — fanger editor-vinduer med "patience" i tittel
-   - **WordPress-admin for klient** — fanger Chrome-tab `patiencesportswear.no/wp-admin`
-   - **Browser på klient-domene** — alle Chrome-tabs på `.patiencesportswear`
-   - **Terminal i sak-mappa** — PowerShell med `patience` i tittel
-   - **Claude Code (i sak-mappa)** — denne samtalen!
+   - **VS Code / Cursor (auto fra sakens navn)** - fanger editor-vinduer med "patience" i tittel
+   - **WordPress-admin for klient** - fanger Chrome-tab `patiencesportswear.no/wp-admin`
+   - **Browser på klient-domene** - alle Chrome-tabs på `.patiencesportswear`
+   - **Terminal i sak-mappa** - PowerShell med `patience` i tittel
+   - **Claude Code (i sak-mappa)** - denne samtalen!
 
 Nå fanger Sakspilot ALT du gjør for Patience uansett hvilket program, automatisk.
 
-## Auto-spor — alternativ til matching-regler (anbefalt)
+## Auto-spor - alternativ til matching-regler (anbefalt)
 
 Hvis du synes matching-regler er for mye styr, er det nå en enklere vei:
 
 1. Åpne Sakspilot
 2. Tray → klikk **🎯 Auto-spor AV** (eller widget-pillen) → slå PÅ
 3. Naviger til saken du jobber med (`/saker/[id]` i web)
-4. Åpne alt du trenger via Sakspilot — Launcher-snarvei, Mine sites, Mine mapper, lokal .exe
+4. Åpne alt du trenger via Sakspilot - Launcher-snarvei, Mine sites, Mine mapper, lokal .exe
 5. Alt logges automatisk som sessions på den aktive saken
 
-Bytter du sak (navigerer til en annen `/saker/[id]`) tilordnes nye åpne-handlinger til den nye saken. Matching-regler funker fortsatt og overstyrer auto-spor — så du kan kombinere.
+Bytter du sak (navigerer til en annen `/saker/[id]`) tilordnes nye åpne-handlinger til den nye saken. Matching-regler funker fortsatt og overstyrer auto-spor - så du kan kombinere.
 
-## Daglig flyt (klassisk — med matching-regler)
+## Daglig flyt (klassisk - med matching-regler)
 
 **Morgen:**
 1. Dobbeltklikk `Sakspilot.exe` (eller `Start - Sakspilot desktop.bat`)
@@ -87,7 +87,7 @@ Bytter du sak (navigerer til en annen `/saker/[id]`) tilordnes nye åpne-handlin
 4. Jobb som vanlig
 
 **Underveis:**
-- Bytt mellom kunder, det er greit — agenten bytter sak automatisk
+- Bytt mellom kunder, det er greit - agenten bytter sak automatisk
 - Vil du pause for lunsj? Høyreklikk → **⏸ Pause**
 
 **Slutt av dag:**
@@ -104,7 +104,7 @@ Bytter du sak (navigerer til en annen `/saker/[id]`) tilordnes nye åpne-handlin
 
 Du blir din egen første betalende kunde. Når du skal selge til Nicole:
 
-> "Jeg har brukt Sakspilot for min egen freelance i 4 uker — fanget
+> "Jeg har brukt Sakspilot for min egen freelance i 4 uker - fanget
 > 23 timer mer enn jeg ville fakturert manuelt. Det er 18 400 kr ekstra
 > i måneden bare ved å bruke det selv. Vil du prøve?"
 

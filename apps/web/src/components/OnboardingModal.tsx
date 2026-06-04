@@ -265,7 +265,7 @@ export default function OnboardingModal() {
               />
               <FeatureRow
                 title="🤖 Agenter / automatiseringer"
-                desc='Når et prosjekt blir Ferdig — Sakspilot lager automatisk en klistrelapp som minner deg om å sende faktura.'
+                desc='Når et prosjekt blir Ferdig - Sakspilot lager automatisk en klistrelapp som minner deg om å sende faktura.'
               />
               <FeatureRow
                 title="✨ AI-assistent (Claude)"
@@ -317,7 +317,7 @@ export default function OnboardingModal() {
                 href="/klienter/ny"
                 number="1"
                 title="Legg til første klient"
-                desc="Navn, epost, timesats — så er du klar"
+                desc="Navn, epost, timesats - så er du klar"
                 onClick={finish}
               />
               <NextStepLink

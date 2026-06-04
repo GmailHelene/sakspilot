@@ -323,7 +323,7 @@ export default function DeltSakPage() {
           {data.expiresAt && ` · Utløper ${new Date(data.expiresAt).toLocaleDateString('nb-NO')}`}
           <br />
           <span style={{ fontSize: 11 }}>
-            Sakspilot er et workspace for selvstendig næringsdrivende —{' '}
+            Sakspilot er et workspace for selvstendig næringsdrivende -{' '}
             <a
               href="https://sakspilot.no"
               target="_blank"

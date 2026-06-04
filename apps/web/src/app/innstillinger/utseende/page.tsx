@@ -121,7 +121,7 @@ export default function UtseendePage() {
         <section style={sectionStyle}>
           <h2 style={sectionTitleStyle}>Mørk modus</h2>
           <p style={{ fontSize: 13, color: tokens.color.textMuted, marginBottom: 16 }}>
-            Bytt mellom lys og mørk bakgrunn. Påvirker hele grensesnittet —
+            Bytt mellom lys og mørk bakgrunn. Påvirker hele grensesnittet -
             farge­temaet over beholdes som aksent.
           </p>
           {mounted && (
@@ -151,7 +151,7 @@ export default function UtseendePage() {
 
         {/* Nav-skjul */}
         <section style={sectionStyle}>
-          <h2 style={sectionTitleStyle}>Sidebar — vis/skjul elementer</h2>
+          <h2 style={sectionTitleStyle}>Sidebar - vis/skjul elementer</h2>
           <p style={{ fontSize: 13, color: tokens.color.textMuted, marginBottom: 16 }}>
             Klikk for å skjule. Skjulte elementer kan slås på igjen her.
           </p>

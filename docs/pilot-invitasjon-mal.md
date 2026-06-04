@@ -4,16 +4,16 @@ Klar-til-bruk e-post (norsk + engelsk) for å invitere selvstendig næringsdrive
 
 ---
 
-## 🇳🇴 Norsk versjon — kort
+## 🇳🇴 Norsk versjon - kort
 
 **Emne:** Vil du teste Sakspilot gratis? Jeg trenger pilotbrukere som deg
 
 Hei [NAVN],
 
-Jeg har bygget et workspace for selvstendig næringsdrivende — en blanding av sak-CRM, automatisk tidsregistrering og fakturagrunnlag-eksport. Jeg trenger noen tidlige brukere som [DERES YRKE] for å gi tilbakemelding før jeg lanserer bredt.
+Jeg har bygget et workspace for selvstendig næringsdrivende - en blanding av sak-CRM, automatisk tidsregistrering og fakturagrunnlag-eksport. Jeg trenger noen tidlige brukere som [DERES YRKE] for å gi tilbakemelding før jeg lanserer bredt.
 
 **Hva du får:**
-- Full tilgang — gratis hele pilotperioden (~6 måneder)
+- Full tilgang - gratis hele pilotperioden (~6 måneder)
 - 1-til-1 hjelp fra meg til å komme i gang
 - Din feedback styrer hva vi bygger videre
 
@@ -33,7 +33,7 @@ helene@helene.cloud
 
 ---
 
-## 🇳🇴 Norsk versjon — lang (for kalde leads)
+## 🇳🇴 Norsk versjon - lang (for kalde leads)
 
 **Emne:** Slipper du å lete etter når-du-startet-timeren-egentlig?
 
@@ -43,21 +43,21 @@ Jeg så at du driver med [BRANSJE/JOBB]. Jeg jobber selv som [DIN ROLLE] og er l
 
 **Sakspilot** er en arbeidsbenk som samler:
 - 📋 **Sak-CRM** (Monday-stil kanban): pågående, venter på kunde, ferdig
-- ⏱ **Automatisk tidsregistrering**: en liten Windows-app i bakgrunnen ser hva du jobber på og logger tid til riktig sak — uten at du må trykke start/stopp
+- ⏱ **Automatisk tidsregistrering**: en liten Windows-app i bakgrunnen ser hva du jobber på og logger tid til riktig sak - uten at du må trykke start/stopp
 - 🤖 **Automatiseringer**: "Når en sak blir Ferdig, lag en klistrelapp som minner meg om å sende faktura"
 - ✨ **AI-assistent** (Claude): oppsummer saker, skriv klient-eposter
-- 🔗 **Klient-portal**: del status og fremdrift med kunden via en lenke — uten innlogging
+- 🔗 **Klient-portal**: del status og fremdrift med kunden via en lenke - uten innlogging
 - 📤 **CSV til Tripletex/Fiken**: månedsrapport med ett klikk
 
-Det er bygget for advokater, arkitekter, regnskapsførere, designere, konsulenter — alle som har egne oppdrag og må holde styr på tid + klienter selv.
+Det er bygget for advokater, arkitekter, regnskapsførere, designere, konsulenter - alle som har egne oppdrag og må holde styr på tid + klienter selv.
 
 **Pilotperiode:** Helt gratis frem til 2026-12-31. Etter det vil prisen være rundt 199 kr/mnd.
 
 **Vil du prøve?**
-👉 https://sakspilot.no — registrering tar et minutt
+👉 https://sakspilot.no - registrering tar et minutt
 👉 Jeg setter gjerne opp en 20-min onboarding for deg uten kostnad
 
-Hvis det ikke passer akkurat nå, ingen problem — bare ignorer denne. Hvis du har noen andre selvstendige som kunne hatt nytte av dette, tar jeg gjerne en intro.
+Hvis det ikke passer akkurat nå, ingen problem - bare ignorer denne. Hvis du har noen andre selvstendige som kunne hatt nytte av dette, tar jeg gjerne en intro.
 
 Hilsen,
 Helene Åsheim Grønberg
@@ -68,18 +68,18 @@ https://helene.cloud
 
 ## 🇬🇧 English version
 
-**Subject:** Building a workspace for solo freelancers — would you test it?
+**Subject:** Building a workspace for solo freelancers - would you test it?
 
 Hi [NAME],
 
-I'm building **Sakspilot** — a workspace for solo freelancers and consultants who juggle clients, time tracking, and invoicing across 5 different tools.
+I'm building **Sakspilot** - a workspace for solo freelancers and consultants who juggle clients, time tracking, and invoicing across 5 different tools.
 
 What it does:
 - 📋 Kanban-style CRM for cases/projects (think Monday for clients)
 - ⏱ Passive time tracking via a small desktop app (knows what you're working on)
 - 🤖 Automations: "When case becomes Done, remind me to invoice"
 - ✨ AI assistant (Claude): summarize cases, draft client emails
-- 🔗 Public client portal — share status without giving login access
+- 🔗 Public client portal - share status without giving login access
 - 📤 CSV export to Tripletex/Fiken
 
 I'm looking for 5-10 pilot users to test for ~6 months. Free during pilot.
@@ -100,10 +100,10 @@ Det er en arbeidsbenk for selvstendig næringsdrivende som er lei av å hoppe me
 ✅ Automatisk tidsregistrering via desktop-agent
 ✅ Agenter som automatiserer faktura-påminnelser, frister osv.
 ✅ AI-assistent som skriver klient-eposter
-✅ Klient-portal — del status med kunden uten innlogging
+✅ Klient-portal - del status med kunden uten innlogging
 ✅ CSV til Tripletex/Fiken
 
-Pilot er gratis. Søker noen som vil teste og gi feedback — advokater, arkitekter, regnskapsførere, designere, konsulenter.
+Pilot er gratis. Søker noen som vil teste og gi feedback - advokater, arkitekter, regnskapsførere, designere, konsulenter.
 
 Interessert? Kommenter eller meld deg på sakspilot.no 👇
 
@@ -112,7 +112,7 @@ Interessert? Kommenter eller meld deg på sakspilot.no 👇
 ## 📝 Tips for pilot-rekruttering
 
 - Send personlige meldinger, ikke bulk-mail
-- Hvis du sender til 10 — regn med 1-2 svar
+- Hvis du sender til 10 - regn med 1-2 svar
 - Bygg en venteliste i Notion/Airtable for de som ikke har tid nå
 - Bestill 15-min Calendly-slots for onboarding så du ikke jager dem rundt
 - Etter pilot: be om en case-study/testimonial (større verdi enn pengene de hadde betalt)
@@ -121,5 +121,5 @@ Interessert? Kommenter eller meld deg på sakspilot.no 👇
 
 - 5 aktive brukere etter 2 uker
 - 3 av dem bruker det daglig etter 4 uker
-- 1 betalende kunde etter 8 uker (selv om pilotperioden er gratis — noen vil betale frivillig)
+- 1 betalende kunde etter 8 uker (selv om pilotperioden er gratis - noen vil betale frivillig)
 - 10 dokumenterte feedback-punkter fra hver

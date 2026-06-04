@@ -22,7 +22,7 @@ import React from 'react';
 interface NavBadgeProps {
   /** Antall nye/uleste siden lastVisited */
   count: number;
-  /** Legacy — ignoreres etter "grå-badge"-fjerningen. Beholdes for compat. */
+  /** Legacy - ignoreres etter "grå-badge"-fjerningen. Beholdes for compat. */
   total?: number;
   /** Aktiv-modus: nav-itemet har mørk bakgrunn, badge må være lysere */
   activeMode?: boolean;

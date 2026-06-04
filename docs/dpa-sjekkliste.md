@@ -8,7 +8,7 @@ Oppdater når nye tjenester legges til.
 ```
 Bruker (selvstendig næringsdrivende)
    │
-   ├─→ Sakspilot.exe (lokalt, Windows) — vindustittel-logging
+   ├─→ Sakspilot.exe (lokalt, Windows) - vindustittel-logging
    │       │
    │       └─→ POST /agent/sync ─→ Sakspilot API (Render, Frankfurt)
    │                                    │
@@ -39,7 +39,7 @@ Bruker (selvstendig næringsdrivende)
 
 ## ⚠️ Aksjonsliste FØR første betalende kunde
 
-### Anthropic — viktigst
+### Anthropic - viktigst
 - [ ] **Aktiver Zero Data Retention** i Anthropic Console → Settings → Privacy
   - Uten dette beholder Anthropic prompts i opptil 30 dager for moderering
   - Med ZDR: prompts slettes etter respons er generert
@@ -49,7 +49,7 @@ Bruker (selvstendig næringsdrivende)
 
 ### Microsoft Graph
 - [ ] **Brukeren samtykker** ved OAuth-godkjenning (innebygd)
-- [ ] **Sjekk om enterprise-tenant** — hvis EU 365-konto er data EU-only
+- [ ] **Sjekk om enterprise-tenant** - hvis EU 365-konto er data EU-only
 - [ ] **Dokumenter retention** for cached e-posttema i Sakspilot (slett etter 90 dager?)
 
 ### Neon Postgres
@@ -65,7 +65,7 @@ Bruker (selvstendig næringsdrivende)
 
 ### Render
 - [x] EU-region ✅
-- [x] Logs ikke inneholder PII (vi logger e-postadresser i auth — bør anonymiseres)
+- [x] Logs ikke inneholder PII (vi logger e-postadresser i auth - bør anonymiseres)
 - [ ] **TODO:** Mask e-post i `[Auth] Innlogget: helene721@gmail.com` → `helene721@***`
 
 ### Vercel
@@ -86,7 +86,7 @@ Må publiseres på sakspilot.no/personvern før første betalende kunde:
 ## Databehandleravtale med kundeorganisasjonen
 
 For bedriftskunder (ikke privatpersoner):
-- [ ] **Tilby DPA-mal** ved registrering — egen sjekkboks "Vi er databehandler for klientdata"
+- [ ] **Tilby DPA-mal** ved registrering - egen sjekkboks "Vi er databehandler for klientdata"
 - [ ] **Sub-prosessor-liste** lenkes fra avtalen
 - [ ] **30-dagers varsel** ved endring av sub-prosessorer
 
@@ -108,6 +108,6 @@ Templat: https://datatilsynet.no/personvern-pa-arbeidsplassen/dpia/
 ## Mailprosessor
 
 Vi sender e-poster fra sakspilot (registrering, glemt passord, fakturapåminnelser):
-- **TODO:** Velg leverandør (Brevo / Postmark / Resend) — alle har EU-region
+- **TODO:** Velg leverandør (Brevo / Postmark / Resend) - alle har EU-region
 - **TODO:** DPA med valgt leverandør
 - **TODO:** SPF + DKIM på `sakspilot.no`

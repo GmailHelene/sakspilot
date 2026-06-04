@@ -142,7 +142,7 @@ router.post("/sak/:sakId", async (req: Request, res: Response) => {
   const dueAt = new Date(issuedAt.getTime() + DUE_DAYS * 24 * 60 * 60 * 1000);
 
   const org = sak.organization;
-  const orgAddrLine1 = org.address || "(adresse ikke satt — fyll ut i innstillinger)";
+  const orgAddrLine1 = org.address || "(adresse ikke satt - fyll ut i innstillinger)";
   const orgAddrLine2 =
     org.postalCode || org.city
       ? `${org.postalCode ?? ""} ${org.city ?? ""}`.trim()
@@ -229,7 +229,7 @@ router.post("/sak/:sakId", async (req: Request, res: Response) => {
     }
   } else {
     doc.fontSize(10).fillColor("#5E6C84");
-    doc.text("(Intern sak — ingen klient knyttet)", leftX, cursorY);
+    doc.text("(Intern sak - ingen klient knyttet)", leftX, cursorY);
     cursorY = doc.y + 2;
   }
 
@@ -536,7 +536,7 @@ router.get("/invoice/:invoiceId", async (req: Request, res: Response) => {
     doc.fontSize(9).fillColor("#172B4D")
       .text(`Tjenester ${fmtDate(invoice.periodStart)} – ${fmtDate(invoice.periodEnd)}`, 50, y, { width: 300 })
       .text(String(invoice.totalHours), 360, y, { width: 50, align: "right" })
-      .text("—", 415, y, { width: 60, align: "right" })
+      .text("-", 415, y, { width: 60, align: "right" })
       .text(fmtKr(subtotal), 480, y, { width: 65, align: "right" });
     y = doc.y + 6;
   }

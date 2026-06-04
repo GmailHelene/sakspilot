@@ -25,11 +25,11 @@
  */
 
 export interface ICalEvent {
-  /** Stabil unik ID — typisk "{milestoneId}@sakspilot.no" eller "{sakId}-deadline@sakspilot.no". */
+  /** Stabil unik ID - typisk "{milestoneId}@sakspilot.no" eller "{sakId}-deadline@sakspilot.no". */
   uid: string;
   /** Hovedtekst som vises i kalender. */
   summary: string;
-  /** Lengre beskrivelse — newlines tillatt (escapes til \n i output). */
+  /** Lengre beskrivelse - newlines tillatt (escapes til \n i output). */
   description?: string;
   /**
    * Når hendelsen starter. Hvis allDay=true ignoreres klokkeslett og kun

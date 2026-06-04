@@ -69,7 +69,7 @@ export function BankCsvImport({ onClose, onImported }: { onClose: () => void; on
           dato: r.dato,
           beskrivelse: r.beskrivelse,
           belopInkMva: r.belopInkMva,
-          mvaSats: 25,                       // default 25 % — bruker kan endre i etterkant
+          mvaSats: 25,                       // default 25 % - bruker kan endre i etterkant
           kategori: r.kategori,
           externalId: r.externalId,
         }));
@@ -176,7 +176,7 @@ export function BankCsvImport({ onClose, onImported }: { onClose: () => void; on
                           onChange={(e) => setRows((rs) => rs!.map((rr, idx) => idx === i ? { ...rr, kategori: e.target.value || undefined } : rr))}
                           style={{ fontSize: 11, padding: '2px 6px', border: '1px solid #cbd5e1', borderRadius: 4 }}
                         >
-                          <option value="">— velg —</option>
+                          <option value="">- velg -</option>
                           {KATEGORIER.map((k) => <option key={k} value={k}>{k}</option>)}
                         </select>
                       </td>

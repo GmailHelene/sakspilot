@@ -59,7 +59,7 @@ async function buildSakerContext(organizationId: string) {
         take: 10,
       },
     },
-    take: 100, // praktisk grense — flere enn dette og prompten blir for stor
+    take: 100, // praktisk grense - flere enn dette og prompten blir for stor
   });
   return saker;
 }

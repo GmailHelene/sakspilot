@@ -27,7 +27,7 @@
  */
 const STORE_KEY = 'lastSeenNotifCounts';
 const BASE_POLL_INTERVAL_MS = 60_000;
-const MAX_POLL_INTERVAL_MS = 5 * 60_000;  // 5 min max — uansett hvor mange fail vi har
+const MAX_POLL_INTERVAL_MS = 5 * 60_000;  // 5 min max - uansett hvor mange fail vi har
 
 // Per-område: hvordan vi formaterer toast-tittel + body.
 // `silent: false` aktiverer Windows-standard-varsel-lyd; vi setter det
@@ -44,7 +44,7 @@ const AREA_CONFIG = {
     title: (n) => (n === 1 ? 'Forfalt sak' : `${n} saker har overskredet frist`),
     body:  'Sjekk hvilke saker som er forsinket',
     path:  '/saker',
-    silent: true,    // forfalte saker er allerede et problem — ikke spamme lyd
+    silent: true,    // forfalte saker er allerede et problem - ikke spamme lyd
   },
   fakturaer: {
     title: (n) => (n === 1 ? 'Forfalt faktura' : `${n} forfalte fakturaer`),
@@ -62,7 +62,7 @@ const AREA_CONFIG = {
     title: (n) => (n === 1 ? 'Påminnelse' : `${n} påminnelser`),
     body:  'Klistrelapp har gått forbi remind-tid',
     path:  '/klistrelapper',
-    silent: false,   // påminnelser er bevisst valgt av brukeren — lyd matcher intensjon
+    silent: false,   // påminnelser er bevisst valgt av brukeren - lyd matcher intensjon
   },
   team: {
     title: (n) => (n === 1 ? 'Team-invitasjon' : `${n} team-invitasjoner venter`),
@@ -134,7 +134,7 @@ class NotifPoller {
       // Etterfølgende ticks varsler normalt om endringer fra denne baseline.
       if (this.skipNextNotify) {
         this.skipNextNotify = false;
-        console.log('[NotifPoller] første tick etter reset — bare kalibrerer snapshot');
+        console.log('[NotifPoller] første tick etter reset - bare kalibrerer snapshot');
       } else {
         this.compareAndNotify(counts);
       }
@@ -147,7 +147,7 @@ class NotifPoller {
       this.store.set(STORE_KEY, snapshot);
       // Vellykket tick — nullstill backoff
       if (this.consecutiveErrors > 0) {
-        console.log(`[NotifPoller] kontakt gjenopprettet etter ${this.consecutiveErrors} feil — backoff reset`);
+        console.log(`[NotifPoller] kontakt gjenopprettet etter ${this.consecutiveErrors} feil - backoff reset`);
         this.consecutiveErrors = 0;
         this.currentIntervalMs = BASE_POLL_INTERVAL_MS;
       }

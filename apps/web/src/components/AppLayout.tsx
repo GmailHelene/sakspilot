@@ -85,7 +85,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <ConfirmProvider>
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Global påminnelse-poller — sjekker klistrelapp-påminnelser hvert
+      {/* Global påminnelse-poller - sjekker klistrelapp-påminnelser hvert
           60. sek og viser fixed toast øverst når noe forfaller. */}
       <ReminderPoller />
       {/* Synker varselstall til nettleser-fanen (title + favicon-badge) */}
@@ -94,7 +94,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <KeyboardShortcuts />
       <Header />
       <div style={{ flex: 1, display: 'flex', minHeight: 0, position: 'relative' }}>
-        {/* Mobil-hamburger — floating top-left, men under main-content
+        {/* Mobil-hamburger - floating top-left, men under main-content
             (innhold dyttes ned via paddingTop:60 så de ikke overlapper) */}
         {isMobile && (
           <button
@@ -122,7 +122,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </button>
         )}
 
-        {/* Launcher (eksterne apper) — kun desktop */}
+        {/* Launcher (eksterne apper) - kun desktop */}
         {!isMobile && <Launcher />}
 
         {/* Sidebar */}

@@ -64,7 +64,7 @@ router.get("/", async (req: Request, res: Response) => {
     prisma.invoice.findMany({
       where: {
         organizationId,
-        status: { in: ["exported", "draft"] },  // inkludér drafts også — frilanseren ser dem og kan velge
+        status: { in: ["exported", "draft"] },  // inkludér drafts også - frilanseren ser dem og kan velge
         periodEnd: { gte: start, lt: end },
       },
       select: {
@@ -98,7 +98,7 @@ router.get("/", async (req: Request, res: Response) => {
     addToBucket(utgaaende, sats, netto, mva);
   }
   if (invoicesMissingMva > 0) {
-    warnings.push(`${invoicesMissingMva} faktura(er) mangler eksplisitt MVA-sats — antar 25 %.`);
+    warnings.push(`${invoicesMissingMva} faktura(er) mangler eksplisitt MVA-sats - antar 25 %.`);
   }
 
   // Bygg inngående MVA (utgifter)
@@ -117,7 +117,7 @@ router.get("/", async (req: Request, res: Response) => {
     addToBucket(inngaaende, u.mvaSats, netto, mva);
   }
   if (utgifterMissingMva > 0) {
-    warnings.push(`${utgifterMissingMva} utgift(er) mangler MVA-sats — får ikke fradrag.`);
+    warnings.push(`${utgifterMissingMva} utgift(er) mangler MVA-sats - får ikke fradrag.`);
   }
 
   // Netto: utgående MINUS inngående. Positiv = du skylder, negativ = du får tilbake
@@ -126,7 +126,7 @@ router.get("/", async (req: Request, res: Response) => {
   // Hvis status=draft inkludert: marker det i warnings
   const draftInvoices = invoices.filter((i) => i.status === "draft").length;
   if (draftInvoices > 0) {
-    warnings.push(`${draftInvoices} faktura(er) er fortsatt utkast — inkludert i beregning men ikke endelig.`);
+    warnings.push(`${draftInvoices} faktura(er) er fortsatt utkast - inkludert i beregning men ikke endelig.`);
   }
 
   return res.json({

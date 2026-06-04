@@ -210,25 +210,25 @@ export default function RapportPage() {
           <KpiCard
             Icon={Clock}
             label="Totaltimer"
-            value={data ? `${data.totalHours.toFixed(1)} t` : '—'}
+            value={data ? `${data.totalHours.toFixed(1)} t` : '-'}
             color={tokens.color.navy}
           />
           <KpiCard
             Icon={TrendingUp}
             label="Fakturerbare timer"
-            value={data ? `${data.billableHours.toFixed(1)} t` : '—'}
+            value={data ? `${data.billableHours.toFixed(1)} t` : '-'}
             color="#10B981"
           />
           <KpiCard
             Icon={Coins}
             label="Estimert beløp"
-            value={data ? `${data.totalAmount.toLocaleString('nb-NO')} kr` : '—'}
+            value={data ? `${data.totalAmount.toLocaleString('nb-NO')} kr` : '-'}
             color={tokens.color.gold}
           />
           <KpiCard
             Icon={BarChart3}
             label="Antall entries"
-            value={data ? String(data.entryCount) : '—'}
+            value={data ? String(data.entryCount) : '-'}
             color={tokens.color.textMuted}
           />
         </div>
@@ -295,7 +295,7 @@ export default function RapportPage() {
               marginBottom: 16,
             }}
           >
-            CSV med en linje per tidsregistrering — UTF-8 + Excel-vennlig BOM, importerbar i Tripletex, Fiken, Excel og Numbers.
+            CSV med en linje per tidsregistrering - UTF-8 + Excel-vennlig BOM, importerbar i Tripletex, Fiken, Excel og Numbers.
             PDF gir et pent oppsummert dokument (per prosjekt, per dag og per app) som kan sendes til klient eller arkiveres.
           </p>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, flexWrap: 'wrap' }}>
@@ -335,7 +335,7 @@ export default function RapportPage() {
               onClick={downloadMonthPdf}
               disabled={downloadingPdf}
               style={downloadBtnStyle}
-              title="Pen PDF til klient eller arkiv — per prosjekt, per dag og per app"
+              title="Pen PDF til klient eller arkiv - per prosjekt, per dag og per app"
             >
               <FileDown size={16} strokeWidth={2.5} style={{ marginRight: 6, verticalAlign: 'middle' }} />
               {downloadingPdf ? 'Genererer…' : 'Eksporter PDF'}

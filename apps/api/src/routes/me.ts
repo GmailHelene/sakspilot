@@ -96,7 +96,7 @@ router.get("/export", async (req: Request, res: Response) => {
     prisma.timeEntry.findMany({
       where: { userId },
       orderBy: { startedAt: "desc" },
-      take: 5000, // grense — eksporter siste 5000 entries
+      take: 5000, // grense - eksporter siste 5000 entries
     }),
     prisma.stickyNote.findMany({ where: { organizationId } }),
     prisma.agentSession.findMany({ where: { userId } }),
@@ -109,7 +109,7 @@ router.get("/export", async (req: Request, res: Response) => {
     prisma.foresporsel.findMany({ where: { organizationId } }),
     prisma.invoice.findMany({
       where: { organizationId },
-      include: { timeEntries: { select: { id: true } } },  // bare ID-er — full timeEntry-data er allerede i seksjonen over
+      include: { timeEntries: { select: { id: true } } },  // bare ID-er - full timeEntry-data er allerede i seksjonen over
     }),
     prisma.utgift.findMany({ where: { organizationId } }),
   ]);
@@ -207,7 +207,7 @@ router.post("/delete", async (req: Request, res: Response) => {
   // Logg det IKKE (brukeren er borte). Bare svar.
   return res.json({
     ok: true,
-    message: "Konto og all tilknyttet data er slettet. Vi takker for tiden — du er velkommen tilbake senere.",
+    message: "Konto og all tilknyttet data er slettet. Vi takker for tiden - du er velkommen tilbake senere.",
     organizationDeleted: orgUsers === 1,
   });
 });

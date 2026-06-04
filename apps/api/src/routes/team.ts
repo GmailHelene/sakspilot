@@ -242,7 +242,7 @@ router.post(
     emailSent = sendResult.ok;
     if (!sendResult.ok) {
       console.log(
-        `[team invite] SMTP fallback — invite-lenke for ${emailNorm}: ${acceptUrl}`
+        `[team invite] SMTP fallback - invite-lenke for ${emailNorm}: ${acceptUrl}`
       );
     }
 
@@ -472,7 +472,7 @@ acceptInviteRouter.post(
     if (!parsed.success) {
       await constantTimeDelay();
       return res.status(400).json({
-        error: "Ugyldig input — passordet må være minst 12 tegn",
+        error: "Ugyldig input - passordet må være minst 12 tegn",
         details: parsed.error.flatten().fieldErrors,
       });
     }

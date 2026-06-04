@@ -70,7 +70,7 @@ async function main(): Promise<void> {
 
   const elapsedMs = Date.now() - startedAt;
   console.log(
-    `[daily-automation-trigger] ferdig på ${elapsedMs}ms — ok: ${okCount}, feilet: ${failCount}`
+    `[daily-automation-trigger] ferdig på ${elapsedMs}ms - ok: ${okCount}, feilet: ${failCount}`
   );
 
   // Lukk Prisma rent slik at Node-prosessen kan avslutte uten å henge.
@@ -83,7 +83,7 @@ async function main(): Promise<void> {
 }
 
 main().catch(async (err) => {
-  console.error("[daily-automation-trigger] FATAL — jobben kunne ikke kjøre:", err);
+  console.error("[daily-automation-trigger] FATAL - jobben kunne ikke kjøre:", err);
   try {
     await prisma.$disconnect();
   } catch {

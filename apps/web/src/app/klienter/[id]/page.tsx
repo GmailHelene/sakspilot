@@ -121,7 +121,7 @@ export default function KlientDetailPage() {
     const activeSaker = client?.saker?.filter((s) => !s.archived) || [];
     let warn = `Slette «${client?.name}»?`;
     if (activeSaker.length > 0) {
-      warn += `\n\nKlienten har ${activeSaker.length} aktive prosjekter — disse blir frikoblet (klient-felt blir tomt), men selve prosjektdata beholdes.`;
+      warn += `\n\nKlienten har ${activeSaker.length} aktive prosjekter - disse blir frikoblet (klient-felt blir tomt), men selve prosjektdata beholdes.`;
     }
     warn += '\n\nDenne handlingen kan ikke angres.';
     if (!confirm(warn)) return;

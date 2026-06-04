@@ -105,7 +105,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               overflow: 'hidden',
             }}
           >
-            {/* Farget topp-stripe — rød for destruktiv, navy ellers */}
+            {/* Farget topp-stripe - rød for destruktiv, navy ellers */}
             <div style={{
               height: 4,
               background: active.danger ? '#dc2626' : tokens.color.navy,

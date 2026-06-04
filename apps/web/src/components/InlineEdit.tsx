@@ -23,7 +23,7 @@ import { useEffect, useRef, useState } from 'react';
 interface InlineEditProps {
   value: string;
   onSave: (next: string) => Promise<void>;
-  /** Min lengde — default 1. Tom verdi rulles tilbake. */
+  /** Min lengde - default 1. Tom verdi rulles tilbake. */
   minLength?: number;
   /** Max-lengde for input. Default 200. */
   maxLength?: number;

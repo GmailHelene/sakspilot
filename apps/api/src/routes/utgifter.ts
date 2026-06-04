@@ -29,7 +29,7 @@ const CreateUtgiftSchema = z.object({
   // Vi lar Postgres TEXT-feltet håndtere det. Max 8 MB string-lengde (≈ 6 MB binær)
   // for å hindre at noen poster en 100MB-fil.
   kvitteringUrl: z.string()
-    .max(8_000_000, "Kvittering for stor — max ~6 MB")
+    .max(8_000_000, "Kvittering for stor - max ~6 MB")
     .refine(
       (s) => /^(https?:\/\/|data:(image|application)\/)/i.test(s),
       "Må være http(s)://-URL eller data:image/...|data:application/pdf",
@@ -204,7 +204,7 @@ const BulkUtgiftSchema = z.array(
     mvaSats: z.number().int().min(0).max(100).nullable().optional(),
     kategori: z.string().max(100).optional(),
     leverandor: z.string().max(200).optional(),
-    /** Bank-referanse / arkiv-id — brukes til idempotens */
+    /** Bank-referanse / arkiv-id - brukes til idempotens */
     externalId: z.string().max(200).optional(),
   })
 ).min(1).max(1000);

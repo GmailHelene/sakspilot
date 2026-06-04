@@ -101,7 +101,7 @@ const CLIENTS = [
     notes: "Samvirkeforetak. Arbeidsrett + styreansvar.",
   },
   {
-    name: "Tørrgress AS — Konkursbo",
+    name: "Tørrgress AS - Konkursbo",
     orgNumber: "918 999 001",
     contactEmail: "bo@torrgress.no",
     contactPhone: "+47 988 22 100",
@@ -177,7 +177,7 @@ const SAKER = [
     color: "#A358DF",
   },
   {
-    title: "Tvist Nordbygg vs Aas Bygg AS — mangelskrav",
+    title: "Tvist Nordbygg vs Aas Bygg AS - mangelskrav",
     saksnummer: "2026-NB-014",
     description:
       "Kontraktsbrudd ved bygging av kontorbygg på Heimdal. Mangelvurdering, voldgift, ev. søksmål.",
@@ -189,7 +189,7 @@ const SAKER = [
     color: "#E2445C",
   },
   {
-    title: "Leiekontrakt Mølla — heving",
+    title: "Leiekontrakt Mølla - heving",
     saksnummer: "2026-M-007",
     description:
       "Klient ønsker å heve leiekontrakt grunnet vesentlig mislighold fra utleier (manglende vedlikehold, vanninntrenging).",
@@ -224,7 +224,7 @@ const SAKER = [
     color: "#A358DF",
   },
   {
-    title: "Oppsigelsessak Lille Lykke — vurdering saklig grunn",
+    title: "Oppsigelsessak Lille Lykke - vurdering saklig grunn",
     saksnummer: "2026-LL-003",
     description:
       "Oppsigelse av pedagogisk leder etter konflikter med foreldre. Vurdering av saklig grunn + forhandlinger.",
@@ -259,7 +259,7 @@ const SAKER = [
     color: "#A358DF",
   },
   {
-    title: "Trafikkulykke Strand — erstatningskrav forsikring",
+    title: "Trafikkulykke Strand - erstatningskrav forsikring",
     saksnummer: "2026-S-005",
     description:
       "Personskade ved påkjørsel bakfra Drammensveien 12.3.2026. Krav om menerstatning + tap i fremtidig erverv.",
@@ -374,7 +374,7 @@ const MILESTONES: MilestoneTemplate[] = [
 
 const STICKIES = [
   {
-    content: "📞 Ring Knut H. fredag — utvidet samvær sommerferien",
+    content: "📞 Ring Knut H. fredag - utvidet samvær sommerferien",
     color: "yellow",
     sakIdx: 8,
   },
@@ -384,12 +384,12 @@ const STICKIES = [
     sakIdx: 2,
   },
   {
-    content: "💰 Faktura Tindra Media Q1 forfaller 3. juni — ettersjekk EHF",
+    content: "💰 Faktura Tindra Media Q1 forfaller 3. juni - ettersjekk EHF",
     color: "pink",
     sakIdx: null,
   },
   {
-    content: "🗓️ Frist tilsvar Strand-saken: 12. juni — fra forsikring",
+    content: "🗓️ Frist tilsvar Strand-saken: 12. juni - fra forsikring",
     color: "orange",
     sakIdx: 9,
   },
@@ -416,126 +416,126 @@ interface EntryTemplate {
 // Realistic mix av Word/Outlook/Lovdata/Teams osv. for advokat-arbeid
 const ENTRIES: EntryTemplate[] = [
   // Tindra Aksjekjøp — siste 18 dager, ~25 timer
-  { sakIdx: 0, hoursAgo: 432, durationMin: 95, windowTitle: "Microsoft Word — Aksjekjøpsavtale Tindra v1.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 0, hoursAgo: 408, durationMin: 60, windowTitle: "Lovdata Pro — Aksjeloven § 4-25", appName: "chrome.exe" },
-  { sakIdx: 0, hoursAgo: 384, durationMin: 75, windowTitle: "Microsoft Word — Aksjekjøpsavtale Tindra v2.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 0, hoursAgo: 336, durationMin: 45, windowTitle: "Microsoft Outlook — RE: Aksjekjøp Tindra — Eirik Tønnessen", appName: "OUTLOOK.EXE" },
-  { sakIdx: 0, hoursAgo: 312, durationMin: 120, windowTitle: "Microsoft Teams — Møte Tindra DD-gjennomgang", appName: "Teams.exe" },
-  { sakIdx: 0, hoursAgo: 264, durationMin: 90, windowTitle: "Microsoft Word — Aksjekjøpsavtale Tindra v3.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 0, hoursAgo: 216, durationMin: 30, windowTitle: "Microsoft Outlook — Aksjekjøp Tindra — interne kommentarer", appName: "OUTLOOK.EXE" },
-  { sakIdx: 0, hoursAgo: 192, durationMin: 60, windowTitle: "Microsoft Word — Aksjekjøpsavtale Tindra v4.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 0, hoursAgo: 144, durationMin: 45, windowTitle: "Adobe Acrobat — Tindra DD-rapport.pdf", appName: "Acrobat.exe" },
-  { sakIdx: 0, hoursAgo: 120, durationMin: 75, windowTitle: "Microsoft Word — Aksjekjøpsavtale Tindra v5.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 0, hoursAgo: 96, durationMin: 30, windowTitle: "Microsoft Outlook — Signeringsplan Tindra", appName: "OUTLOOK.EXE" },
-  { sakIdx: 0, hoursAgo: 72, durationMin: 60, windowTitle: "Microsoft Word — Aksjekjøpsavtale Tindra v6 FINAL.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 0, hoursAgo: 48, durationMin: 45, windowTitle: "Lovdata Pro — Skatteloven § 9-3 (aksjeoverdragelse)", appName: "chrome.exe" },
-  { sakIdx: 0, hoursAgo: 24, durationMin: 50, windowTitle: "Microsoft Word — Aksjekjøpsavtale Tindra v7 FINAL2.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 0, hoursAgo: 4, durationMin: 30, windowTitle: "Microsoft Outlook — Bekreftelse signeringstidspunkt — Notarius", appName: "OUTLOOK.EXE" },
+  { sakIdx: 0, hoursAgo: 432, durationMin: 95, windowTitle: "Microsoft Word - Aksjekjøpsavtale Tindra v1.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 0, hoursAgo: 408, durationMin: 60, windowTitle: "Lovdata Pro - Aksjeloven § 4-25", appName: "chrome.exe" },
+  { sakIdx: 0, hoursAgo: 384, durationMin: 75, windowTitle: "Microsoft Word - Aksjekjøpsavtale Tindra v2.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 0, hoursAgo: 336, durationMin: 45, windowTitle: "Microsoft Outlook - RE: Aksjekjøp Tindra - Eirik Tønnessen", appName: "OUTLOOK.EXE" },
+  { sakIdx: 0, hoursAgo: 312, durationMin: 120, windowTitle: "Microsoft Teams - Møte Tindra DD-gjennomgang", appName: "Teams.exe" },
+  { sakIdx: 0, hoursAgo: 264, durationMin: 90, windowTitle: "Microsoft Word - Aksjekjøpsavtale Tindra v3.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 0, hoursAgo: 216, durationMin: 30, windowTitle: "Microsoft Outlook - Aksjekjøp Tindra - interne kommentarer", appName: "OUTLOOK.EXE" },
+  { sakIdx: 0, hoursAgo: 192, durationMin: 60, windowTitle: "Microsoft Word - Aksjekjøpsavtale Tindra v4.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 0, hoursAgo: 144, durationMin: 45, windowTitle: "Adobe Acrobat - Tindra DD-rapport.pdf", appName: "Acrobat.exe" },
+  { sakIdx: 0, hoursAgo: 120, durationMin: 75, windowTitle: "Microsoft Word - Aksjekjøpsavtale Tindra v5.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 0, hoursAgo: 96, durationMin: 30, windowTitle: "Microsoft Outlook - Signeringsplan Tindra", appName: "OUTLOOK.EXE" },
+  { sakIdx: 0, hoursAgo: 72, durationMin: 60, windowTitle: "Microsoft Word - Aksjekjøpsavtale Tindra v6 FINAL.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 0, hoursAgo: 48, durationMin: 45, windowTitle: "Lovdata Pro - Skatteloven § 9-3 (aksjeoverdragelse)", appName: "chrome.exe" },
+  { sakIdx: 0, hoursAgo: 24, durationMin: 50, windowTitle: "Microsoft Word - Aksjekjøpsavtale Tindra v7 FINAL2.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 0, hoursAgo: 4, durationMin: 30, windowTitle: "Microsoft Outlook - Bekreftelse signeringstidspunkt - Notarius", appName: "OUTLOOK.EXE" },
 
   // Retainer Tindra Q2 — løpende, ~8 timer
-  { sakIdx: 1, hoursAgo: 312, durationMin: 60, windowTitle: "Microsoft Teams — Tindra ledermøte mai", appName: "Teams.exe" },
-  { sakIdx: 1, hoursAgo: 240, durationMin: 30, windowTitle: "Microsoft Outlook — Tindra Q2 — løpende spørsmål", appName: "OUTLOOK.EXE" },
-  { sakIdx: 1, hoursAgo: 168, durationMin: 75, windowTitle: "Microsoft Word — Tindra notat ansattopsjoner.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 1, hoursAgo: 96, durationMin: 45, windowTitle: "Microsoft Outlook — Tindra — kommentarer styremøte", appName: "OUTLOOK.EXE" },
-  { sakIdx: 1, hoursAgo: 24, durationMin: 35, windowTitle: "Microsoft Teams — Tindra CEO statusmøte", appName: "Teams.exe" },
+  { sakIdx: 1, hoursAgo: 312, durationMin: 60, windowTitle: "Microsoft Teams - Tindra ledermøte mai", appName: "Teams.exe" },
+  { sakIdx: 1, hoursAgo: 240, durationMin: 30, windowTitle: "Microsoft Outlook - Tindra Q2 - løpende spørsmål", appName: "OUTLOOK.EXE" },
+  { sakIdx: 1, hoursAgo: 168, durationMin: 75, windowTitle: "Microsoft Word - Tindra notat ansattopsjoner.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 1, hoursAgo: 96, durationMin: 45, windowTitle: "Microsoft Outlook - Tindra - kommentarer styremøte", appName: "OUTLOOK.EXE" },
+  { sakIdx: 1, hoursAgo: 24, durationMin: 35, windowTitle: "Microsoft Teams - Tindra CEO statusmøte", appName: "Teams.exe" },
 
   // Nordbygg vs Aas Bygg — ~40 timer (stor tvist)
-  { sakIdx: 2, hoursAgo: 720, durationMin: 120, windowTitle: "Microsoft Word — Reklamasjonsnotat Nordbygg.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 2, hoursAgo: 696, durationMin: 90, windowTitle: "Adobe Acrobat — Befaringsrapport Heimdal.pdf", appName: "Acrobat.exe" },
-  { sakIdx: 2, hoursAgo: 672, durationMin: 60, windowTitle: "Lovdata Pro — Bustadoppføringslova § 25", appName: "chrome.exe" },
-  { sakIdx: 2, hoursAgo: 648, durationMin: 180, windowTitle: "Microsoft Teams — Møte teknisk sakkyndig Heimdal-saken", appName: "Teams.exe" },
-  { sakIdx: 2, hoursAgo: 600, durationMin: 90, windowTitle: "Microsoft Excel — Mangler-oppstilling Nordbygg.xlsx", appName: "EXCEL.EXE" },
-  { sakIdx: 2, hoursAgo: 576, durationMin: 75, windowTitle: "Microsoft Word — Mangelvurdering Nordbygg v1.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 2, hoursAgo: 528, durationMin: 120, windowTitle: "Microsoft Word — Voldgiftsklage Nordbygg utkast.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 2, hoursAgo: 480, durationMin: 60, windowTitle: "Lovdata Pro — Voldgiftsloven § 19", appName: "chrome.exe" },
-  { sakIdx: 2, hoursAgo: 432, durationMin: 90, windowTitle: "Microsoft Word — Voldgiftsklage Nordbygg v2.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 2, hoursAgo: 360, durationMin: 75, windowTitle: "Microsoft Outlook — Klient-koordinering Nordbygg", appName: "OUTLOOK.EXE" },
-  { sakIdx: 2, hoursAgo: 312, durationMin: 60, windowTitle: "Microsoft Word — Voldgiftsklage Nordbygg v3 FINAL.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 2, hoursAgo: 240, durationMin: 45, windowTitle: "Microsoft Excel — Kostnadsoverslag krav Nordbygg.xlsx", appName: "EXCEL.EXE" },
-  { sakIdx: 2, hoursAgo: 168, durationMin: 90, windowTitle: "Microsoft Word — Bevisliste Nordbygg-saken.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 2, hoursAgo: 96, durationMin: 60, windowTitle: "Microsoft Outlook — Voldgiftsadministrasjon Trondheim", appName: "OUTLOOK.EXE" },
-  { sakIdx: 2, hoursAgo: 48, durationMin: 45, windowTitle: "Lovdata Pro — HR-2024-451 (entreprise-mangler)", appName: "chrome.exe" },
+  { sakIdx: 2, hoursAgo: 720, durationMin: 120, windowTitle: "Microsoft Word - Reklamasjonsnotat Nordbygg.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 2, hoursAgo: 696, durationMin: 90, windowTitle: "Adobe Acrobat - Befaringsrapport Heimdal.pdf", appName: "Acrobat.exe" },
+  { sakIdx: 2, hoursAgo: 672, durationMin: 60, windowTitle: "Lovdata Pro - Bustadoppføringslova § 25", appName: "chrome.exe" },
+  { sakIdx: 2, hoursAgo: 648, durationMin: 180, windowTitle: "Microsoft Teams - Møte teknisk sakkyndig Heimdal-saken", appName: "Teams.exe" },
+  { sakIdx: 2, hoursAgo: 600, durationMin: 90, windowTitle: "Microsoft Excel - Mangler-oppstilling Nordbygg.xlsx", appName: "EXCEL.EXE" },
+  { sakIdx: 2, hoursAgo: 576, durationMin: 75, windowTitle: "Microsoft Word - Mangelvurdering Nordbygg v1.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 2, hoursAgo: 528, durationMin: 120, windowTitle: "Microsoft Word - Voldgiftsklage Nordbygg utkast.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 2, hoursAgo: 480, durationMin: 60, windowTitle: "Lovdata Pro - Voldgiftsloven § 19", appName: "chrome.exe" },
+  { sakIdx: 2, hoursAgo: 432, durationMin: 90, windowTitle: "Microsoft Word - Voldgiftsklage Nordbygg v2.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 2, hoursAgo: 360, durationMin: 75, windowTitle: "Microsoft Outlook - Klient-koordinering Nordbygg", appName: "OUTLOOK.EXE" },
+  { sakIdx: 2, hoursAgo: 312, durationMin: 60, windowTitle: "Microsoft Word - Voldgiftsklage Nordbygg v3 FINAL.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 2, hoursAgo: 240, durationMin: 45, windowTitle: "Microsoft Excel - Kostnadsoverslag krav Nordbygg.xlsx", appName: "EXCEL.EXE" },
+  { sakIdx: 2, hoursAgo: 168, durationMin: 90, windowTitle: "Microsoft Word - Bevisliste Nordbygg-saken.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 2, hoursAgo: 96, durationMin: 60, windowTitle: "Microsoft Outlook - Voldgiftsadministrasjon Trondheim", appName: "OUTLOOK.EXE" },
+  { sakIdx: 2, hoursAgo: 48, durationMin: 45, windowTitle: "Lovdata Pro - HR-2024-451 (entreprise-mangler)", appName: "chrome.exe" },
 
   // Mølla heving — ~12 timer
-  { sakIdx: 3, hoursAgo: 504, durationMin: 60, windowTitle: "Microsoft Word — Reklamasjonsbrev Mølla utkast.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 3, hoursAgo: 432, durationMin: 90, windowTitle: "Lovdata Pro — Husleieloven § 5-7", appName: "chrome.exe" },
-  { sakIdx: 3, hoursAgo: 360, durationMin: 75, windowTitle: "Microsoft Word — Reklamasjonsbrev Mølla FINAL.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 3, hoursAgo: 288, durationMin: 45, windowTitle: "Microsoft Outlook — Mølla — koordinering klient", appName: "OUTLOOK.EXE" },
-  { sakIdx: 3, hoursAgo: 192, durationMin: 60, windowTitle: "Microsoft Teams — Mølla — befaring leielokal", appName: "Teams.exe" },
-  { sakIdx: 3, hoursAgo: 96, durationMin: 90, windowTitle: "Microsoft Word — Hevingserklæring Mølla utkast.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 3, hoursAgo: 24, durationMin: 45, windowTitle: "Adobe Acrobat — Befaringsbilder Møllergata 8.pdf", appName: "Acrobat.exe" },
+  { sakIdx: 3, hoursAgo: 504, durationMin: 60, windowTitle: "Microsoft Word - Reklamasjonsbrev Mølla utkast.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 3, hoursAgo: 432, durationMin: 90, windowTitle: "Lovdata Pro - Husleieloven § 5-7", appName: "chrome.exe" },
+  { sakIdx: 3, hoursAgo: 360, durationMin: 75, windowTitle: "Microsoft Word - Reklamasjonsbrev Mølla FINAL.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 3, hoursAgo: 288, durationMin: 45, windowTitle: "Microsoft Outlook - Mølla - koordinering klient", appName: "OUTLOOK.EXE" },
+  { sakIdx: 3, hoursAgo: 192, durationMin: 60, windowTitle: "Microsoft Teams - Mølla - befaring leielokal", appName: "Teams.exe" },
+  { sakIdx: 3, hoursAgo: 96, durationMin: 90, windowTitle: "Microsoft Word - Hevingserklæring Mølla utkast.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 3, hoursAgo: 24, durationMin: 45, windowTitle: "Adobe Acrobat - Befaringsbilder Møllergata 8.pdf", appName: "Acrobat.exe" },
 
   // GDPR Mølla — ferdig, ~5 timer
-  { sakIdx: 4, hoursAgo: 696, durationMin: 60, windowTitle: "Microsoft Word — GDPR-vurdering Mølla kundeklubb.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 4, hoursAgo: 600, durationMin: 90, windowTitle: "Lovdata Pro — Personopplysningsloven § 8", appName: "chrome.exe" },
-  { sakIdx: 4, hoursAgo: 480, durationMin: 60, windowTitle: "Microsoft Word — Anbefalingsnotat Mølla GDPR FINAL.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 4, hoursAgo: 312, durationMin: 45, windowTitle: "Microsoft Outlook — GDPR Mølla — levering", appName: "OUTLOOK.EXE" },
+  { sakIdx: 4, hoursAgo: 696, durationMin: 60, windowTitle: "Microsoft Word - GDPR-vurdering Mølla kundeklubb.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 4, hoursAgo: 600, durationMin: 90, windowTitle: "Lovdata Pro - Personopplysningsloven § 8", appName: "chrome.exe" },
+  { sakIdx: 4, hoursAgo: 480, durationMin: 60, windowTitle: "Microsoft Word - Anbefalingsnotat Mølla GDPR FINAL.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 4, hoursAgo: 312, durationMin: 45, windowTitle: "Microsoft Outlook - GDPR Mølla - levering", appName: "OUTLOOK.EXE" },
 
   // Tomtekjøp Birkeland — ~15 timer
-  { sakIdx: 5, hoursAgo: 552, durationMin: 90, windowTitle: "Statens Kartverk — Grunnbok 8/142 Birkeland", appName: "chrome.exe" },
-  { sakIdx: 5, hoursAgo: 504, durationMin: 60, windowTitle: "Microsoft Word — Heftelsesnotat Birkeland.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 5, hoursAgo: 432, durationMin: 90, windowTitle: "Microsoft Word — Utbyggingsavtale Birkeland v1.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 5, hoursAgo: 384, durationMin: 75, windowTitle: "Microsoft Teams — Møte Skien kommune — Birkeland", appName: "Teams.exe" },
-  { sakIdx: 5, hoursAgo: 312, durationMin: 60, windowTitle: "Microsoft Word — Utbyggingsavtale Birkeland v2.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 5, hoursAgo: 240, durationMin: 45, windowTitle: "Microsoft Excel — Tomtekjøp kalkulasjon Birkeland.xlsx", appName: "EXCEL.EXE" },
-  { sakIdx: 5, hoursAgo: 168, durationMin: 60, windowTitle: "Lovdata Pro — Plan- og bygningsloven § 18-1", appName: "chrome.exe" },
-  { sakIdx: 5, hoursAgo: 96, durationMin: 75, windowTitle: "Microsoft Word — Kjøpekontrakt Birkeland utkast.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 5, hoursAgo: 24, durationMin: 60, windowTitle: "Microsoft Outlook — Birkeland — koordinering eier", appName: "OUTLOOK.EXE" },
+  { sakIdx: 5, hoursAgo: 552, durationMin: 90, windowTitle: "Statens Kartverk - Grunnbok 8/142 Birkeland", appName: "chrome.exe" },
+  { sakIdx: 5, hoursAgo: 504, durationMin: 60, windowTitle: "Microsoft Word - Heftelsesnotat Birkeland.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 5, hoursAgo: 432, durationMin: 90, windowTitle: "Microsoft Word - Utbyggingsavtale Birkeland v1.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 5, hoursAgo: 384, durationMin: 75, windowTitle: "Microsoft Teams - Møte Skien kommune - Birkeland", appName: "Teams.exe" },
+  { sakIdx: 5, hoursAgo: 312, durationMin: 60, windowTitle: "Microsoft Word - Utbyggingsavtale Birkeland v2.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 5, hoursAgo: 240, durationMin: 45, windowTitle: "Microsoft Excel - Tomtekjøp kalkulasjon Birkeland.xlsx", appName: "EXCEL.EXE" },
+  { sakIdx: 5, hoursAgo: 168, durationMin: 60, windowTitle: "Lovdata Pro - Plan- og bygningsloven § 18-1", appName: "chrome.exe" },
+  { sakIdx: 5, hoursAgo: 96, durationMin: 75, windowTitle: "Microsoft Word - Kjøpekontrakt Birkeland utkast.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 5, hoursAgo: 24, durationMin: 60, windowTitle: "Microsoft Outlook - Birkeland - koordinering eier", appName: "OUTLOOK.EXE" },
 
   // Lille Lykke oppsigelse (ferdig) — ~10 timer
-  { sakIdx: 6, hoursAgo: 1440, durationMin: 90, windowTitle: "Microsoft Word — Vurdering saklig grunn oppsigelse.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 6, hoursAgo: 1392, durationMin: 75, windowTitle: "Lovdata Pro — Arbeidsmiljøloven § 15-7", appName: "chrome.exe" },
-  { sakIdx: 6, hoursAgo: 1248, durationMin: 120, windowTitle: "Microsoft Teams — Forhandlingsmøte Lille Lykke", appName: "Teams.exe" },
-  { sakIdx: 6, hoursAgo: 1080, durationMin: 90, windowTitle: "Microsoft Word — Sluttavtale Lille Lykke utkast.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 6, hoursAgo: 720, durationMin: 60, windowTitle: "Microsoft Word — Sluttavtale Lille Lykke FINAL.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 6, hoursAgo: 504, durationMin: 45, windowTitle: "Microsoft Outlook — Lille Lykke — signeringskoordinering", appName: "OUTLOOK.EXE" },
+  { sakIdx: 6, hoursAgo: 1440, durationMin: 90, windowTitle: "Microsoft Word - Vurdering saklig grunn oppsigelse.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 6, hoursAgo: 1392, durationMin: 75, windowTitle: "Lovdata Pro - Arbeidsmiljøloven § 15-7", appName: "chrome.exe" },
+  { sakIdx: 6, hoursAgo: 1248, durationMin: 120, windowTitle: "Microsoft Teams - Forhandlingsmøte Lille Lykke", appName: "Teams.exe" },
+  { sakIdx: 6, hoursAgo: 1080, durationMin: 90, windowTitle: "Microsoft Word - Sluttavtale Lille Lykke utkast.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 6, hoursAgo: 720, durationMin: 60, windowTitle: "Microsoft Word - Sluttavtale Lille Lykke FINAL.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 6, hoursAgo: 504, durationMin: 45, windowTitle: "Microsoft Outlook - Lille Lykke - signeringskoordinering", appName: "OUTLOOK.EXE" },
 
   // Bobehandling Tørrgress — ~20 timer (mye dokumentering)
-  { sakIdx: 7, hoursAgo: 576, durationMin: 120, windowTitle: "Microsoft Excel — Fordringsregister Tørrgress.xlsx", appName: "EXCEL.EXE" },
-  { sakIdx: 7, hoursAgo: 528, durationMin: 90, windowTitle: "Microsoft Word — Innkalling kreditormøte.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 7, hoursAgo: 456, durationMin: 75, windowTitle: "Brreg — Foretaksregisteret Tørrgress AS", appName: "chrome.exe" },
-  { sakIdx: 7, hoursAgo: 408, durationMin: 60, windowTitle: "Microsoft Outlook — Kreditor-kommunikasjon Tørrgress", appName: "OUTLOOK.EXE" },
-  { sakIdx: 7, hoursAgo: 336, durationMin: 180, windowTitle: "Microsoft Teams — Kreditormøte Tørrgress", appName: "Teams.exe" },
-  { sakIdx: 7, hoursAgo: 264, durationMin: 90, windowTitle: "Microsoft Word — Protokoll kreditormøte Tørrgress.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 7, hoursAgo: 192, durationMin: 75, windowTitle: "Microsoft Excel — Maskinpark verditakst.xlsx", appName: "EXCEL.EXE" },
-  { sakIdx: 7, hoursAgo: 120, durationMin: 60, windowTitle: "Lovdata Pro — Konkursloven § 117", appName: "chrome.exe" },
-  { sakIdx: 7, hoursAgo: 72, durationMin: 90, windowTitle: "Microsoft Word — Auksjonsutkast maskinpark.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 7, hoursAgo: 24, durationMin: 45, windowTitle: "Microsoft Outlook — Auksjonsfirma — koordinering", appName: "OUTLOOK.EXE" },
+  { sakIdx: 7, hoursAgo: 576, durationMin: 120, windowTitle: "Microsoft Excel - Fordringsregister Tørrgress.xlsx", appName: "EXCEL.EXE" },
+  { sakIdx: 7, hoursAgo: 528, durationMin: 90, windowTitle: "Microsoft Word - Innkalling kreditormøte.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 7, hoursAgo: 456, durationMin: 75, windowTitle: "Brreg - Foretaksregisteret Tørrgress AS", appName: "chrome.exe" },
+  { sakIdx: 7, hoursAgo: 408, durationMin: 60, windowTitle: "Microsoft Outlook - Kreditor-kommunikasjon Tørrgress", appName: "OUTLOOK.EXE" },
+  { sakIdx: 7, hoursAgo: 336, durationMin: 180, windowTitle: "Microsoft Teams - Kreditormøte Tørrgress", appName: "Teams.exe" },
+  { sakIdx: 7, hoursAgo: 264, durationMin: 90, windowTitle: "Microsoft Word - Protokoll kreditormøte Tørrgress.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 7, hoursAgo: 192, durationMin: 75, windowTitle: "Microsoft Excel - Maskinpark verditakst.xlsx", appName: "EXCEL.EXE" },
+  { sakIdx: 7, hoursAgo: 120, durationMin: 60, windowTitle: "Lovdata Pro - Konkursloven § 117", appName: "chrome.exe" },
+  { sakIdx: 7, hoursAgo: 72, durationMin: 90, windowTitle: "Microsoft Word - Auksjonsutkast maskinpark.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 7, hoursAgo: 24, durationMin: 45, windowTitle: "Microsoft Outlook - Auksjonsfirma - koordinering", appName: "OUTLOOK.EXE" },
 
   // Skilsmisse Hovland — ~14 timer
-  { sakIdx: 8, hoursAgo: 672, durationMin: 90, windowTitle: "Microsoft Word — Boregistrering Hovland.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 8, hoursAgo: 576, durationMin: 60, windowTitle: "Microsoft Excel — Felleseiebrøk Hovland.xlsx", appName: "EXCEL.EXE" },
-  { sakIdx: 8, hoursAgo: 480, durationMin: 75, windowTitle: "Lovdata Pro — Ekteskapsloven § 58", appName: "chrome.exe" },
-  { sakIdx: 8, hoursAgo: 408, durationMin: 60, windowTitle: "Microsoft Word — Forslag samværsavtale.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 8, hoursAgo: 336, durationMin: 90, windowTitle: "Microsoft Teams — Klientmøte Hovland", appName: "Teams.exe" },
-  { sakIdx: 8, hoursAgo: 240, durationMin: 60, windowTitle: "Microsoft Word — Forhandlingsforslag felleseie.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 8, hoursAgo: 144, durationMin: 75, windowTitle: "Microsoft Word — Samværsavtale Hovland v2.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 8, hoursAgo: 48, durationMin: 45, windowTitle: "Microsoft Outlook — Hovland — koordinering motpart", appName: "OUTLOOK.EXE" },
+  { sakIdx: 8, hoursAgo: 672, durationMin: 90, windowTitle: "Microsoft Word - Boregistrering Hovland.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 8, hoursAgo: 576, durationMin: 60, windowTitle: "Microsoft Excel - Felleseiebrøk Hovland.xlsx", appName: "EXCEL.EXE" },
+  { sakIdx: 8, hoursAgo: 480, durationMin: 75, windowTitle: "Lovdata Pro - Ekteskapsloven § 58", appName: "chrome.exe" },
+  { sakIdx: 8, hoursAgo: 408, durationMin: 60, windowTitle: "Microsoft Word - Forslag samværsavtale.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 8, hoursAgo: 336, durationMin: 90, windowTitle: "Microsoft Teams - Klientmøte Hovland", appName: "Teams.exe" },
+  { sakIdx: 8, hoursAgo: 240, durationMin: 60, windowTitle: "Microsoft Word - Forhandlingsforslag felleseie.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 8, hoursAgo: 144, durationMin: 75, windowTitle: "Microsoft Word - Samværsavtale Hovland v2.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 8, hoursAgo: 48, durationMin: 45, windowTitle: "Microsoft Outlook - Hovland - koordinering motpart", appName: "OUTLOOK.EXE" },
 
   // Strand trafikkulykke — ~8 timer
-  { sakIdx: 9, hoursAgo: 1008, durationMin: 60, windowTitle: "Microsoft Word — Klientnotat Strand.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 9, hoursAgo: 864, durationMin: 90, windowTitle: "Adobe Acrobat — Politirapport ulykke Drammensveien.pdf", appName: "Acrobat.exe" },
-  { sakIdx: 9, hoursAgo: 720, durationMin: 60, windowTitle: "Adobe Acrobat — Medisinsk rapport Strand.pdf", appName: "Acrobat.exe" },
-  { sakIdx: 9, hoursAgo: 576, durationMin: 75, windowTitle: "Lovdata Pro — Skadeerstatningsloven § 3-1", appName: "chrome.exe" },
-  { sakIdx: 9, hoursAgo: 432, durationMin: 90, windowTitle: "Microsoft Word — Erstatningskrav Strand utkast.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 9, hoursAgo: 240, durationMin: 60, windowTitle: "Microsoft Word — Erstatningskrav Strand FINAL.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 9, hoursAgo: 96, durationMin: 30, windowTitle: "Microsoft Outlook — Krav levert If Forsikring", appName: "OUTLOOK.EXE" },
+  { sakIdx: 9, hoursAgo: 1008, durationMin: 60, windowTitle: "Microsoft Word - Klientnotat Strand.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 9, hoursAgo: 864, durationMin: 90, windowTitle: "Adobe Acrobat - Politirapport ulykke Drammensveien.pdf", appName: "Acrobat.exe" },
+  { sakIdx: 9, hoursAgo: 720, durationMin: 60, windowTitle: "Adobe Acrobat - Medisinsk rapport Strand.pdf", appName: "Acrobat.exe" },
+  { sakIdx: 9, hoursAgo: 576, durationMin: 75, windowTitle: "Lovdata Pro - Skadeerstatningsloven § 3-1", appName: "chrome.exe" },
+  { sakIdx: 9, hoursAgo: 432, durationMin: 90, windowTitle: "Microsoft Word - Erstatningskrav Strand utkast.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 9, hoursAgo: 240, durationMin: 60, windowTitle: "Microsoft Word - Erstatningskrav Strand FINAL.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 9, hoursAgo: 96, durationMin: 30, windowTitle: "Microsoft Outlook - Krav levert If Forsikring", appName: "OUTLOOK.EXE" },
 
   // Arv Solberg — ~6 timer
-  { sakIdx: 10, hoursAgo: 840, durationMin: 90, windowTitle: "Microsoft Word — Testamentvurdering Solberg.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 10, hoursAgo: 720, durationMin: 60, windowTitle: "Lovdata Pro — Arveloven § 19", appName: "chrome.exe" },
-  { sakIdx: 10, hoursAgo: 504, durationMin: 75, windowTitle: "Microsoft Excel — Boregistrering Solberg.xlsx", appName: "EXCEL.EXE" },
-  { sakIdx: 10, hoursAgo: 336, durationMin: 90, windowTitle: "Microsoft Word — Forhandlingsforslag Solberg.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 10, hoursAgo: 168, durationMin: 45, windowTitle: "Microsoft Outlook — Solberg — koordinering 4 arvinger", appName: "OUTLOOK.EXE" },
+  { sakIdx: 10, hoursAgo: 840, durationMin: 90, windowTitle: "Microsoft Word - Testamentvurdering Solberg.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 10, hoursAgo: 720, durationMin: 60, windowTitle: "Lovdata Pro - Arveloven § 19", appName: "chrome.exe" },
+  { sakIdx: 10, hoursAgo: 504, durationMin: 75, windowTitle: "Microsoft Excel - Boregistrering Solberg.xlsx", appName: "EXCEL.EXE" },
+  { sakIdx: 10, hoursAgo: 336, durationMin: 90, windowTitle: "Microsoft Word - Forhandlingsforslag Solberg.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 10, hoursAgo: 168, durationMin: 45, windowTitle: "Microsoft Outlook - Solberg - koordinering 4 arvinger", appName: "OUTLOOK.EXE" },
 
   // Verkstedforeningen tariff (ferdig) — ~30 timer i fortid
-  { sakIdx: 11, hoursAgo: 1800, durationMin: 120, windowTitle: "Microsoft Word — Forhandlingsmandat Verkstedforeningen.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 11, hoursAgo: 1680, durationMin: 90, windowTitle: "Lovdata Pro — Arbeidstvistloven § 6", appName: "chrome.exe" },
-  { sakIdx: 11, hoursAgo: 1500, durationMin: 180, windowTitle: "Microsoft Teams — Forhandlingsmøte NHO", appName: "Teams.exe" },
-  { sakIdx: 11, hoursAgo: 1320, durationMin: 120, windowTitle: "Microsoft Word — Tariffavtaleutkast 2026.docx", appName: "WINWORD.EXE" },
-  { sakIdx: 11, hoursAgo: 1080, durationMin: 90, windowTitle: "Microsoft Excel — Lønnsvurdering medlemsbedrifter.xlsx", appName: "EXCEL.EXE" },
-  { sakIdx: 11, hoursAgo: 720, durationMin: 60, windowTitle: "Microsoft Outlook — Tariff 2026 — medlemskommunikasjon", appName: "OUTLOOK.EXE" },
-  { sakIdx: 11, hoursAgo: 288, durationMin: 90, windowTitle: "Microsoft Word — Tariffavtale 2026 FINAL.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 11, hoursAgo: 1800, durationMin: 120, windowTitle: "Microsoft Word - Forhandlingsmandat Verkstedforeningen.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 11, hoursAgo: 1680, durationMin: 90, windowTitle: "Lovdata Pro - Arbeidstvistloven § 6", appName: "chrome.exe" },
+  { sakIdx: 11, hoursAgo: 1500, durationMin: 180, windowTitle: "Microsoft Teams - Forhandlingsmøte NHO", appName: "Teams.exe" },
+  { sakIdx: 11, hoursAgo: 1320, durationMin: 120, windowTitle: "Microsoft Word - Tariffavtaleutkast 2026.docx", appName: "WINWORD.EXE" },
+  { sakIdx: 11, hoursAgo: 1080, durationMin: 90, windowTitle: "Microsoft Excel - Lønnsvurdering medlemsbedrifter.xlsx", appName: "EXCEL.EXE" },
+  { sakIdx: 11, hoursAgo: 720, durationMin: 60, windowTitle: "Microsoft Outlook - Tariff 2026 - medlemskommunikasjon", appName: "OUTLOOK.EXE" },
+  { sakIdx: 11, hoursAgo: 288, durationMin: 90, windowTitle: "Microsoft Word - Tariffavtale 2026 FINAL.docx", appName: "WINWORD.EXE" },
 ];
 
 // ────────────────────────────────────────────────────────────────
@@ -551,7 +551,7 @@ async function main() {
     select: { organizationId: true },
   });
   if (existing) {
-    console.log(`⚠  Eksisterende demo-bruker funnet — sletter org ${existing.organizationId}`);
+    console.log(`⚠  Eksisterende demo-bruker funnet - sletter org ${existing.organizationId}`);
     await prisma.organization.delete({ where: { id: existing.organizationId } });
   }
 
@@ -728,7 +728,7 @@ async function main() {
       triggerConfig: {},
       action: AutomationAction.create_sticky,
       actionConfig: {
-        stickyText: "📋 Ny sak: {sakTitle} — sett opp matching-regler",
+        stickyText: "📋 Ny sak: {sakTitle} - sett opp matching-regler",
         color: "blue",
       },
     },
@@ -752,7 +752,7 @@ async function main() {
   console.log("  → Velg fargedesign etter eget ønske");
   console.log("\nKlikk gjennom: Hjem, Prosjekter (kanban), Klienter,");
   console.log("Kalender (mange milepæler!), Tidslinje (Gantt), Rapport,");
-  console.log("Klistrelapper, Agenter — alt fylt med realistiske data.\n");
+  console.log("Klistrelapper, Agenter - alt fylt med realistiske data.\n");
 }
 
 main()

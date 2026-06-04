@@ -463,7 +463,7 @@ export default function Launcher() {
         );
         })}
 
-        {/* Mine sites — favicon-knapper, vises rett under apps */}
+        {/* Mine sites - favicon-knapper, vises rett under apps */}
         {mounted && mySites.length > 0 && (
           <>
             <div
@@ -536,7 +536,7 @@ export default function Launcher() {
 
       </div>
 
-      {/* Add-modal — sentral popup i stedet for inline form i den smale stripa */}
+      {/* Add-modal - sentral popup i stedet for inline form i den smale stripa */}
       {adding && (
         <div
           onClick={() => setAdding(false)}
@@ -596,7 +596,7 @@ export default function Launcher() {
               ))}
             </div>
 
-            {/* Emoji-input fjernet — for web-snarveier hentes ikonet automatisk
+            {/* Emoji-input fjernet - for web-snarveier hentes ikonet automatisk
                 fra favicon (DuckDuckGo/Google), for lokale .exe brukes default
                 ⚙️ fallback. Holder formen enkel. */}
 
@@ -659,7 +659,7 @@ export default function Launcher() {
               </div>
             )}
 
-            {/* Ikon-opplasting (valgfritt) — vises som launcher-ikonet */}
+            {/* Ikon-opplasting (valgfritt) - vises som launcher-ikonet */}
             <div style={{ marginBottom: 20 }}>
               <label style={modalLabel}>Eget ikon (valgfritt)</label>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -785,7 +785,7 @@ export default function Launcher() {
         ↻
       </button>
 
-      {/* Fixed-position tooltip — rendres utenfor scroll-container så den
+      {/* Fixed-position tooltip - rendres utenfor scroll-container så den
           ikke clippes av overflow:auto i app-listen */}
       {tooltip && (
         <div
@@ -887,7 +887,7 @@ const iconButtonStyle: React.CSSProperties = {
   justifyContent: 'center',
   width: 40,
   height: 40,
-  borderRadius: 12, // litt mer rounded — moderne app-launcher-look
+  borderRadius: 12, // litt mer rounded - moderne app-launcher-look
   textDecoration: 'none',
   marginBottom: 8,
   fontSize: 18,

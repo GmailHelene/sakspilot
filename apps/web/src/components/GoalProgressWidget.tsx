@@ -236,7 +236,7 @@ function ProgressBar({ label, period, subText }: { label: string; period: Period
             transition: 'width 0.3s ease',
           }}
         />
-        {/* Pro-rata-markør — liten vertikal strek der brukeren BURDE være nå */}
+        {/* Pro-rata-markør - liten vertikal strek der brukeren BURDE være nå */}
         {goal > 0 && prorata > 0 && prorata < goal && (
           <div
             style={{

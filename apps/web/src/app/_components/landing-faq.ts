@@ -9,7 +9,7 @@
 export const FAQ = [
   {
     q: 'Hva er Sakspilot?',
-    a: 'Sakspilot er et workspace for selvstendig næringsdrivende — prosjekt-CRM, automatisk tidsregistrering, Outlook-integrasjon, AI-assistent og fakturagrunnlag i ett verktøy. Du slipper å hoppe mellom Excel, klistrelapper og 3 forskjellige timeregistreringer.',
+    a: 'Sakspilot er et workspace for selvstendig næringsdrivende - prosjekt-CRM, automatisk tidsregistrering, Outlook-integrasjon, AI-assistent og fakturagrunnlag i ett verktøy. Du slipper å hoppe mellom Excel, klistrelapper og 3 forskjellige timeregistreringer.',
   },
   {
     q: 'Hva koster Sakspilot etter pilotperioden?',
@@ -17,15 +17,15 @@ export const FAQ = [
   },
   {
     q: 'Lagres data i EU?',
-    a: 'Ja. All data lagres på EU-servere (Neon i Frankfurt). Du har full data-eksport (GDPR §15) og slette-rett (§17) tilgjengelig i innstillinger. Ingen tracking-cookies — bruker Umami analytics (samtykke-fritt).',
+    a: 'Ja. All data lagres på EU-servere (Neon i Frankfurt). Du har full data-eksport (GDPR §15) og slette-rett (§17) tilgjengelig i innstillinger. Ingen tracking-cookies - bruker Umami analytics (samtykke-fritt).',
   },
   {
     q: 'Hva med GDPR?',
-    a: 'Sakspilot leverer DPA-mal, audit-log over hvem som har sett hva, og knapp for full sletting av konto + data. Vi er databehandler — du er behandlingsansvarlig for dine klientdata.',
+    a: 'Sakspilot leverer DPA-mal, audit-log over hvem som har sett hva, og knapp for full sletting av konto + data. Vi er databehandler - du er behandlingsansvarlig for dine klientdata.',
   },
   {
     q: 'Erstatter Sakspilot Tripletex eller Fiken?',
-    a: 'Nei — Sakspilot kompletterer regnskapssystemet ditt. Vi pusher timer og fakturagrunnlag TIL Tripletex/Fiken via CSV (direkte API kommer Q3 2026). Du bruker Sakspilot til daglig arbeidsflyt og tidsføring, Tripletex/Fiken til selve regnskapet.',
+    a: 'Nei - Sakspilot kompletterer regnskapssystemet ditt. Vi pusher timer og fakturagrunnlag TIL Tripletex/Fiken via CSV (direkte API kommer Q3 2026). Du bruker Sakspilot til daglig arbeidsflyt og tidsføring, Tripletex/Fiken til selve regnskapet.',
   },
   {
     q: 'Kan jeg eksportere data hvis jeg slutter?',
@@ -37,7 +37,7 @@ export const FAQ = [
   },
   {
     q: 'Hva med klient-personvern på desktop-agenten?',
-    a: 'Desktop-agenten ser KUN vindustittel og filsti — aldri innholdet i dokumenter eller e-poster. Du kan også slå av agenten med ett klikk fra systemtray-en når du jobber med noe sensitivt.',
+    a: 'Desktop-agenten ser KUN vindustittel og filsti - aldri innholdet i dokumenter eller e-poster. Du kan også slå av agenten med ett klikk fra systemtray-en når du jobber med noe sensitivt.',
   },
   {
     q: 'Hvordan kobler jeg Outlook til Sakspilot?',
@@ -45,15 +45,15 @@ export const FAQ = [
   },
   {
     q: 'Hvilke yrkesgrupper passer Sakspilot for?',
-    a: 'Sakspilot er bygget for selvstendig næringsdrivende: advokater, ansvarlige søkere, arkitekter, regnskapsførere, designere, IT-konsulenter — og andre med klientoppdrag og timeføring.',
+    a: 'Sakspilot er bygget for selvstendig næringsdrivende: advokater, ansvarlige søkere, arkitekter, regnskapsførere, designere, IT-konsulenter - og andre med klientoppdrag og timeføring.',
   },
   {
     q: 'Kan jeg dele et prosjekt med klienten min?',
-    a: 'Ja — generer en offentlig delt lenke per prosjekt. Klienten ser status, milepæler og fremdrift uten å logge inn. Sensitive data (notater, tidsregistreringer, beløp) deles ikke.',
+    a: 'Ja - generer en offentlig delt lenke per prosjekt. Klienten ser status, milepæler og fremdrift uten å logge inn. Sensitive data (notater, tidsregistreringer, beløp) deles ikke.',
   },
   {
     q: 'Lagres data hos OpenAI eller Anthropic?',
-    a: 'AI-assistent bruker Anthropic Claude. Vi sender KUN klient-navn + prosjekt-metadata (titler, status, milepæler) — aldri klient-epost, telefon eller fritekst-notater. For EU-residency kan vi rute via AWS Bedrock i Frankfurt (Enterprise-konfigurerbart).',
+    a: 'AI-assistent bruker Anthropic Claude. Vi sender KUN klient-navn + prosjekt-metadata (titler, status, milepæler) - aldri klient-epost, telefon eller fritekst-notater. For EU-residency kan vi rute via AWS Bedrock i Frankfurt (Enterprise-konfigurerbart).',
   },
 ];
 

@@ -12,18 +12,18 @@ Dette tar 1-3 uker per leverandør.
 2. Klikk **"Bli partner"** → fyll skjema med:
    - Selskapsnavn: Sakspilot (ENK org-nr)
    - Bransje: SaaS / regnskap-integrasjon
-   - Beskrivelse: "Workspace for selvstendig næringsdrivende — bygger
+   - Beskrivelse: "Workspace for selvstendig næringsdrivende - bygger
      toveis integrasjon for å synke time-entries og kunde-data til Tripletex"
    - Antall kunder per nå: 0 (pilot)
    - Forventet antall kunder år 1: 50-200
 3. Last opp:
-   - Logo (har — `apps/web/public/icon-512.svg`)
+   - Logo (har - `apps/web/public/icon-512.svg`)
    - Skjermbilder av Sakspilot (ta fra prod via Claude Browser)
    - Personvernerklæring: **https://sakspilot.no/personvern** (live)
-   - DPA-mal: **`docs/dpa-mal.md`** — eksporter til PDF og legg ved.
+   - DPA-mal: **`docs/dpa-mal.md`** - eksporter til PDF og legg ved.
      Fyll inn `{HELENE_ORG_NR}`, `{HELENE_ADRESSE}`, `{HELENE_TELEFON}`
      i Sakspilot-feltene før innsending. Kunde-feltene (`{KUNDE_NAVN}`
-     osv) kan stå tomme — Tripletex bruker dokumentet som bevis på at
+     osv) kan stå tomme - Tripletex bruker dokumentet som bevis på at
      vi har formell databehandleravtale på plass overfor egne kunder,
      ikke som signert kontrakt.
 
@@ -31,7 +31,7 @@ Dette tar 1-3 uker per leverandør.
 
 Tripletex svarer typisk med:
 - Godkjent → access til developer portal (test-konto + dokumentasjon)
-- Avslag (sjeldent for små partnere — vanligvis bare hvis mistanke om scam)
+- Avslag (sjeldent for små partnere - vanligvis bare hvis mistanke om scam)
 - Forespørsel om mer informasjon (svar raskt)
 
 ### Steg 3: Implementering
@@ -56,10 +56,10 @@ POST /accounting/tripletex/push-timesheet?month=2026-05
 ```
 
 **Endepunkter vi trenger:**
-- `POST /v2/timesheet/entry` — opprett time-entry
-- `GET /v2/employee/whoAmI` — verifiser tilkobling
-- `GET /v2/project` — hent prosjekter (for mapping)
-- `GET /v2/customer` — hent kunder
+- `POST /v2/timesheet/entry` - opprett time-entry
+- `GET /v2/employee/whoAmI` - verifiser tilkobling
+- `GET /v2/project` - hent prosjekter (for mapping)
+- `GET /v2/customer` - hent kunder
 
 **Test-miljø:**
 - API-base: `https://api-test.tripletex.io/v2/`
@@ -91,10 +91,10 @@ Fiken bruker **enklere** OAuth-flow enn Tripletex:
 - API-base: `https://api.fiken.no/api/v2/`
 
 **Endepunkter vi trenger:**
-- `POST /companies/:slug/invoice-drafts` — lag faktura-utkast
-- `GET /companies/:slug/contacts` — hent kunder
-- `POST /companies/:slug/contacts` — opprett kunde
-- `GET /companies/:slug/products` — hent fakturalinjer-maler
+- `POST /companies/:slug/invoice-drafts` - lag faktura-utkast
+- `GET /companies/:slug/contacts` - hent kunder
+- `POST /companies/:slug/contacts` - opprett kunde
+- `GET /companies/:slug/products` - hent fakturalinjer-maler
 
 ### Steg 3: Test + lansering
 

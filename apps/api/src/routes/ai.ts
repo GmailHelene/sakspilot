@@ -75,7 +75,7 @@ async function loadSakContext(sakId: string, organizationId: string) {
 function buildSakContextText(ctx: NonNullable<Awaited<ReturnType<typeof loadSakContext>>>): string {
   const { sak, stats } = ctx;
   const today = new Date();
-  const fmt = (d: Date | null) => (d ? d.toLocaleDateString("nb-NO") : "—");
+  const fmt = (d: Date | null) => (d ? d.toLocaleDateString("nb-NO") : "-");
 
   const milestonesText = sak.milestones
     .map(
@@ -92,7 +92,7 @@ function buildSakContextText(ctx: NonNullable<Awaited<ReturnType<typeof loadSakC
 
 Tittel: ${sak.title}
 Status: ${sak.status}
-Prosjektnummer: ${sak.saksnummer || "—"}
+Prosjektnummer: ${sak.saksnummer || "-"}
 Klient: ${sak.client?.name || "(internt prosjekt)"}
 Frist: ${fmt(sak.deadline)}
 Opprettet: ${fmt(sak.createdAt)}
@@ -115,7 +115,7 @@ Dagens dato: ${today.toLocaleDateString("nb-NO")}.`;
 
 const SYSTEM_PROMPT = `Du er en hjelpsom assistent for en selvstendig næringsdrivende som bruker Sakspilot for å håndtere klientoppdrag.
 
-Du svarer på norsk (bokmål), med mindre brukeren ber om noe annet. Du er konsis, vennlig og praktisk — ikke utfyllende eller akademisk. Du gir konkrete, handlingsrettede svar.
+Du svarer på norsk (bokmål), med mindre brukeren ber om noe annet. Du er konsis, vennlig og praktisk - ikke utfyllende eller akademisk. Du gir konkrete, handlingsrettede svar.
 
 Når du skriver e-poster:
 - Bruk profesjonell, men varm tone
@@ -123,7 +123,7 @@ Når du skriver e-poster:
 - Aldri lov noe konkret om datoer eller pris uten at det står i prosjekt-konteksten
 - Hvis du mangler info: bruk plassholder som [DIN_INFO] som brukeren kan fylle ut
 
-Du har ikke tilgang til e-postintegrasjoner — du lager kun utkast som brukeren selv sender.`;
+Du har ikke tilgang til e-postintegrasjoner - du lager kun utkast som brukeren selv sender.`;
 
 // ── GET /ai/provider ─────────────────────────────────────────────
 // Returnerer aktiv AI-provider (anthropic|bedrock) + konfig-status.
@@ -349,7 +349,7 @@ router.post("/sak/:id/summary", async (req: Request, res: Response) => {
         {
           role: "user",
           content:
-            "Gi en kort oppsummering av prosjektet (3-5 setninger). Inkluder: nåværende status, neste viktige milepæl/frist, og om noe ser ut til å være forsinket eller krever oppmerksomhet. Ikke gjenta prosjekt-tittelen — den vises allerede.",
+            "Gi en kort oppsummering av prosjektet (3-5 setninger). Inkluder: nåværende status, neste viktige milepæl/frist, og om noe ser ut til å være forsinket eller krever oppmerksomhet. Ikke gjenta prosjekt-tittelen - den vises allerede.",
         },
       ],
     });
@@ -427,7 +427,7 @@ router.post("/sak/:id/draft-email", async (req: Request, res: Response) => {
       messages: [
         {
           role: "user",
-          content: `${typeInstructions[parsed.data.type]}\n\nReturner KUN e-postens innhold (emne på første linje, deretter tom linje, deretter brødtekst). Ikke ledende prosa, ingen forklaring rundt — bare e-posten.`,
+          content: `${typeInstructions[parsed.data.type]}\n\nReturner KUN e-postens innhold (emne på første linje, deretter tom linje, deretter brødtekst). Ikke ledende prosa, ingen forklaring rundt - bare e-posten.`,
         },
       ],
     });

@@ -154,7 +154,7 @@ async function main() {
   // Hent en bruker i org hvis ikke userId er satt
   if (!userId) {
     const u = await prisma.user.findFirst({ where: { organizationId }, select: { id: true } });
-    if (!u) throw new Error("Ingen bruker i organisasjonen — kan ikke seede.");
+    if (!u) throw new Error("Ingen bruker i organisasjonen - kan ikke seede.");
     userId = u.id;
   }
 
@@ -253,7 +253,7 @@ async function main() {
             endedAt,
             durationSec: durationMin * 60,
             source: TimeEntrySource.auto,
-            windowTitle: ["VS Code — sak.ts", "Figma — design", "Outlook — Berg Eiendom"][i % 3],
+            windowTitle: ["VS Code - sak.ts", "Figma - design", "Outlook - Berg Eiendom"][i % 3],
             appName: ["Code.exe", "Figma.exe", "OUTLOOK.EXE"][i % 3],
             billable: true,
             hourlyRate: 1450,

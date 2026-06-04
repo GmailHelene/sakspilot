@@ -223,9 +223,9 @@ router.get("/regnskap", async (req: Request, res: Response) => {
     for (const inv of invoices) {
       if (y > 770) { doc.addPage(); y = 50; }
       doc.fontSize(9).fillColor("#0f172a");
-      doc.text(inv.invoiceNumber || "—", 50, y)
+      doc.text(inv.invoiceNumber || "-", 50, y)
          .text(fmtDate(inv.periodEnd), 90, y)
-         .text(inv.sak?.client?.name || inv.customerName || "—", 170, y, { width: 240 })
+         .text(inv.sak?.client?.name || inv.customerName || "-", 170, y, { width: 240 })
          .text(fmtKr(Number(inv.totalAmount)), 420, y, { width: 100, align: "right" });
       y += 12;
     }
@@ -344,7 +344,7 @@ router.get("/statistikk", async (req: Request, res: Response) => {
 
   // Forespørsler-fordeling
   if (foresporsler.length > 0) {
-    doc.fontSize(12).fillColor("#1e293b").text("Forespørsler — fordeling", 50, y);
+    doc.fontSize(12).fillColor("#1e293b").text("Forespørsler - fordeling", 50, y);
     y += 18;
     const statuses = ["ny", "i_dialog", "vunnet", "tapt", "arkivert"] as const;
     for (const s of statuses) {
@@ -428,9 +428,9 @@ router.get("/fakturaer", async (req: Request, res: Response) => {
     const statusColor = inv.paidAt ? "#14532d" : inv.status === "draft" ? "#92400e" : inv.status === "exported" ? "#1e3a8a" : "#7f1d1d";
 
     doc.fontSize(9).fillColor("#0f172a");
-    doc.text(inv.invoiceNumber || "—", 50, y)
+    doc.text(inv.invoiceNumber || "-", 50, y)
        .text(fmtDate(inv.periodEnd), 90, y)
-       .text(inv.sak?.client?.name || inv.customerName || "—", 160, y, { width: 180 });
+       .text(inv.sak?.client?.name || inv.customerName || "-", 160, y, { width: 180 });
     doc.fillColor(statusColor).text(statusLabel, 350, y, { width: 60 });
     doc.fillColor("#0f172a").text(fmtKr(Number(inv.totalAmount)), 420, y, { width: 100, align: "right" });
     y += 12;
@@ -581,7 +581,7 @@ router.get("/mva", async (req: Request, res: Response) => {
 
   // Disclaimer
   doc.fontSize(8).fillColor("#94a3b8").text(
-    "Forenklet MVA-rapport — gir et bilde av status, men er ikke en MVA-melding. " +
+    "Forenklet MVA-rapport - gir et bilde av status, men er ikke en MVA-melding. " +
     "For innlevering til Skatteetaten må du føre tallene inn i Altinn-skjemaet RF-0002, eller eksportere til Fiken/Tripletex.",
     50, y, { width: 495 }
   );

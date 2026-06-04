@@ -102,7 +102,7 @@ router.post("/sync", async (req: Request, res: Response) => {
   const { sessions, agentVersion, deviceName } = parsed.data;
 
   if (sessions.length === 0) {
-    return res.json({ created: 0, message: "Tom batch — ingenting å gjøre" });
+    return res.json({ created: 0, message: "Tom batch - ingenting å gjøre" });
   }
 
   // Valider sakId-tilhørighet + hent timesats for snapshot på TimeEntry

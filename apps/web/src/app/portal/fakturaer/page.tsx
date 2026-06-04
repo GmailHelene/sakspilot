@@ -133,7 +133,7 @@ export default function PortalInvoices() {
                           onClick={() => openDetail(inv.id)}
                           style={{ borderTop: `1px solid ${tokens.color.bgAlt}`, cursor: 'pointer' }}
                         >
-                          <td style={td}>{inv.invoiceNumber || '—'}</td>
+                          <td style={td}>{inv.invoiceNumber || '-'}</td>
                           <td style={td}>{fmtDate(inv.periodEnd)}</td>
                           <td style={td}>{inv.sak.title}</td>
                           <td style={{ ...td, textAlign: 'right', fontWeight: 600 }}>
@@ -218,7 +218,7 @@ function DetailModal({ invoice: inv, onClose }: { invoice: PortalInvoiceDetail; 
         </div>
 
         <div style={{ marginTop: 12, fontSize: 13, color: tokens.color.textMuted }}>
-          <div>Forfall: {inv.dueDate ? fmtDate(inv.dueDate) : '—'}</div>
+          <div>Forfall: {inv.dueDate ? fmtDate(inv.dueDate) : '-'}</div>
           {inv.paidAt && <div style={{ color: '#14532d', marginTop: 4 }}>✓ Betalt {fmtDate(inv.paidAt)}</div>}
         </div>
 

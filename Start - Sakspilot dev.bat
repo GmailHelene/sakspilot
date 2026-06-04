@@ -2,9 +2,9 @@
 REM ─────────────────────────────────────────────────────────────
 REM  Start Sakspilot dev-server (API + web)
 REM  Dobbeltklikk denne fila for å starte alt.
-REM  Lar vinduet stå åpent — lukk det med Ctrl+C eller X for å stoppe.
+REM  Lar vinduet stå åpent - lukk det med Ctrl+C eller X for å stoppe.
 REM ─────────────────────────────────────────────────────────────
-title Sakspilot — dev-server (Ikke lukk!)
+title Sakspilot - dev-server (Ikke lukk!)
 cd /d "%~dp0"
 echo.
 echo  ══════════════════════════════════════════════════════════

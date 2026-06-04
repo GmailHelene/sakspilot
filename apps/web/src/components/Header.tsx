@@ -67,7 +67,7 @@ export default function Header() {
         }}
       >
         <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true" style={{ flexShrink: 0 }}>
-          {/* Bold "S" på charcoal — matcher PWA-ikonet */}
+          {/* Bold "S" på charcoal - matcher PWA-ikonet */}
           <rect width="32" height="32" rx="7" fill="#1F1F1F" />
           <path
             d="M 23 11 C 23 8, 20 7, 16 7 C 12 7, 9 8, 9 12.5 C 9 16, 12 17, 16 17 C 20 17, 23 17.5, 23 21 C 23 24.5, 20 25, 16 25 C 12 25, 9 24.5, 9 22"

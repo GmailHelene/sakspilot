@@ -103,7 +103,7 @@ export function getAIClient(): Anthropic | null {
     // (se header-kommentar), erstatt denne throw med ekte Bedrock-init.
     throw new Error(
       "[aiProvider] AI_PROVIDER=bedrock er valgt, men Bedrock-SDK er IKKE aktivert. " +
-      "Vi vil ikke stille falle tilbake til Anthropic (USA) — det ville brutt GDPR-løftet om EU-databehandler. " +
+      "Vi vil ikke stille falle tilbake til Anthropic (USA) - det ville brutt GDPR-løftet om EU-databehandler. " +
       "Enten: (1) Aktiver Bedrock-SDK i aiProvider.ts (se header-kommentar), eller (2) Sett AI_PROVIDER=anthropic."
     );
   }

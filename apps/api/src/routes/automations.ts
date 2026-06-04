@@ -150,7 +150,7 @@ router.get("/templates", async (_req: Request, res: Response) => {
       triggerConfig: { daysUntil: 7 },
       action: "create_sticky",
       actionConfig: {
-        stickyText: "⏰ {milestoneTitle} forfaller {dueDate} — prosjekt: {sakTitle}",
+        stickyText: "⏰ {milestoneTitle} forfaller {dueDate} - prosjekt: {sakTitle}",
         color: "yellow",
       },
     },
@@ -163,7 +163,7 @@ router.get("/templates", async (_req: Request, res: Response) => {
       triggerConfig: { daysUntil: 1 },
       action: "create_sticky",
       actionConfig: {
-        stickyText: "🚨 IMORGEN: {milestoneTitle} — prosjekt: {sakTitle}",
+        stickyText: "🚨 IMORGEN: {milestoneTitle} - prosjekt: {sakTitle}",
         color: "pink",
       },
     },
@@ -250,7 +250,7 @@ router.post("/:id/test", async (req: Request, res: Response) => {
       daysUntil: 7,
     },
   });
-  return res.json({ ok: true, message: "Test-kjøring ferdig — sjekk klistrelapper eller prosjektet." });
+  return res.json({ ok: true, message: "Test-kjøring ferdig - sjekk klistrelapper eller prosjektet." });
 });
 
 export default router;

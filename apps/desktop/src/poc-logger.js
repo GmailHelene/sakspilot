@@ -54,14 +54,14 @@ const RULES_MODE = Boolean(args.rules);
 const DEMO_RULES = [
   {
     sakId: 'demo-bygdoy-12',
-    sakTitle: 'Bygdøy 12 — rammetillatelse',
+    sakTitle: 'Bygdøy 12 - rammetillatelse',
     patterns: [
       { type: 'title', pattern: /bygd[øo]y[\s\-_]*12/i },
     ],
   },
   {
     sakId: 'demo-skien-7',
-    sakTitle: 'Skien 7 — ferdigattest',
+    sakTitle: 'Skien 7 - ferdigattest',
     patterns: [{ type: 'title', pattern: /skien[\s\-_]*7/i }],
   },
   {
@@ -93,7 +93,7 @@ function findMatchingSak(window) {
 
 // ── State ───────────────────────────────────────────────────────
 const sessionStart = new Date();
-const sessions = []; // TimeEntry-utkast — én per kontinuerlig sak/app-vindu
+const sessions = []; // TimeEntry-utkast - én per kontinuerlig sak/app-vindu
 let current = null; // pågående session
 let lastSnapshot = null;
 let pollCount = 0;
@@ -162,7 +162,7 @@ async function tick(activeWindow) {
   if (!snap) {
     // Skjermlås, ingen aktivt vindu, etc.
     if (current) {
-      log(`⏸  Ingen aktivt vindu — avslutter session "${current.title}"`);
+      log(`⏸  Ingen aktivt vindu - avslutter session "${current.title}"`);
       closeCurrentSession(now);
     }
     lastSnapshot = null;
@@ -191,7 +191,7 @@ function finish(reason) {
   const totalDuration = Math.round((Date.now() - sessionStart.getTime()) / 1000);
 
   console.log('\n' + '═'.repeat(70));
-  console.log(`POC FULLFØRT — ${reason}`);
+  console.log(`POC FULLFØRT - ${reason}`);
   console.log('═'.repeat(70));
   console.log(`Totalt:           ${totalDuration}s`);
   console.log(`Polls:            ${pollCount} (${(pollCount / Math.max(totalDuration, 1) * 60).toFixed(1)}/min)`);
@@ -243,11 +243,11 @@ function finish(reason) {
 
   // Verdivurdering
   if (errorCount === 0) {
-    console.log('✅ POC ok — get-windows fungerer pålitelig på din Windows.');
+    console.log('✅ POC ok - get-windows fungerer pålitelig på din Windows.');
   } else if (errorCount < pollCount * 0.1) {
-    console.log('⚠ POC delvis ok — sporadiske feil men håndterbart.');
+    console.log('⚠ POC delvis ok - sporadiske feil men håndterbart.');
   } else {
-    console.log('❌ POC har for mange feil — undersøk get-windows-installasjonen.');
+    console.log('❌ POC har for mange feil - undersøk get-windows-installasjonen.');
   }
 }
 
@@ -274,7 +274,7 @@ function formatDur(sec) {
   }
 
   console.log('╔══════════════════════════════════════════════════════════════════╗');
-  console.log('║         Sakspilot Desktop Agent — Proof of Concept              ║');
+  console.log('║         Sakspilot Desktop Agent - Proof of Concept              ║');
   console.log('╚══════════════════════════════════════════════════════════════════╝');
   console.log(`Polling-intervall:  ${INTERVAL_SEC}s`);
   console.log(`Varighet:           ${DURATION_SEC}s (Ctrl+C for å avslutte tidligere)`);

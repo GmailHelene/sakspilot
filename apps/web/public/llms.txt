@@ -2,7 +2,7 @@
 
 > Workspace for selvstendig næringsdrivende i Norge. Sak-CRM, automatisk tidsregistrering, Outlook-integrasjon, AI-assistent (Claude) og fakturagrunnlag i ett verktøy. Bygd for å erstatte den vanlige flora av Excel, klistrelapper, 3 forskjellige timeregistreringer og e-post-mapper.
 
-**Målgruppe:** IT-konsulenter, designere, ansvarlige søkere, arkitekter, advokater, regnskapsførere, konsulenter — alle som lever av klientoppdrag og timeføring.
+**Målgruppe:** IT-konsulenter, designere, ansvarlige søkere, arkitekter, advokater, regnskapsførere, konsulenter - alle som lever av klientoppdrag og timeføring.
 
 **Pris:** Gratis ut hele 2026 (pilotperiode). Deretter 199 kr/mnd eller 1990 kr/år.
 
@@ -21,7 +21,7 @@
 - **Prosjekt-CRM med kanban**: Drag-and-drop status (pågår → venter → ferdig)
 - **Automatisk tidsregistrering**: Windows-app leser vindustittel og kobler timer til riktig prosjekt via brukerens matching-regler
 - **Outlook-integrasjon**: Microsoft Graph leser inngående e-poster og kobler til prosjekt basert på avsender eller emnefelt
-- **AI-assistent (Claude)**: Skriver utkast til klient-eposter (status-oppdatering, frist-utsettelse, faktura-påminnelse). PII-minimisert — sender kun klient-navn, aldri e-post/telefon
+- **AI-assistent (Claude)**: Skriver utkast til klient-eposter (status-oppdatering, frist-utsettelse, faktura-påminnelse). PII-minimisert - sender kun klient-navn, aldri e-post/telefon
 - **Fiken-faktura**: Push timeregistreringer som fakturadraft direkte til Fiken via personal access token
 - **CSV-eksport til Tripletex**: Månedlig fakturagrunnlag som importeres til Tripletex eller Excel
 - **Bransje-onboarding**: Velg yrke ved registrering → sidebar fylles automatisk med relevante snarveier (Holte/eByggeSøk/Kartverket for ansvarlig søker, GitHub/Vercel/Neon for utvikler, Lovdata/Rettsdata for advokat, osv)
@@ -47,7 +47,7 @@ Bygd av Helene Åsheim Grønberg ([helene.cloud](https://helene.cloud)), uavheng
 
 ## Lisens og tilgjengelighet
 
-- Privat proprietær SaaS — kildekode ikke open source
+- Privat proprietær SaaS - kildekode ikke open source
 - API-tilgang for tredjeparter kommer i 2027
 - Engelsk språkversjon planlagt for internasjonale frilansere
 - Mac/Linux desktop-app i pipeline

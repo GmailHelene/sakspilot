@@ -185,10 +185,10 @@ export default function MvaRapportPage() {
                   <tbody>
                     {data.fakturaer.map((f) => (
                       <tr key={f.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                        <td style={td}>{f.invoiceNumber || '—'}</td>
+                        <td style={td}>{f.invoiceNumber || '-'}</td>
                         <td style={td}>{f.dato}</td>
                         <td style={{ ...td, textAlign: 'right', fontWeight: 600 }}>{f.total.toLocaleString('nb-NO')} kr</td>
-                        <td style={{ ...td, textAlign: 'right' }}>{f.mvaSats != null ? `${f.mvaSats} %` : '—'} {f.mvaInkludert ? '(inkl)' : '(eks)'}</td>
+                        <td style={{ ...td, textAlign: 'right' }}>{f.mvaSats != null ? `${f.mvaSats} %` : '-'} {f.mvaInkludert ? '(inkl)' : '(eks)'}</td>
                         <td style={td}>{f.status}</td>
                       </tr>
                     ))}
@@ -213,9 +213,9 @@ export default function MvaRapportPage() {
                     {data.utgifter.map((u) => (
                       <tr key={u.id} style={{ borderTop: '1px solid #f1f5f9' }}>
                         <td style={td}>{u.dato}</td><td style={td}>{u.beskrivelse}</td>
-                        <td style={td}>{u.kategori || '—'}</td>
+                        <td style={td}>{u.kategori || '-'}</td>
                         <td style={{ ...td, textAlign: 'right', fontWeight: 600 }}>{u.belop.toLocaleString('nb-NO')} kr</td>
-                        <td style={{ ...td, textAlign: 'right' }}>{u.mvaSats != null ? `${u.mvaSats} %` : '—'}</td>
+                        <td style={{ ...td, textAlign: 'right' }}>{u.mvaSats != null ? `${u.mvaSats} %` : '-'}</td>
                       </tr>
                     ))}
                   </tbody>
