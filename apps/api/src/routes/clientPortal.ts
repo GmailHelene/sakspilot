@@ -33,6 +33,13 @@ import { sendEmail, clientPortalPasswordResetEmail } from "../lib/email";
 
 const router = Router();
 
+// Maskerer e-post for logging (GDPR/PII): "kari.normann@example.com" -> "kar***@example.com".
+function maskEmail(e: string): string {
+  if (!e || typeof e !== "string") return "***@unknown";
+  const [l, d] = e.split("@");
+  return (l.slice(0, 3) + "***@" + (d || "unknown"));
+}
+
 /**
  * Bygger en branding-blob basert på req.customDomain. Returnerer null hvis
  * requesten kom inn på default sakspilot.no, da skal frontend bruke standard
@@ -323,7 +330,7 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
     emailSent = result.ok;
     if (!result.ok) {
       console.log(
-        `[client-portal forgot] SMTP fallback - reset-lenke for ${email}: ${resetUrl}`
+        `[client-portal forgot] SMTP fallback - reset-lenke for ${maskEmail(email)}: ${resetUrl}`
       );
     }
   }

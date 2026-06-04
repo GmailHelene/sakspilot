@@ -37,6 +37,13 @@ import { requireAuth, requireRole } from "../middleware/auth";
 import { sendEmail, teamInviteEmail } from "../lib/email";
 
 const router = Router();
+
+// Maskerer e-post for logging (GDPR/PII): "kari.normann@example.com" -> "kar***@example.com".
+function maskEmail(e: string): string {
+  if (!e || typeof e !== "string") return "***@unknown";
+  const [l, d] = e.split("@");
+  return (l.slice(0, 3) + "***@" + (d || "unknown"));
+}
 router.use(requireAuth);
 
 // ── Schemas ─────────────────────────────────────────────────────
@@ -242,7 +249,7 @@ router.post(
     emailSent = sendResult.ok;
     if (!sendResult.ok) {
       console.log(
-        `[team invite] SMTP fallback - invite-lenke for ${emailNorm}: ${acceptUrl}`
+        `[team invite] SMTP fallback - invite-lenke for ${maskEmail(emailNorm)}: ${acceptUrl}`
       );
     }
 
