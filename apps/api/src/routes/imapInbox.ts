@@ -111,6 +111,14 @@ router.get("/", requireAuth, async (req: Request, res: Response) => {
     await client.connect();
     const mailbox = await client.mailboxOpen("INBOX");
     const total = mailbox.exists;
+
+    // Tom innboks: hopp over fetch. Range "1:0" gir BAD-respons fra
+    // Domeneshop's IMAP-server (og er ugyldig IMAP-syntax generelt).
+    if (total === 0) {
+      await client.logout();
+      return res.json({ user, total: 0, count: 0, messages: [] });
+    }
+
     const start = Math.max(1, total - limit + 1);
     const range = `${start}:${total}`;
 
