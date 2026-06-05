@@ -242,16 +242,15 @@ export default function Sidebar() {
     setEditSiteId(null);
   }
   async function openSite(e: React.MouseEvent, s: MySite) {
-    // file:// URL er lokal fil, kan kun åpnes via Electron-bro (shell.openPath)
+    // file:// URL er lokal fil. I Electron lastes den INLINE i samme
+    // BrowserView som vanlige sites. I nettleser er det blokkert (file://
+    // fra https-side gar imot browser sikkerhets-policy).
     if (s.url.startsWith('file:')) {
-      if (desktop.isDesktop && desktop.openFolder) {
-        e.preventDefault();
-        // openFolder håndterer både mapper og enkelt-filer via shell.openPath
-        const path = s.url.replace(/^file:\/{2,3}/, '').replace(/\//g, '\\');
-        await desktop.openFolder(path);
+      e.preventDefault();
+      if (desktop.isDesktop && desktop.openInWindow) {
+        await desktop.openInWindow(s.url, s.label);
       } else {
-        e.preventDefault();
-        alert('Lokale filer kan kun åpnes via Sakspilot Desktop (.exe-versjonen). I nettleseren blokkerer browser sikkerhets-policy at vi åpner C:\\... eller /Users/... direkte.');
+        alert('Lokale filer kan kun apnes via Sakspilot Desktop (.exe-versjonen). I nettleser blokkerer browser sikkerhets-policy at vi laster file:// fra en https-side.');
       }
       return;
     }
@@ -332,14 +331,15 @@ export default function Sidebar() {
   const [editShortcutUrl, setEditShortcutUrl] = useState('');
 
   async function openShortcut(e: React.MouseEvent, s: Shortcut) {
-    // Lokal fil: bare Electron kan åpne
+    // Lokal fil-URL: i Electron, last den INLINE i samme BrowserView som
+    // Gmail/Notion-snarveier (loadURL stotter file:// helt fint). I nettleser
+    // er det blokkert av browser-sikkerhet - vi viser klar advarsel.
     if (s.url.startsWith('file:')) {
       e.preventDefault();
-      if (desktop.isDesktop && desktop.openFolder) {
-        const path = s.url.replace(/^file:\/{2,3}/, '').replace(/\//g, '\\');
-        await desktop.openFolder(path);
+      if (desktop.isDesktop && desktop.openInWindow) {
+        await desktop.openInWindow(s.url, s.label);
       } else {
-        alert('Lokale filer kan kun åpnes via Sakspilot Desktop (.exe-versjonen).');
+        alert('Lokale filer kan kun apnes via Sakspilot Desktop (.exe-versjonen). I nettleser blokkerer browser-sikkerhet at vi laster file:// fra en https-side.');
       }
       return;
     }
