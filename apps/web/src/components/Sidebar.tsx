@@ -330,6 +330,33 @@ export default function Sidebar() {
   const [editShortcutLabel, setEditShortcutLabel] = useState('');
   const [editShortcutUrl, setEditShortcutUrl] = useState('');
 
+  // Drag-state for re-ordering. Holder kun id av elementet som dras,
+  // selve sorteringen skjer paa drop. Native HTML5 drag-API - ingen lib.
+  const [dragShortcutId, setDragShortcutId] = useState<string | null>(null);
+  const [dragSiteId, setDragSiteId] = useState<string | null>(null);
+
+  function reorderShortcuts(fromId: string, toId: string) {
+    if (fromId === toId) return;
+    const fromIdx = shortcuts.findIndex((s) => s.id === fromId);
+    const toIdx = shortcuts.findIndex((s) => s.id === toId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const next = [...shortcuts];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
+    persist(next);
+  }
+
+  function reorderSites(fromId: string, toId: string) {
+    if (fromId === toId) return;
+    const fromIdx = mySites.findIndex((s) => s.id === fromId);
+    const toIdx = mySites.findIndex((s) => s.id === toId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const next = [...mySites];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
+    persistSites(next);
+  }
+
   async function openShortcut(e: React.MouseEvent, s: Shortcut) {
     // Lokal fil-URL: i Electron, last den INLINE i samme BrowserView som
     // Gmail/Notion-snarveier (loadURL stotter file:// helt fint). I nettleser
@@ -567,7 +594,32 @@ export default function Sidebar() {
               );
             }
             return (
-              <div key={s.id} style={{ position: 'relative' }} className="shortcut-row">
+              <div
+                key={s.id}
+                style={{
+                  position: 'relative',
+                  opacity: dragShortcutId === s.id ? 0.4 : 1,
+                  cursor: 'grab',
+                }}
+                className="shortcut-row"
+                draggable
+                onDragStart={(e) => {
+                  setDragShortcutId(s.id);
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragOver={(e) => {
+                  if (dragShortcutId && dragShortcutId !== s.id) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                  }
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (dragShortcutId) reorderShortcuts(dragShortcutId, s.id);
+                  setDragShortcutId(null);
+                }}
+                onDragEnd={() => setDragShortcutId(null)}
+              >
                 <a
                   href={s.url}
                   target="_blank"
@@ -735,21 +787,25 @@ export default function Sidebar() {
       >
         {addSiteOpen && (
           <div style={addFormStyle}>
-            <input
-              type="text"
-              value={newSiteUrl}
-              onChange={(e) => setNewSiteUrl(e.target.value)}
-              placeholder="luxushair.com"
-              style={inputStyle}
-              onKeyDown={(e) => e.key === 'Enter' && addSite()}
-              autoFocus
-            />
+            {/* Navn forst sa autoFocus gar dit som er valgfritt - URL er det
+                pakrevde feltet, og brukeren kan tab dit etter. Tidligere var
+                URL forst med autoFocus, og navn-feltet hang noen ms ved klikk
+                pga re-render av soskenkomponenter (cloud-sync polling). */}
             <input
               type="text"
               value={newSiteLabel}
               onChange={(e) => setNewSiteLabel(e.target.value)}
               placeholder="Navn (valgfritt)"
+              style={inputStyle}
+              autoFocus
+            />
+            <input
+              type="text"
+              value={newSiteUrl}
+              onChange={(e) => setNewSiteUrl(e.target.value)}
+              placeholder="luxushair.com eller C:\\Users\\..."
               style={{ ...inputStyle, marginTop: 6 }}
+              onKeyDown={(e) => e.key === 'Enter' && addSite()}
             />
             <button onClick={addSite} style={saveButtonStyle}>Lagre site</button>
           </div>
@@ -773,7 +829,32 @@ export default function Sidebar() {
             {mySites.map((s) => {
               const badge = autoBadges[s.url] || 0;
               return (
-              <div key={s.id} style={{ position: 'relative' }} className="my-site-tile">
+              <div
+                key={s.id}
+                style={{
+                  position: 'relative',
+                  opacity: dragSiteId === s.id ? 0.4 : 1,
+                  cursor: 'grab',
+                }}
+                className="my-site-tile"
+                draggable
+                onDragStart={(e) => {
+                  setDragSiteId(s.id);
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragOver={(e) => {
+                  if (dragSiteId && dragSiteId !== s.id) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                  }
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (dragSiteId) reorderSites(dragSiteId, s.id);
+                  setDragSiteId(null);
+                }}
+                onDragEnd={() => setDragSiteId(null)}
+              >
                 <a
                   href={s.url}
                   target="_blank"
