@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -109,21 +109,81 @@ const DEFAULT_SHORTCUTS: Shortcut[] = [];
 
 const STORAGE_KEY = 'sakspilot_shortcuts';
 
+/**
+ * AddForm - memoized sub-komponent med EGEN intern state.
+ *
+ * Bakgrunn: Sidebar re-rendrer ofte (cloud-sync polling, notifications-poll
+ * hvert 5. sek, autoBadges-events fra Electron). Tidligere bodde state for
+ * add-form-feltene paa Sidebar-nivaa, sa hver tastetrykk trigget setState
+ * paa Sidebar -> re-render av HELE Sidebar inkl. tunge nav-lister, favicons
+ * og notifications-badges. Det ga den karakteristiske "kan ikke klikke
+ * forst, sa plutselig gar det"-folelsen i Mine snarveier/Mine sites.
+ *
+ * Nytt design: AddForm er en memo'd komponent som holder sin egen state
+ * (label/url/icon/path). Typing inn i feltet trigger BARE re-render av
+ * AddForm selv, ikke Sidebar. Og naar Sidebar re-rendrer fra eksterne
+ * arsaker, blir AddForm hoppet over av React.memo siden propsene er
+ * stabile (fields-array er konstant, onSave wrappes med useCallback i
+ * parent som leser fra ref for aa unnga avhengigheter).
+ */
+interface AddFormFieldConfig {
+  key: string;
+  placeholder: string;
+  mono?: boolean;
+}
+
+interface AddFormProps {
+  fields: AddFormFieldConfig[];
+  saveLabel: string;
+  onSave: (values: Record<string, string>) => void;
+  footer?: React.ReactNode; // f.eks. info-tekst om Desktop-krav for mapper
+}
+
+const AddForm = memo(function AddForm({ fields, saveLabel, onSave, footer }: AddFormProps) {
+  const [values, setValues] = useState<Record<string, string>>({});
+
+  function submit() {
+    onSave(values);
+    setValues({});
+  }
+
+  return (
+    <div style={addFormStyle}>
+      {fields.map((f, i) => (
+        <input
+          key={f.key}
+          type="text"
+          value={values[f.key] ?? ''}
+          onChange={(e) => {
+            const v = e.target.value;
+            setValues((prev) => ({ ...prev, [f.key]: v }));
+          }}
+          placeholder={f.placeholder}
+          autoFocus={i === 0}
+          style={{
+            ...inputStyle,
+            ...(i > 0 ? { marginTop: 6 } : {}),
+            ...(f.mono ? { fontFamily: tokens.font.mono, fontSize: 11 } : {}),
+          }}
+          onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
+        />
+      ))}
+      {footer}
+      <button onClick={submit} style={saveButtonStyle}>{saveLabel}</button>
+    </div>
+  );
+});
+
 export default function Sidebar() {
   const pathname = usePathname();
   const [shortcuts, setShortcuts] = useState<Shortcut[]>(DEFAULT_SHORTCUTS);
   const [folders, setFolders] = useState<FolderShortcut[]>([]);
   const [mySites, setMySites] = useState<MySite[]>([]);
   const [addSiteOpen, setAddSiteOpen] = useState(false);
-  const [newSiteLabel, setNewSiteLabel] = useState('');
-  const [newSiteUrl, setNewSiteUrl] = useState('');
   const [addOpen, setAddOpen] = useState(false);
   const [addFolderOpen, setAddFolderOpen] = useState(false);
-  const [newLabel, setNewLabel] = useState('');
-  const [newUrl, setNewUrl] = useState('');
-  const [newIcon, setNewIcon] = useState('🔗');
-  const [newFolderLabel, setNewFolderLabel] = useState('');
-  const [newFolderPath, setNewFolderPath] = useState('');
+  // Felt-state for add-formene bor inni <AddForm> (memoized) - ikke her.
+  // Se kommentar over AddForm-komponenten oppe i filen.
   const [mounted, setMounted] = useState(false);
   const desktop = getDesktopAPI();
 
@@ -202,13 +262,17 @@ export default function Sidebar() {
   const [editSiteLabel, setEditSiteLabel] = useState('');
   const [editSiteUrl, setEditSiteUrl] = useState('');
 
-  function addSite() {
-    if (!newSiteUrl.trim()) return;
-    const { url, kind } = normalizeUrl(newSiteUrl);
-    let label = newSiteLabel.trim();
+  // Stable callbacks for AddForm - bruker ref-pattern slik at memo'd AddForm
+  // ikke re-rendrer naar Sidebar-state endrer seg. Refen oppdateres hver render
+  // (synkront), men funksjonsreferansen sendt til AddForm er stabil.
+  const addSiteRef = useRef<(values: Record<string, string>) => void>(() => {});
+  addSiteRef.current = (values) => {
+    const rawUrl = (values.url || '').trim();
+    if (!rawUrl) return;
+    const { url, kind } = normalizeUrl(rawUrl);
+    let label = (values.label || '').trim();
     if (!label) {
       if (kind === 'file') {
-        // Vise filnavn som default-label for lokale filer
         label = url.split(/[\\/]/).pop() || 'Lokal fil';
       } else {
         try {
@@ -219,10 +283,11 @@ export default function Sidebar() {
       }
     }
     persistSites([...mySites, { id: 's-' + Date.now(), label, url }]);
-    setNewSiteLabel('');
-    setNewSiteUrl('');
     setAddSiteOpen(false);
-  }
+  };
+  const handleAddSite = useCallback((values: Record<string, string>) => {
+    addSiteRef.current(values);
+  }, []);
   function removeSite(id: string) {
     persistSites(mySites.filter((s) => s.id !== id));
   }
@@ -279,20 +344,24 @@ export default function Sidebar() {
   const [editFolderLabel, setEditFolderLabel] = useState('');
   const [editFolderPath, setEditFolderPath] = useState('');
 
-  function addFolder() {
-    if (!newFolderPath.trim()) return;
+  // Stable callback - se kommentar over addSiteRef.
+  const addFolderRef = useRef<(values: Record<string, string>) => void>(() => {});
+  addFolderRef.current = (values) => {
+    const rawPath = (values.path || '').trim();
+    if (!rawPath) return;
     persistFolders([
       ...folders,
       {
         id: 'f-' + Date.now(),
-        label: newFolderLabel.trim() || newFolderPath.split(/[\\/]/).pop() || 'Mappe',
-        path: newFolderPath.trim(),
+        label: (values.label || '').trim() || rawPath.split(/[\\/]/).pop() || 'Mappe',
+        path: rawPath,
       },
     ]);
-    setNewFolderLabel('');
-    setNewFolderPath('');
     setAddFolderOpen(false);
-  }
+  };
+  const handleAddFolder = useCallback((values: Record<string, string>) => {
+    addFolderRef.current(values);
+  }, []);
 
   function deleteFolder(id: string) {
     persistFolders(folders.filter((f) => f.id !== id));
@@ -389,18 +458,22 @@ export default function Sidebar() {
     // I browser: la default-oppførsel (target="_blank") fungere
   }
 
-  function addShortcut() {
-    if (!newLabel.trim() || !newUrl.trim()) return;
-    const { url } = normalizeUrl(newUrl);
+  // Stable callback - se kommentar over addSiteRef.
+  const addShortcutRef = useRef<(values: Record<string, string>) => void>(() => {});
+  addShortcutRef.current = (values) => {
+    const label = (values.label || '').trim();
+    const rawUrl = (values.url || '').trim();
+    if (!label || !rawUrl) return;
+    const { url } = normalizeUrl(rawUrl);
     persist([
       ...shortcuts,
-      { id: 'u-' + Date.now(), label: newLabel.trim(), url, icon: newIcon || '🔗' },
+      { id: 'u-' + Date.now(), label, url, icon: '🔗' },
     ]);
-    setNewLabel('');
-    setNewUrl('');
-    setNewIcon('🔗');
     setAddOpen(false);
-  }
+  };
+  const handleAddShortcut = useCallback((values: Record<string, string>) => {
+    addShortcutRef.current(values);
+  }, []);
 
   function deleteShortcut(id: string) {
     persist(shortcuts.filter((s) => s.id !== id));
@@ -553,27 +626,14 @@ export default function Sidebar() {
         }
       >
         {addOpen && (
-          <div style={addFormStyle}>
-            <input
-              type="text"
-              value={newLabel}
-              onChange={(e) => setNewLabel(e.target.value)}
-              placeholder="Navn (f.eks. Slack)"
-              style={inputStyle}
-              autoFocus
-            />
-            <input
-              type="text"
-              value={newUrl}
-              onChange={(e) => setNewUrl(e.target.value)}
-              placeholder="URL eller domene"
-              style={{ ...inputStyle, marginTop: 6 }}
-              onKeyDown={(e) => e.key === 'Enter' && addShortcut()}
-            />
-            <button onClick={addShortcut} style={saveButtonStyle}>
-              Lagre snarvei
-            </button>
-          </div>
+          <AddForm
+            fields={[
+              { key: 'label', placeholder: 'Navn (f.eks. Slack)' },
+              { key: 'url', placeholder: 'URL eller domene' },
+            ]}
+            saveLabel="Lagre snarvei"
+            onSave={handleAddShortcut}
+          />
         )}
 
         {mounted &&
@@ -693,29 +753,19 @@ export default function Sidebar() {
         }
       >
         {addFolderOpen && (
-          <div style={addFormStyle}>
-            <input
-              type="text"
-              value={newFolderLabel}
-              onChange={(e) => setNewFolderLabel(e.target.value)}
-              placeholder="Navn (valgfritt)"
-              style={inputStyle}
-            />
-            <input
-              type="text"
-              value={newFolderPath}
-              onChange={(e) => setNewFolderPath(e.target.value)}
-              placeholder={'C:\\Jobb\\Sakspilot'}
-              style={{ ...inputStyle, marginTop: 6, fontFamily: tokens.font.mono, fontSize: 11 }}
-              onKeyDown={(e) => e.key === 'Enter' && addFolder()}
-            />
-            {!desktop.isDesktop && (
+          <AddForm
+            fields={[
+              { key: 'label', placeholder: 'Navn (valgfritt)' },
+              { key: 'path', placeholder: 'C:\\Jobb\\Sakspilot', mono: true },
+            ]}
+            saveLabel="Lagre"
+            onSave={handleAddFolder}
+            footer={!desktop.isDesktop ? (
               <div style={{ fontSize: 10, color: tokens.color.textSubtle, marginTop: 6, lineHeight: 1.3 }}>
                 ⓘ Krever Sakspilot Desktop for å åpne mappa.
               </div>
-            )}
-            <button onClick={addFolder} style={saveButtonStyle}>Lagre</button>
-          </div>
+            ) : null}
+          />
         )}
 
         {mounted && folders.length === 0 && !addFolderOpen && (
@@ -823,29 +873,14 @@ export default function Sidebar() {
         }
       >
         {addSiteOpen && (
-          <div style={addFormStyle}>
-            {/* Navn forst sa autoFocus gar dit som er valgfritt - URL er det
-                pakrevde feltet, og brukeren kan tab dit etter. Tidligere var
-                URL forst med autoFocus, og navn-feltet hang noen ms ved klikk
-                pga re-render av soskenkomponenter (cloud-sync polling). */}
-            <input
-              type="text"
-              value={newSiteLabel}
-              onChange={(e) => setNewSiteLabel(e.target.value)}
-              placeholder="Navn (valgfritt)"
-              style={inputStyle}
-              autoFocus
-            />
-            <input
-              type="text"
-              value={newSiteUrl}
-              onChange={(e) => setNewSiteUrl(e.target.value)}
-              placeholder="luxushair.com eller C:\\Users\\..."
-              style={{ ...inputStyle, marginTop: 6 }}
-              onKeyDown={(e) => e.key === 'Enter' && addSite()}
-            />
-            <button onClick={addSite} style={saveButtonStyle}>Lagre site</button>
-          </div>
+          <AddForm
+            fields={[
+              { key: 'label', placeholder: 'Navn (valgfritt)' },
+              { key: 'url', placeholder: 'luxushair.com eller C:\\Users\\...' },
+            ]}
+            saveLabel="Lagre site"
+            onSave={handleAddSite}
+          />
         )}
 
         {mounted && mySites.length === 0 && !addSiteOpen && (
