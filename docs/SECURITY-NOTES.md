@@ -1,7 +1,18 @@
 # Sakspilot: Sikkerhetsgap og herding-status
 
-> Ærlig oversikt over kjente sikkerhetsgap. Oppdatert 3. juni 2026.
-> Basert på ekstern kode-review samme dag.
+> Ærlig oversikt over kjente sikkerhetsgap. Oppdatert 5. juni 2026.
+> Basert på ekstern kode-review 3. juni + 12-områder-review 4-5. juni.
+
+## Lukket 4-5. juni 2026 (12-områder review-runde)
+
+| # | Hva | Hvor | Fix |
+|---|---|---|---|
+| 13 | **PII i server-logs** (emails i klartekst i Render-loggene) | `auth.ts`, `downloads.ts`, `clientPortal.ts`, `team.ts` | `maskEmail()`-helper i hver fil. Logger nå `kar***@example.com` istedenfor full email. |
+| 14 | **Reset-token leaket i forgot-password-logg ved SMTP-feil** | `auth.ts` | Reset-URL fjernet helt fra fallback-loggen. Logger bare `userId` nå. |
+| 15 | **Sensitive felter i 500-error-body-log** (passord, tokens) | `index.ts` error-handler | Redactes til `[REDACTED]` før JSON.stringify. |
+| 16 | **CSP: legacy Plausible-domener** | `next.config.js` | Fjernet fra `script-src` og `connect-src`. Bare Umami beholdt. |
+| 17 | **Hero-bilde med TODO i alt-text** (leaket til skjermlesere + crawlere) | `apps/web/src/app/page.tsx` | Erstattet med stilisert "S"-monogram + ren alt-tekst. |
+| 18 | **404-side førte utloggede inn i redirect-loop** | `apps/web/src/app/not-found.tsx` | Peker nå til `/` istedenfor `/hjem`. |
 
 ## Lukket 3. juni 2026
 

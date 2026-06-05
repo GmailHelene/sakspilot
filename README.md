@@ -148,16 +148,18 @@ cd apps/desktop && npm start
 
 ```bash
 cd apps/desktop && npm run build:exe
-# Output: apps/desktop/release/Sakspilot-0.0.1-win-x64.zip
+# Output: apps/desktop/release/Sakspilot-0.0.15-win-x64.zip
 ```
 
 ## Dokumenter
 
-- **[Status pr 3. juni 2026](docs/STATUS-2026-06-03.md)** - siste snapshot (27 nye fixes på én dag, fullt feature-sett dokumentert)
-- [Status pr 1. juni 2026](docs/STATUS-2026-06-01.md) - forrige snapshot
+- **[Status pr 5. juni 2026](docs/STATUS-2026-06-05.md)** - siste snapshot. Ekstern code-review fullført, pilot-admin-verktøy live, CI grønn med 84 tester.
+- [Status pr 3. juni 2026](docs/STATUS-2026-06-03.md) - forrige snapshot
+- [Status pr 1. juni 2026](docs/STATUS-2026-06-01.md) - eldre snapshot
 - [Status pr 31. mai 2026](docs/STATUS-2026-05-31.md) - eldre snapshot
 - [Status pr 28. mai 2026](docs/STATUS-2026-05-28.md) - eldre snapshot
 - [Neste steg + roadmap](docs/NESTE-STEG.md) - hva som gjenstår og prioritering
+- **[Sikkerhetsnotater](docs/SECURITY-NOTES.md)** - lukket vs åpne sikkerhetsgap, herding-roadmap
 - [Pilot-invitasjon til Nicole](docs/pilot-epost-nicole.md) - 3 versjoner
 - [Bruksanvisning for ansvarlig søker](docs/nicole-bruksanvisning-byggesak.md) - vedlegg til Nicole
 - [LinkedIn-post (3 versjoner)](docs/linkedin-post.md) - lansering
