@@ -159,18 +159,25 @@ export async function api<T = unknown>(
       typeof window !== 'undefined' &&
       path.startsWith('/auth/me')
     ) {
+      // VIKTIG: Tom kun auth/identifikator-noklar, IKKE bruker-preferences.
+      // Tidligere tomte vi 'sakspilot_onboarded' her, men det fikk onboarding-
+      // modalen til a poppe opp etter hver utlogging - selv om brukeren har
+      // onboardet for lenge siden. Bruker-prefs (shortcuts, sites, mapper,
+      // onboarded-flagg, bransje) tilhorer brukeren og overlever logout.
+      // Sletting av prefs skjer i OnboardingModal NAR det faktisk er en
+      // bruker-switch (lastUser !== me.id i useEffect).
       const keys = [
         'sakspilot_token',   // legacy - XSS-fix 3/6
         'sakspilot_authed',
         'sakspilot_active_user',
-        'sakspilot_onboarded',
-        'sakspilot_profession',
-        'sakspilot_launcher_apps',
-        'sakspilot_shortcuts',
-        'sakspilot_folder_shortcuts',
-        'sakspilot_my_sites',
-        'sakspilot_hidden_nav',
-        'sakspilot_hjem_hidden_widgets',
+        // sakspilot_onboarded BEHOLDES - prefs som tilhorer brukeren
+        // sakspilot_profession BEHOLDES
+        // sakspilot_launcher_apps BEHOLDES
+        // sakspilot_shortcuts BEHOLDES
+        // sakspilot_folder_shortcuts BEHOLDES
+        // sakspilot_my_sites BEHOLDES
+        // sakspilot_hidden_nav BEHOLDES
+        // sakspilot_hjem_hidden_widgets BEHOLDES
       ];
       for (const k of keys) localStorage.removeItem(k);
       const here = window.location.pathname;

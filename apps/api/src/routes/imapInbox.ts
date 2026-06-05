@@ -147,9 +147,32 @@ router.get("/", requireAuth, async (req: Request, res: Response) => {
     return res.json({ user, total, count: messages.length, messages });
   } catch (err) {
     try { await client.logout(); } catch { /* ignore */ }
-    console.error("[imap-inbox] feilet:", err);
+    // Detaljert feilmelding med hint om hva som typisk er galt
+    const errMsg = err instanceof Error ? err.message : String(err);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const errCode = (err as any)?.responseStatus || (err as any)?.code || null;
+    console.error("[imap-inbox] feilet:", { errMsg, errCode, host, user, port });
+
+    let hint = "";
+    if (/auth|AUTH|invalid credentials|LOGIN failed|BAD/i.test(errMsg)) {
+      hint = " Sjekk at IMAP_USER er full epost (kontakt@helene.cloud) og IMAP_PASS er korrekt webmail-passord. Hvis du har 2FA pa Domeneshop, ma du generere et app-spesifikt passord i kontrollpanelet under Konto -> 2-faktor.";
+    } else if (/timeout|ETIMEDOUT|ECONNREFUSED|ENOTFOUND/i.test(errMsg)) {
+      hint = " Server-tilkobling feilet. Sjekk at IMAP_HOST=imap.domeneshop.no og IMAP_PORT=993 i Render env-vars.";
+    } else if (/Command failed/i.test(errMsg)) {
+      hint = " Generisk IMAP-feil. Mest sannsynlig: feil passord, eller 2FA aktivert pa Domeneshop uten app-passord. Test ved a logge inn pa Domeneshop webmail med samme passord.";
+    } else if (/TLS|SSL|certificate/i.test(errMsg)) {
+      hint = " TLS-problem. Sett IMAP_TLS=true i env-vars.";
+    }
+
     return res.status(502).json({
-      error: err instanceof Error ? err.message : "IMAP-henting feilet",
+      error: `IMAP feilet: ${errMsg}${errCode ? ` (code: ${errCode})` : ""}.${hint}`,
+      debug: {
+        host,
+        port,
+        user,
+        secure,
+        responseStatus: errCode,
+      },
     });
   }
 });
