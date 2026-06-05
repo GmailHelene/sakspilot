@@ -334,6 +334,7 @@ export default function Sidebar() {
   // selve sorteringen skjer paa drop. Native HTML5 drag-API - ingen lib.
   const [dragShortcutId, setDragShortcutId] = useState<string | null>(null);
   const [dragSiteId, setDragSiteId] = useState<string | null>(null);
+  const [dragFolderId, setDragFolderId] = useState<string | null>(null);
 
   function reorderShortcuts(fromId: string, toId: string) {
     if (fromId === toId) return;
@@ -355,6 +356,17 @@ export default function Sidebar() {
     const [moved] = next.splice(fromIdx, 1);
     next.splice(toIdx, 0, moved);
     persistSites(next);
+  }
+
+  function reorderFolders(fromId: string, toId: string) {
+    if (fromId === toId) return;
+    const fromIdx = folders.findIndex((f) => f.id === fromId);
+    const toIdx = folders.findIndex((f) => f.id === toId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const next = [...folders];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
+    persistFolders(next);
   }
 
   async function openShortcut(e: React.MouseEvent, s: Shortcut) {
@@ -740,7 +752,32 @@ export default function Sidebar() {
             );
           }
           return (
-            <div key={f.id} style={{ position: 'relative' }}>
+            <div
+              key={f.id}
+              style={{
+                position: 'relative',
+                opacity: dragFolderId === f.id ? 0.4 : 1,
+                cursor: 'grab',
+              }}
+              className="shortcut-row"
+              draggable
+              onDragStart={(e) => {
+                setDragFolderId(f.id);
+                e.dataTransfer.effectAllowed = 'move';
+              }}
+              onDragOver={(e) => {
+                if (dragFolderId && dragFolderId !== f.id) {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                }
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragFolderId) reorderFolders(dragFolderId, f.id);
+                setDragFolderId(null);
+              }}
+              onDragEnd={() => setDragFolderId(null)}
+            >
               <button
                 onClick={() => openFolder(f.path)}
                 style={{ ...itemStyle, paddingRight: 54, width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13 }}
