@@ -246,8 +246,26 @@ export default function Sidebar() {
     function navHandler() {
       setNavTick((t) => t + 1);
     }
+    // Lytt pa cloud-sync som har restaurert prefs fra DB.
+    // Uten dette har Sidebar mountet med tom state (fersk .exe-install
+    // har tom localStorage) og brukeren tror snarveier/sites/mapper er borte
+    // selv om de er restaurert i bakgrunnen.
+    function prefsRestoredHandler() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) setShortcuts(JSON.parse(stored));
+        const storedFolders = localStorage.getItem(FOLDER_STORAGE);
+        if (storedFolders) setFolders(JSON.parse(storedFolders));
+        const storedSites = localStorage.getItem(SITES_STORAGE);
+        if (storedSites) setMySites(JSON.parse(storedSites));
+      } catch {}
+    }
     window.addEventListener('sakspilot:nav-updated', navHandler);
-    return () => window.removeEventListener('sakspilot:nav-updated', navHandler);
+    window.addEventListener('sakspilot:prefs-restored', prefsRestoredHandler);
+    return () => {
+      window.removeEventListener('sakspilot:nav-updated', navHandler);
+      window.removeEventListener('sakspilot:prefs-restored', prefsRestoredHandler);
+    };
   }, []);
 
   function persistSites(next: MySite[]) {

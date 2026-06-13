@@ -61,6 +61,11 @@ export async function initPreferenceSync(): Promise<void> {
   initialized = true;
 
   // Steg 1: hent fra DB og populér manglende keys
+  // VIKTIG: dispatch events etter populering sa komponenter som Sidebar +
+  // Launcher kan re-lese fra localStorage. Uten dette har Sidebar allerede
+  // mountet med tom state og ser aldri den synced-inn dataen, brukeren tror
+  // alle snarveier/sites/mapper er borte etter ny .exe-install.
+  let restoredAny = false;
   try {
     const remote = await api<Record<string, string>>('/me/preferences');
     if (remote && typeof remote === 'object') {
@@ -71,11 +76,20 @@ export async function initPreferenceSync(): Promise<void> {
           localStorage.getItem(k) === null
         ) {
           localStorage.setItem(k, v);
+          restoredAny = true;
         }
       }
     }
   } catch {
     // ignorer, vi prøver igjen ved neste pageload
+  }
+  if (restoredAny) {
+    // Sidebar lytter pa prefs-restored og sites-updated for shortcuts/sites/folders
+    // Launcher lytter pa launcher-updated og sites-updated for apper
+    window.dispatchEvent(new Event('sakspilot:prefs-restored'));
+    window.dispatchEvent(new Event('sakspilot:sites-updated'));
+    window.dispatchEvent(new Event('sakspilot:launcher-updated'));
+    window.dispatchEvent(new Event('sakspilot:nav-updated'));
   }
 
   lastSentHash = JSON.stringify(snapshot());

@@ -204,6 +204,7 @@ function initializeAgent() {
     // Hvis auto-track er på, sett aktiv-sak-fallback fra siste lagrede valg
     // og start arbeidsøkten automatisk så bruker ikke trenger gjøre noe.
     if (store.get('autoTrackOpened')) {
+      if (poller.setAutoTrackEnabled) poller.setAutoTrackEnabled(true);
       poller.setActiveSakFallback(
         store.get('activeSakId'),
         store.get('activeSakTitle')
@@ -588,6 +589,11 @@ function ensureWorkSessionForOpen() {
 function setAutoTrack(enabled) {
   store.set('autoTrackOpened', !!enabled);
   if (poller) {
+    // Sett auto-track-modus separat fra active-sak. Dette gjor at sesjoner
+    // teller som fakturerbare nar auto-track er paa, selv om brukeren ikke
+    // har valgt en aktiv sak enda - rapporten kategoriserer dem som
+    // "Ukategorisert" istedenfor "ikke-fakturerbart".
+    if (poller.setAutoTrackEnabled) poller.setAutoTrackEnabled(!!enabled);
     if (enabled) {
       poller.setActiveSakFallback(
         store.get('activeSakId'),

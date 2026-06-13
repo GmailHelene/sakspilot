@@ -177,8 +177,7 @@ class Poller extends EventEmitter {
         return { sakId: rule.sakId, sakTitle: rule.sakTitle, matchedOn: rule.type };
       }
     }
-    // Fallback: auto-track-modus setter "active sak" som default-attribusjon
-    // for alt som ikke matcher en eksplisitt regel.
+    // Fallback 1: auto-track-modus med aktiv sak satt -> attribuer til den saken
     if (this.activeSakFallback) {
       return {
         sakId: this.activeSakFallback.sakId,
@@ -186,7 +185,27 @@ class Poller extends EventEmitter {
         matchedOn: 'active-sak',
       };
     }
+    // Fallback 2: auto-track er PA men ingen aktiv sak valgt.
+    // Sesjonen telles fortsatt som fakturerbar (matchedOn='auto-track')
+    // siden brukeren har eksplisitt slatt pa tidssporing - intensjonen er
+    // a fakturere denne tiden. Sesjonen gar i "Ukategorisert"-botta i
+    // rapporten til brukeren tagger den til en sak.
+    if (this._autoTrackEnabled) {
+      return {
+        sakId: null,
+        sakTitle: null,
+        matchedOn: 'auto-track',
+      };
+    }
     return null;
+  }
+
+  /**
+   * Slass av/pa "auto-track-modus uten valgt sak teller som fakturerbar".
+   * Settes fra main.js sammen med activeSakFallback for backward-compat.
+   */
+  setAutoTrackEnabled(enabled) {
+    this._autoTrackEnabled = !!enabled;
   }
 
   _isSameWindow(a, b) {
