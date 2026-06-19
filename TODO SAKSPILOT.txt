@@ -70,7 +70,7 @@ INTEGRASJONER - venter
 DEMO + DEV
 URL:      https://sakspilot.no/login
 E-post:   demo.advokat@sakspilot.no
-Passord:  Demo!uSQrPcaXKuu7
+Passord:  (settes via DEMO_PASSWORD env-var ved seed-kjoring, ikke i repo)
 
 Lokal dev:
 - Start - Sakspilot dev.bat (API + web)

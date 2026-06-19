@@ -17,7 +17,7 @@ export const FAQ = [
   },
   {
     q: 'Lagres data i EU?',
-    a: 'Ja. All data lagres på EU-servere (Neon i Frankfurt). Du har full data-eksport (GDPR §15) og slette-rett (§17) tilgjengelig i innstillinger. Ingen tracking-cookies - bruker Umami analytics (samtykke-fritt).',
+    a: 'Ja. All lagret data ligger på EU-servere (Neon i Frankfurt). Ett unntak: AI-assistenten sender en liten mengde metadata til Anthropic (se eget punkt om AI under) - den lagrer vi ikke utenfor EU, men selve AI-kallet behandles hos Anthropic. Du har full data-eksport (GDPR §15) og slette-rett (§17) i innstillinger. Ingen tracking-cookies - bruker Umami analytics (samtykke-fritt).',
   },
   {
     q: 'Hva med GDPR?',

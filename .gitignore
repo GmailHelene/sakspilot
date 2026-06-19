@@ -60,3 +60,6 @@ apps/Sakspilot.exe
 
 # Arbeidsøkt-rapporter (Helenes egen arbeidsdata, ikke kode)
 Sakspilot-arbeidsokt-*.xlsx
+
+# Lekket-creds-filer, skal aldri i repo
+demo-bruker.txt
