@@ -11,16 +11,16 @@ export const metadata: Metadata = {
   alternates: { canonical: '/priser' },
 };
 
+// Pilot-fokus 2026-06: lista speiler kjernen vi faktisk viser (tid -> faktura
+// -> eksport). Skjulte features (Outlook, AI, klient-portal, agenter,
+// klistrelapper, tidslinje) er tatt ut til de evt. re-aktiveres.
 const FEATURES = [
   'Prosjekt-CRM med kanban + tabell',
   'Automatisk tidsregistrering (Windows-app)',
-  'Outlook-integrasjon (Microsoft Graph)',
-  'AI-assistent (Claude - oppsummer + skriv eposter)',
-  'Klient-portal med delte lenker',
+  'Fakturagrunnlag med MVA-rapport',
+  'Regnskapsoversikt (utgifter + inntekter)',
   'CSV-eksport til Tripletex / Fiken',
-  'Agenter (automatiseringer Monday-stil)',
-  'Klistrelapper + kanban',
-  'Kalender + tidslinje',
+  'Kalender med frister',
   'GDPR-eksport + slette-rett',
   'Mobil-app (PWA - iOS + Android)',
   'Ubegrenset antall prosjekter + klienter',

@@ -417,7 +417,9 @@ export default function HjemPage() {
               <QuickAction href="/saker/ny" icon={<Briefcase size={16} strokeWidth={2} />} label="Nytt prosjekt" />
               <QuickAction href="/klienter/ny" icon={<Plus size={16} strokeWidth={2} />} label="Ny klient" />
               <QuickAction href="/kalender" icon={<CalendarClock size={16} strokeWidth={2} />} label="Se kalender" />
-              <QuickAction href="/gantt" icon={<TrendingUp size={16} strokeWidth={2} />} label="Tidslinje" />
+              {/* Var "/gantt Tidslinje" - Gantt er skjult (pilot-fokus). Peker
+                  na til fakturaer, som er kjerneverdien. */}
+              <QuickAction href="/fakturaer" icon={<TrendingUp size={16} strokeWidth={2} />} label="Fakturaer" />
             </div>
           </Widget>
           )}

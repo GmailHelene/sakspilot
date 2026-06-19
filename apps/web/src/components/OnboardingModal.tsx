@@ -280,16 +280,16 @@ export default function OnboardingModal() {
                 desc="Aldri glem å starte timer. Sakspilot ser hva du jobber på basert på vindustittel."
               />
               <FeatureRow
-                title="🤖 Agenter / automatiseringer"
-                desc='Når et prosjekt blir Ferdig - Sakspilot lager automatisk en klistrelapp som minner deg om å sende faktura.'
+                title="🧾 Fakturagrunnlag med MVA"
+                desc="Timene blir til fakturagrunnlag automatisk. MVA-rapport ferdig ved månedsslutt."
               />
               <FeatureRow
-                title="✨ AI-assistent (Claude)"
-                desc="Få oppsummert prosjekter. La AI-en skrive utkast til klient-eposter (status, utsettelse, faktura-påminnelse)."
+                title="📊 Regnskapsoversikt"
+                desc="Utgifter og inntekter samlet. Hold oversikt uten å hoppe mellom Excel-ark."
               />
               <FeatureRow
-                title="🔗 Del med klient"
-                desc="Generer offentlig lenke per prosjekt. Klienten ser status og fremdrift uten å logge inn."
+                title="📤 Eksport til Tripletex / Fiken"
+                desc="CSV-eksport av timer og fakturagrunnlag - rett inn i regnskapssystemet du allerede bruker."
               />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24 }}>
@@ -344,17 +344,17 @@ export default function OnboardingModal() {
                 onClick={finish}
               />
               <NextStepLink
-                href="/agenter"
+                href="/last-ned"
                 number="3"
-                title="Aktiver en agent"
-                desc="«Faktura-påminnelse» eller «Klistrelapp ved nytt prosjekt»"
+                title="Last ned desktop-appen"
+                desc="Automatisk tidsregistrering - timene logges mens du jobber"
                 onClick={finish}
               />
               <NextStepLink
-                href="/innstillinger/integrasjoner"
+                href="/fakturaer"
                 number="4"
-                title="Koble til Outlook"
-                desc="E-poster knyttes automatisk til prosjekter"
+                title="Lag ditt første fakturagrunnlag"
+                desc="Timene blir til faktura - ferdig ved månedsslutt"
                 onClick={finish}
               />
             </div>
