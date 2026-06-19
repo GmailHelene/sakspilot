@@ -114,12 +114,15 @@ const STORAGE_KEY = 'sakspilot_shortcuts';
 // vi tar dem bare ut av nav. Reverser ved aa tomme dette settet.
 const PILOT_DISABLED_NAV = new Set<string>([
   'statistikk',
-  'tidslinje',     // Gantt
+  'tidslinje',      // Gantt
   'klistrelapper',
   'agenter',
-  'kalender-feed', // iCal/Outlook-feed
+  'kalender-feed',  // iCal/Outlook-feed
   'team',
-  'domener',       // white-label / egne domener
+  'domener',        // white-label / egne domener
+  'forespørsler',   // leads-pipeline - skjult til den faktisk brukes
+  'integrasjoner',  // siden er Outlook-only (skjult). CSV/Fiken/Tripletex-
+                    // eksport bor uansett paa /regnskap, /rapport, /fakturaer.
 ]);
 
 /**
