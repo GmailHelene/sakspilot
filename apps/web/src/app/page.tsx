@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Header from '@/components/Header';
 import { tokens } from '@/lib/tokens';
-import { Check, Clock, Mail, FileText, Zap, Share2, Lock, Smartphone, Target, Bot, Wallet, HardHat, Download } from 'lucide-react';
+import { Check, Clock, FileText, Lock, Smartphone, Target, Wallet, HardHat, Download } from 'lucide-react';
 import DemoVideoModal from './_components/DemoVideoModal';
 import ComparisonTable from './_components/ComparisonTable';
 import Testimonials from './_components/Testimonials';
@@ -221,13 +221,15 @@ export default function LandingPage() {
                 title: 'Auto-spor',
                 desc: 'Én bryter - alt du åpner via Sakspilot telles automatisk på riktig prosjekt. Du slipper start/stopp-timer.',
               },
-              {
-                Icon: Bot,
-                tint: tokens.color.purpleSoft,
-                fg: tokens.color.purple,
-                title: 'AI-utkast til klient-eposter',
-                desc: 'Claude under panseret. Oppsummer prosjekt, foreslå svar, formuler tilbud - alltid på norsk.',
-              },
+              // Skjult 2026-06 til EU-hosting av AI (Bedrock EU) er aktivert.
+              // Forsiden lover EU-data; Anthropic-API gaar i dag via USA.
+              // {
+              //   Icon: Bot,
+              //   tint: tokens.color.purpleSoft,
+              //   fg: tokens.color.purple,
+              //   title: 'AI-utkast til klient-eposter',
+              //   desc: 'Claude under panseret. Oppsummer prosjekt, foreslå svar, formuler tilbud - alltid på norsk.',
+              // },
               {
                 Icon: Wallet,
                 tint: tokens.color.greenSoft,
@@ -323,12 +325,14 @@ export default function LandingPage() {
             {[
               { Icon: Clock, title: 'Automatisk tidsregistrering', desc: 'Desktop-agent logger tid basert på matching-regler' },
               { Icon: FileText, title: 'CSV / Fiken-eksport', desc: 'Månedsrapport én klikk unna' },
-              { Icon: Mail, title: 'Outlook-integrasjon', desc: 'E-poster kobles automatisk til riktig prosjekt' },
-              { Icon: Zap, title: 'Agenter / automatiseringer', desc: 'Monday-stil: når X, gjør Y' },
-              { Icon: Share2, title: 'Delt visning til klient', desc: 'Generer offentlig lenke per prosjekt - uten innlogging' },
+              // Skjult 2026-06 (pilot-fokus). Routene beholdes, tas ut av forsiden:
+              // { Icon: Mail, title: 'Outlook-integrasjon', desc: 'E-poster kobles automatisk til riktig prosjekt' },
+              // { Icon: Zap, title: 'Agenter / automatiseringer', desc: 'Monday-stil: når X, gjør Y' },
+              // { Icon: Share2, title: 'Delt visning til klient', desc: 'Generer offentlig lenke per prosjekt - uten innlogging' },
               { Icon: Lock, title: 'GDPR-klar', desc: 'Innsynsrett + sletteplikt innebygget' },
               { Icon: Smartphone, title: 'Mobil + desktop', desc: 'PWA på telefon, desktop-app på Windows' },
-              { Icon: Check, title: 'AI-assistent', desc: 'Oppsummer prosjekter og skriv klient-eposter' },
+              // Skjult til EU-AI er aktivert (samme grunn som verdikortet over):
+              // { Icon: Check, title: 'AI-assistent', desc: 'Oppsummer prosjekter og skriv klient-eposter' },
             ].map(({ Icon, title, desc }) => (
               <div
                 key={title}

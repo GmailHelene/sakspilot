@@ -17,7 +17,9 @@ const ROWS: Array<{ feature: string; values: boolean[] }> = [
   { feature: 'Klient-CRM med kanban og tabell',           values: [true,  false, false, true ] },
   { feature: 'Faktura-generering med MVA-rapport',        values: [true,  true,  false, false] },
   { feature: 'Bransje-onboarding for ENK',                values: [true,  false, false, false] },
-  { feature: 'AI-utkast for klient-eposter',              values: [true,  false, false, true ] },
+  // Skjult 2026-06: AI-raden tas ut sa lenge AI ikke vises paa forsiden
+  // (til EU-hosting av AI via Bedrock er aktivert). Reverser ved behov.
+  // { feature: 'AI-utkast for klient-eposter',              values: [true,  false, false, true ] },
   { feature: 'Norsk språk og EU-data',                    values: [true,  true,  false, false] },
   { feature: 'Full regnskapsføring (bilag, lønn)',        values: [false, true,  false, false] },
   { feature: 'Offentlige bank-integrasjoner',             values: [false, true,  false, false] },

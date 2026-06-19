@@ -109,6 +109,19 @@ const DEFAULT_SHORTCUTS: Shortcut[] = [];
 
 const STORAGE_KEY = 'sakspilot_shortcuts';
 
+// Pilot-fokus (2026-06): skjul features utenfor kjernen
+// (tidsregistrering -> faktura/MVA -> eksport). Routene og koden beholdes;
+// vi tar dem bare ut av nav. Reverser ved aa tomme dette settet.
+const PILOT_DISABLED_NAV = new Set<string>([
+  'statistikk',
+  'tidslinje',     // Gantt
+  'klistrelapper',
+  'agenter',
+  'kalender-feed', // iCal/Outlook-feed
+  'team',
+  'domener',       // white-label / egne domener
+]);
+
 /**
  * AddForm - memoized sub-komponent med EGEN intern state.
  *
@@ -543,6 +556,8 @@ export default function Sidebar() {
     { id: 'feedback', href: '/feedback', label: 'Tilbakemelding', Icon: MessageSquare },
   ];
   const HIDDEN_NAV_KEY = 'sakspilot_hidden_nav';
+  // Pilot-fokus: fjern de deaktiverte features fra basen for ALLE brukere.
+  const PILOT_NAV = ALL_NAV.filter((n) => !PILOT_DISABLED_NAV.has(n.id));
   // navTick i deps tvinger re-eval når toggling skjer
   const navLinks = mounted
     ? (() => {
@@ -550,12 +565,12 @@ export default function Sidebar() {
         void navTick;
         try {
           const hidden = new Set(JSON.parse(localStorage.getItem(HIDDEN_NAV_KEY) || '[]') as string[]);
-          return ALL_NAV.filter((n) => !hidden.has(n.id));
+          return PILOT_NAV.filter((n) => !hidden.has(n.id));
         } catch {
-          return ALL_NAV;
+          return PILOT_NAV;
         }
       })()
-    : ALL_NAV;
+    : PILOT_NAV;
 
   return (
     <aside style={sidebarStyle}>
