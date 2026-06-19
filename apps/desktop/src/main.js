@@ -352,27 +352,33 @@ function updateTrayMenu() {
     }
     items.push({ type: 'separator' });
 
-    // Pomodoro-timer, egen seksjon mellom auto-spor og arbeidsøkt
-    if (pomodoroState) {
-      const remaining = pomodoroRemainingSec();
-      const phaseLabel = pomodoroState.phase === 'work'
-        ? `🟢 Arbeid ${formatDur(remaining)} igjen`
-        : `🟡 Pause ${formatDur(remaining)} igjen`;
-      items.push({
-        label: `🍅 Pomodoro #${pomodoroState.sessionNumber}: ${phaseLabel}`,
-        enabled: false,
-      });
-      items.push({ label: '■  Stopp pomodoro', click: () => stopPomodoro() });
-    } else {
-      const nextNum = pomodoroCompletedCount + 1;
-      items.push({
-        label: pomodoroCompletedCount > 0
-          ? `🍅 Start pomodoro #${nextNum} (25/5)`
-          : '🍅 Start pomodoro (25/5)',
-        click: () => startPomodoro(),
-      });
+    // Pomodoro skjult 2026-06 (pilot-fokus): desktop-agenten skal vaere ren
+    // tidsregistrering, ikke en produktivitets-launcher. All pomodoro-kode,
+    // funksjoner og IPC er beholdt - sett flagget til false for aa vise igjen.
+    const PILOT_HIDE_POMODORO = true;
+    if (!PILOT_HIDE_POMODORO) {
+      // Pomodoro-timer, egen seksjon mellom auto-spor og arbeidsøkt
+      if (pomodoroState) {
+        const remaining = pomodoroRemainingSec();
+        const phaseLabel = pomodoroState.phase === 'work'
+          ? `🟢 Arbeid ${formatDur(remaining)} igjen`
+          : `🟡 Pause ${formatDur(remaining)} igjen`;
+        items.push({
+          label: `🍅 Pomodoro #${pomodoroState.sessionNumber}: ${phaseLabel}`,
+          enabled: false,
+        });
+        items.push({ label: '■  Stopp pomodoro', click: () => stopPomodoro() });
+      } else {
+        const nextNum = pomodoroCompletedCount + 1;
+        items.push({
+          label: pomodoroCompletedCount > 0
+            ? `🍅 Start pomodoro #${nextNum} (25/5)`
+            : '🍅 Start pomodoro (25/5)',
+          click: () => startPomodoro(),
+        });
+      }
+      items.push({ type: 'separator' });
     }
-    items.push({ type: 'separator' });
 
     if (workSessionActive) {
       const elapsedSec = Math.round((Date.now() - workSessionStart) / 1000);
