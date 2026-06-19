@@ -1,0 +1,39 @@
+name: Keep API warm
+
+# Holder Render-gratis-API-en vaaken sa nye besokende slipper 30-60 sek
+# kaldstart. Render gratis sover etter ~15 min inaktivitet; vi pinger
+# /health hvert 10. minutt sa den aldri rekker aa sovne.
+#
+# Render gratis gir 750 instans-timer/maaned. En tjeneste vaaken 24/7
+# er ~730 t, sa det faar plass for EN tjeneste. Har du flere Render-
+# gratis-tjenester deler de potten - da maa intervallet opp eller en
+# tjeneste oppgraderes.
+#
+# Merk: GitHub-cron er "best effort" og kan forsinkes noen minutter
+# under last. For keep-warm er det greit. For skikkelig oppetidsvarsling
+# bruk UptimeRobot i tillegg.
+#
+# Workflowen feiler bevisst ikke paa en treg/manglende respons (|| true),
+# sa du slipper falsk-alarm-eposter ved en forbigaaende blipp.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # hvert 10. minutt
+  workflow_dispatch:           # lar deg kjore manuelt fra Actions-fanen
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping API /health
+        run: |
+          echo "Pinger api.sakspilot.no/health ..."
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 --retry 2 --retry-delay 5 https://api.sakspilot.no/health || echo "000")
+          echo "Svar: HTTP $code"
+          # Best-effort: ikke feil jobben paa en enkelt blipp.
+          if [ "$code" = "200" ]; then
+            echo "API er vaaken."
+          else
+            echo "Ingen 200 (kan vaere kaldstart akkurat na) - prover igjen neste runde."
+          fi
+          exit 0
