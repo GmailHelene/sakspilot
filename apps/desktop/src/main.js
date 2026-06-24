@@ -417,37 +417,29 @@ function updateTrayMenu() {
 
     items.push({ type: 'separator' });
     items.push({
-      label: `🔄 Synk til backend (${pendingSessions.length} ventende)`,
-      click: () => syncSessions(),
-    });
-    items.push({
-      label: '📊 Åpne dashbord (i Sakspilot)',
+      label: '📊 Åpne dashbord',
       click: () => openDashboardWindow(),
     });
     items.push({
-      label: '🔁 Last dashbord på nytt (Ctrl+Shift+R)',
-      enabled: !!(dashboardWindow && !dashboardWindow.isDestroyed()),
-      click: () => {
-        if (dashboardWindow && !dashboardWindow.isDestroyed()) {
-          dashboardWindow.webContents.session.clearCache().finally(() => {
-            if (!dashboardWindow.isDestroyed()) dashboardWindow.reload();
-          });
-        }
-      },
+      label: '🌐 Åpne sakspilot.no i nettleser',
+      click: () => shell.openExternal(`${getWebUrl()}/saker`),
     });
-    items.push({
-      label: '🌐 Åpne i nettleser',
-      click: () => {
-        const apiUrl = store.get('apiUrl') || 'https://api.sakspilot.no';
-        const webUrl = apiUrl.includes('sakspilot.no')
-          ? 'https://sakspilot.no'
-          : apiUrl.includes('onrender.com')
-            ? 'https://sakspilot-web.vercel.app'
-            : apiUrl.replace(/:\d+$/, ':3001');
-        shell.openExternal(`${webUrl}/saker`);
-      },
-    });
+    // Personvern: ett klikk for aa slutte aa logge appen du jobber i naa.
+    // Brukeren slipper aa apne innstillinger og skrive prosessnavn for hand.
+    const trackedApp = poller?.lastSnapshot?.owner?.name;
+    if (trackedApp) {
+      items.push({
+        label: `🙈 Ikke logg «${truncate(trackedApp, 26)}»`,
+        click: () => excludeCurrentApp(),
+      });
+    }
     items.push({ type: 'separator' });
+    items.push({
+      label: 'Start når Windows starter',
+      type: 'checkbox',
+      checked: app.getLoginItemSettings().openAtLogin,
+      click: (mi) => setOpenAtLogin(mi.checked),
+    });
     items.push({ label: '⚙  Innstillinger', click: () => openSettingsWindow() });
     items.push({ label: '🚪 Logg ut', click: () => logout() });
   } else {
@@ -460,12 +452,67 @@ function updateTrayMenu() {
   items.push({ label: 'ℹ  Sakspilot v' + app.getVersion(), enabled: false });
   items.push({ role: 'quit', label: '❌ Avslutt' });
 
+  // Tooltip viser status uten at brukeren maa aapne menyen - svar paa
+  // "logges det noe akkurat na?".
+  if (loggedIn && workSessionActive) {
+    const cur = status?.currentSession;
+    const what = cur?.sakTitle
+      ? `→ ${truncate(cur.sakTitle, 30)}`
+      : cur?.app
+        ? truncate(cur.app, 30)
+        : 'venter…';
+    tray.setToolTip(poller?.paused ? 'Sakspilot - pauset' : `Sakspilot - sporer ${what}`);
+  } else if (loggedIn) {
+    tray.setToolTip('Sakspilot - ingen aktiv arbeidsøkt (klikk Start)');
+  } else {
+    tray.setToolTip('Sakspilot - ikke innlogget');
+  }
+
   tray.setContextMenu(Menu.buildFromTemplate(items));
+}
+
+// Ekskluder appen brukeren jobber i akkurat na fra logging (personvern).
+// Leser aktivt vindu fra poller, lagrer i store, og oppdaterer poller live.
+function excludeCurrentApp() {
+  const appName = poller?.lastSnapshot?.owner?.name;
+  if (!appName) return;
+  const current = store.get('excludedApps') || [];
+  if (current.map((s) => String(s).toLowerCase()).includes(appName.toLowerCase())) return;
+  const next = [...current, appName];
+  store.set('excludedApps', next);
+  if (poller) poller.setExcludedApps(next);
+  updateTrayMenu();
+  try {
+    new Notification({
+      title: 'Sakspilot',
+      body: `«${appName}» logges ikke lenger. Du kan angre i Innstillinger.`,
+    }).show();
+  } catch { /* notif ikke kritisk */ }
+}
+
+// Start ved Windows-innlogging. openAsHidden sa appen starter rett i tray.
+function setOpenAtLogin(enabled) {
+  try {
+    app.setLoginItemSettings({ openAtLogin: !!enabled, openAsHidden: true });
+  } catch (e) {
+    console.warn('[LoginItem] kunne ikke sette openAtLogin:', e.message);
+  }
+  updateTrayMenu();
 }
 
 function truncate(s, n) {
   if (!s) return '';
   return s.length > n ? s.slice(0, n - 1) + '…' : s;
+}
+
+// Mapper API-URL -> web-URL. Samlet ett sted (var duplisert 3 steder med
+// inkonsistens: tray-varianten manglet .replace('/api','') som de andre
+// hadde). Bruk denne overalt.
+function getWebUrl(apiUrl) {
+  const url = apiUrl || store.get('apiUrl') || 'https://api.sakspilot.no';
+  if (url.includes('sakspilot.no')) return 'https://sakspilot.no';
+  if (url.includes('onrender.com')) return 'https://sakspilot-web.vercel.app';
+  return url.replace(/:\d+$/, ':3001').replace('/api', '');
 }
 
 function formatDur(sec) {
@@ -978,13 +1025,7 @@ function openDashboardWindow() {
     return;
   }
 
-  const apiUrl = store.get('apiUrl') || 'https://api.sakspilot.no';
-  // For prod: api.sakspilot.no + sakspilot.no. For dev: localhost:8001 + localhost:3001
-  const webUrl = apiUrl.includes('sakspilot.no')
-    ? 'https://sakspilot.no'
-    : apiUrl.includes('onrender.com')
-      ? 'https://sakspilot-web.vercel.app'
-      : apiUrl.replace(/:\d+$/, ':3001').replace('/api', '');
+  const webUrl = getWebUrl();
 
   dashboardWindow = new BrowserWindow({
     width: 1280,
@@ -1309,12 +1350,7 @@ function notify(arg1, arg2) {
  */
 function navigateDashboardTo(targetPath) {
   // Bygg full URL ut fra samme logikk som openDashboardWindow bruker
-  const apiUrl = store.get('apiUrl') || 'https://api.sakspilot.no';
-  const webUrl = apiUrl.includes('sakspilot.no')
-    ? 'https://sakspilot.no'
-    : apiUrl.includes('onrender.com')
-      ? 'https://sakspilot-web.vercel.app'
-      : apiUrl.replace(/:\d+$/, ':3001').replace('/api', '');
+  const webUrl = getWebUrl();
   const fullUrl = `${webUrl}${targetPath}`;
 
   if (!dashboardWindow || dashboardWindow.isDestroyed()) {
