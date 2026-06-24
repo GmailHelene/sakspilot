@@ -159,16 +159,24 @@ export default function SakDetailPage() {
               </div>
             )}
             {!summary || summary.entryCount === 0 ? (
-              <div
-                style={{
-                  textAlign: 'center',
-                  padding: 24,
-                  color: tokens.color.textMuted,
-                  fontSize: 14,
-                }}
-              >
-                Ingen tid logget enda. Installer desktop-agenten - den fyller dette automatisk
-                når den oppdager at du jobber på prosjektet (matching-regler avgjør koblingen).
+              <div style={{ padding: 20, fontSize: 14, lineHeight: 1.6 }}>
+                <div style={{ fontWeight: 600, marginBottom: 10, color: tokens.color.text }}>
+                  Ingen tid logget enda.
+                </div>
+                <div style={{ color: tokens.color.textMuted, marginBottom: 12 }}>
+                  Slik logger du tid automatisk - uten å sette opp noe:
+                </div>
+                <ol style={{ margin: 0, paddingLeft: 20, color: tokens.color.textMuted, display: 'grid', gap: 6 }}>
+                  <li>
+                    Åpne <strong>Sakspilot desktop-appen</strong>{' '}
+                    (<Link href="/last-ned" style={{ color: tokens.color.textMuted, textDecoration: 'underline' }}>last ned</Link>)
+                  </li>
+                  <li>Skru på <strong>Auto-spor</strong> i menylinjen øverst</li>
+                  <li>Hold dette prosjektet åpent mens du jobber</li>
+                </ol>
+                <div style={{ color: tokens.color.textSubtle, marginTop: 12, fontSize: 13 }}>
+                  Alt du gjør telles automatisk til dette prosjektet så lenge det er åpent. Ingen regler nødvendig.
+                </div>
               </div>
             ) : null}
           </SectionCard>
@@ -184,8 +192,22 @@ export default function SakDetailPage() {
             <TimeEntriesSection sakId={sak.id} sakTitle={sak.title} />
           )}
 
-          {/* ── Matching-regler ── */}
-          <MatchingRulesSection sak={sak} onChange={refresh} />
+          {/* ── Matching-regler (avansert, valgfritt) ──
+              Demotert 2026-06: de fleste trenger ikke regex-regler. Aktiv-sak
+              (prosjektet er aapent) + Auto-spor logger tid hit automatisk.
+              Reglene er for power-brukere som vil koble tid uten aa ha
+              prosjektet aapent. Sammenslaatt som standard. */}
+          <details style={{ marginTop: 8 }}>
+            <summary style={{ cursor: 'pointer', color: tokens.color.textMuted, fontSize: 14, padding: '8px 0', userSelect: 'none' }}>
+              ⚙ Avansert: automatiske matching-regler (valgfritt)
+            </summary>
+            <div style={{ color: tokens.color.textSubtle, fontSize: 13, margin: '4px 0 12px', lineHeight: 1.5 }}>
+              Trenger du vanligvis ikke. Bruk dette kun hvis du vil at tid skal
+              kobles til dette prosjektet automatisk basert på vindustittel eller
+              fil, uten å ha prosjektet åpent i Sakspilot.
+            </div>
+            <MatchingRulesSection sak={sak} onChange={refresh} />
+          </details>
 
           {/* ── Frister ── */}
           <MilestonesSection sak={sak} onChange={refresh} />
