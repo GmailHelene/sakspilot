@@ -42,8 +42,22 @@ class Poller extends EventEmitter {
     if (this.intervalId) return; // allerede startet
     // active-win er cross-platform (win32 + darwin + linux). Default-export
     // er selve funksjonen: const activeWin = require('active-win'); await activeWin();
-    const mod = await import('active-win');
-    this.activeWindow = mod.default;
+    // Binæren kan mangle/være inkompatibel etter bygg på tvers av Electron-
+    // versjoner. Da kaster vi en tydelig, merket feil sa main kan vise
+    // brukeren noe forstaaelig istedenfor en stille frossen tray.
+    try {
+      const mod = await import('active-win');
+      this.activeWindow = mod.default;
+    } catch (err) {
+      const e = new Error(
+        'active-win kunne ikke lastes (mangler eller feil binær for denne maskinen). ' +
+        'Automatisk tidsregistrering kan ikke kjøre.'
+      );
+      e.code = 'ACTIVE_WIN_MISSING';
+      e.cause = err;
+      this.emit('error', e);
+      throw e;
+    }
     this._tick(); // første tick umiddelbart
     this.intervalId = setInterval(() => this._tick(), this.intervalSec * 1000);
     this.emit('started');

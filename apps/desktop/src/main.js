@@ -198,7 +198,26 @@ function initializeAgent() {
 
     poller.on('error', (err) => console.error('[Poller] feil:', err.message));
 
-    poller.start();
+    // Start sporingen. Hvis active-win-binæren mangler/er inkompatibel,
+    // vis en forstaaelig feil istedenfor en stille frossen tray.
+    poller.start().catch((err) => {
+      if (err?.code === 'ACTIVE_WIN_MISSING') {
+        try {
+          dialog.showMessageBox({
+            type: 'error',
+            title: 'Sakspilot kan ikke spore tid',
+            message: 'Automatisk tidsregistrering kunne ikke starte.',
+            detail:
+              'Komponenten som leser aktivt vindu mangler eller passer ikke med denne ' +
+              'maskinen. Resten av appen virker, men tid logges ikke automatisk.\n\n' +
+              'Prøv å installere Sakspilot på nytt fra siste versjon. Hjelper det ikke, ' +
+              'gi beskjed via Tilbakemelding i appen.',
+            buttons: ['OK'],
+            noLink: true,
+          });
+        } catch { /* dialog ikke kritisk */ }
+      }
+    });
     poller.pause(); // start pauset - venter på "Start arbeidsøkt"
 
     // Hvis auto-track er på, sett aktiv-sak-fallback fra siste lagrede valg
@@ -1282,7 +1301,44 @@ async function login(apiUrl, email, password) {
   // klikke gjennom tray-menyen manuelt
   if (settingsWindow && !settingsWindow.isDestroyed()) settingsWindow.close();
   setTimeout(() => openDashboardWindow(), 500);
+  // Førstegangs-onboarding: forklar at de maa starte en arbeidsøkt, hva som
+  // logges (personvern), og tilby aa starte med en gang. Vises kun én gang.
+  setTimeout(() => showFirstRunOnboarding(), 900);
   return data;
+}
+
+// Førstegangs-dialog etter første innlogging. Loeser to ting analysen fant:
+// (1) ny bruker skjonner ikke at de maa trykke "Start arbeidsokt", og
+// (2) personvern-info var gjemt som en fotnote. Vises én gang (store-flag).
+async function showFirstRunOnboarding() {
+  if (store.get('onboardingShown')) return;
+  store.set('onboardingShown', true);
+  try {
+    const res = await dialog.showMessageBox({
+      type: 'info',
+      title: 'Velkommen til Sakspilot',
+      message: 'Sakspilot logger arbeidstiden din automatisk.',
+      detail:
+        'Slik kommer du i gang:\n\n' +
+        '1. Klikk "Start arbeidsøkt" i Sakspilot-menyen (ikonet nede til høyre, ved klokka).\n' +
+        '2. Jobb som vanlig - tiden logges og kobles til prosjektet du har åpent i Sakspilot.\n' +
+        '3. Stopp arbeidsøkta når du er ferdig, så får du rapport + fakturagrunnlag.\n\n' +
+        'Personvern: Vi logger kun vindustittel og appnavn for å koble tid til riktig ' +
+        'prosjekt - ingen skjermbilder, ingen tastetrykk. Vil du holde en app utenfor ' +
+        '(f.eks. nettbank), velg "Ikke logg «app»" i menyen mens du er i den. ' +
+        'Data lagres på EU-servere (Frankfurt).\n\n' +
+        'Vil du starte en arbeidsøkt nå?',
+      buttons: ['Start arbeidsøkt nå', 'Senere'],
+      defaultId: 0,
+      cancelId: 1,
+      noLink: true,
+    });
+    if (res.response === 0) {
+      startWorkSession();
+    }
+  } catch (e) {
+    console.warn('[Onboarding] dialog feilet:', e.message);
+  }
 }
 
 function logout() {
@@ -1870,4 +1926,8 @@ ipcMain.handle('shell:get-shortcut-state', () => {
 
 // Oppdater tray-menyen hvert 5. sekund for å holde elapsed-tid + pomodoro-
 // nedtelling fersk (kortere intervall siden pomodoroen viser m:ss-igjen)
-setInterval(() => updateTrayMenu(), 5000);
+// Oppdater tray hvert 5. sek KUN under aktiv arbeidsøkt (for å vise medgått
+// tid som teller). Naar ingen økt er aktiv endrer menyen seg bare paa
+// eksplisitte handlinger (som kaller updateTrayMenu direkte), saa da slipper
+// vi aa bygge hele menyen hvert 5. sek doegnet rundt.
+setInterval(() => { if (workSessionActive) updateTrayMenu(); }, 5000);
